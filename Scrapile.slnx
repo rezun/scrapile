@@ -3,5 +3,6 @@
   <Project Path="Scrapile.Application/Scrapile.Application.csproj" />
   <Project Path="Scrapile.Desktop/Scrapile.Desktop.csproj" />
   <Project Path="Scrapile.Domain/Scrapile.Domain.csproj" />
+  <Project Path="Scrapile.Infrastructure.Tests/Scrapile.Infrastructure.Tests.csproj" />
   <Project Path="Scrapile.Infrastructure/Scrapile.Infrastructure.csproj" />
 </Solution>
