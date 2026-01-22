@@ -48,7 +48,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
 
         // Create the tab list view model
-        _tabListViewModel = new TabListViewModel(_tabManager);
+        _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
 
@@ -145,13 +145,17 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>
     /// Closes the currently selected tab.
+    /// Ensures any unsaved content is saved before closing.
     /// </summary>
     public async Task CloseCurrentTabAsync()
     {
-        if (SelectedTab != null)
+        if (SelectedTab == null)
         {
-            await TabListViewModel.CloseTabAsync(SelectedTab);
+            return;
         }
+
+        // Pass the current editor content so we save the latest changes
+        await TabListViewModel.CloseTabAsync(SelectedTab, EditorViewModel.Content);
     }
 
     /// <summary>

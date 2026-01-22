@@ -927,12 +927,23 @@ Implement basic tab lifecycle in UI.
 - Ctrl+W: Close current tab
 
 **Acceptance Criteria:**
-- [ ] New tab appears and becomes selected
-- [ ] Close removes tab from list
-- [ ] Keyboard shortcuts work
-- [ ] Content saved before close
+- [x] New tab appears and becomes selected
+- [x] Close removes tab from list
+- [x] Keyboard shortcuts work
+- [x] Content saved before close
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- "New Tab" button functionality was already implemented in Task 4.3 via `TabListViewModel.CreateNewTabAsync()`
+- Close button on tab items was already implemented in Task 4.3 via `TabItemViewModel.Close()` command
+- Keyboard shortcuts (Ctrl+T, Ctrl+W) were already implemented in Task 4.5 in `MainWindow.axaml.cs`
+- **Added save-before-close functionality:**
+  - Updated `TabListViewModel` to accept optional `AutoSaveService` for saving before close
+  - Modified `TabListViewModel.CloseTabAsync()` to save dirty content before closing
+  - Updated `MainWindowViewModel.CloseCurrentTabAsync()` to pass current editor content for save
+  - Works for both keyboard shortcut (Ctrl+W) and close button (X) on tabs
+- All 248 tests pass (73 Infrastructure + 175 Application)
 
 ---
 

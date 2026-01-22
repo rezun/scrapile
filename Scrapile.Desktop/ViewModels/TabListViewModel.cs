@@ -15,6 +15,7 @@ using Scrapile.Application.Services;
 public partial class TabListViewModel : ViewModelBase
 {
     private readonly TabManager _tabManager;
+    private readonly AutoSaveService? _autoSaveService;
 
     [ObservableProperty]
     private ObservableCollection<TabItemViewModel> _tabs = new();
@@ -36,9 +37,11 @@ public partial class TabListViewModel : ViewModelBase
     /// Creates a new TabListViewModel.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
-    public TabListViewModel(TabManager tabManager)
+    /// <param name="autoSaveService">The auto-save service (optional, for saving before close).</param>
+    public TabListViewModel(TabManager tabManager, AutoSaveService? autoSaveService = null)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
+        _autoSaveService = autoSaveService;
     }
 
     /// <summary>
@@ -85,12 +88,22 @@ public partial class TabListViewModel : ViewModelBase
 
     /// <summary>
     /// Closes a tab.
+    /// Saves any unsaved content before closing.
     /// </summary>
     /// <param name="tabViewModel">The tab to close.</param>
-    public async Task CloseTabAsync(TabItemViewModel tabViewModel)
+    /// <param name="contentToSave">Optional content to save (used when closing via keyboard shortcut with current editor content).</param>
+    public async Task CloseTabAsync(TabItemViewModel tabViewModel, string? contentToSave = null)
     {
         var index = Tabs.IndexOf(tabViewModel);
         var wasSelected = tabViewModel.IsSelected;
+
+        // Save content before closing if tab is dirty
+        if (_autoSaveService != null && tabViewModel.IsDirty)
+        {
+            // Use provided content if available (from editor), otherwise get from tab manager
+            var content = contentToSave ?? _tabManager.GetTab(tabViewModel.TabId)?.Tab.Content ?? string.Empty;
+            await _autoSaveService.SaveImmediatelyAsync(tabViewModel.DocumentId, content);
+        }
 
         await _tabManager.CloseTabAsync(tabViewModel.TabId);
         Tabs.Remove(tabViewModel);
