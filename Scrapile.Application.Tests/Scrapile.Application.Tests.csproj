@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Scrapile.Application\Scrapile.Application.csproj" />
+    <ProjectReference Include="..\Scrapile.Infrastructure\Scrapile.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
