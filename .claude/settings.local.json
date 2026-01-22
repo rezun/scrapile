@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(dotnet:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ]
   }
 }
