@@ -89,11 +89,11 @@ Implement core domain entities in `Scrapile.Domain`.
 - `ContentPreview` is a calculated property
 
 **Acceptance Criteria:**
-- [ ] All entity classes compile
-- [ ] Properties match specification in `ProjectPlan.md` Section 2.3 and Appendix A.1
-- [ ] No UI or infrastructure dependencies in Domain project
+- [x] All entity classes compile
+- [x] Properties match specification in `ProjectPlan.md` Section 2.3 and Appendix A.1
+- [x] No UI or infrastructure dependencies in Domain project
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
