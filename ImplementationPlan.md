@@ -130,12 +130,12 @@ Implement content processing utilities in `Scrapile.Application`.
    - `FormatCount(int count)` - Abbreviate large numbers (1.5k, 23k)
 
 **Acceptance Criteria:**
-- [ ] Preview extraction handles empty/whitespace content gracefully
-- [ ] Word count splits on all whitespace types
-- [ ] Count formatting works for values 0 to 1,000,000+
-- [ ] Unit tests pass for edge cases
+- [x] Preview extraction handles empty/whitespace content gracefully
+- [x] Word count splits on all whitespace types
+- [x] Count formatting works for values 0 to 1,000,000+
+- [x] Unit tests pass for edge cases
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
