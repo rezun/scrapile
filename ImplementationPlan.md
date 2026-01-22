@@ -478,12 +478,12 @@ Implement debounced auto-save functionality.
 - `SaveImmediately` cancels any pending debounced save
 
 **Acceptance Criteria:**
-- [ ] Debouncing works correctly (rapid typing = single save)
-- [ ] Immediate save works for tab close scenarios
-- [ ] No race conditions with concurrent saves
-- [ ] Cancellation handled gracefully
+- [x] Debouncing works correctly (rapid typing = single save)
+- [x] Immediate save works for tab close scenarios
+- [x] No race conditions with concurrent saves
+- [x] Cancellation handled gracefully
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
