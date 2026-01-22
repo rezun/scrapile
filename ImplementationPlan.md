@@ -234,13 +234,13 @@ Implement `IDocumentRepository` using file system storage.
 - `DeleteAsync` - Remove file from disk
 
 **Acceptance Criteria:**
-- [ ] Documents persist to disk as .txt files
-- [ ] File naming convention matches spec
-- [ ] Atomic writes prevent data corruption
-- [ ] Handles missing files gracefully
-- [ ] Works with configurable storage directory
+- [x] Documents persist to disk as .txt files
+- [x] File naming convention matches spec
+- [x] Atomic writes prevent data corruption
+- [x] Handles missing files gracefully
+- [x] Works with configurable storage directory
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
