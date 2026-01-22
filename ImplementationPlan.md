@@ -763,12 +763,21 @@ Implement main window with split layout.
 **Reference:** `ProjectPlan.md` Section 4.1 for layout diagram
 
 **Acceptance Criteria:**
-- [ ] Window displays with correct layout
-- [ ] Panels resize appropriately
-- [ ] Window state (size, position) feels natural
-- [ ] Proper window title
+- [x] Window displays with correct layout
+- [x] Panels resize appropriately
+- [x] Window state (size, position) feels natural
+- [x] Proper window title
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Two-column Grid layout with resizable GridSplitter between panels
+- Left panel (220px default, 150-400px range): Tab list placeholder with scrollable area and "New Tab" button
+- Right panel (min 300px): Title edit area and main text editor placeholder
+- Empty state overlay shown when no tabs are open (bound to HasTabs property)
+- GridSplitter allows users to resize the tab list panel
+- Uses Fluent theme dynamic resources for consistent styling
+- Added HasTabs property to MainWindowViewModel for empty state handling
 
 ---
 

@@ -20,14 +20,120 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- Main content area - will be populated in future tasks -->
+    <!-- Main two-column layout: Tab list (left) | Editor (right) -->
     <Grid>
-        <TextBlock Text="Scrapile"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="24"
-                   Foreground="{DynamicResource TextControlForeground}"
-                   Opacity="0.5"/>
+        <Grid.ColumnDefinitions>
+            <!-- Tab list panel - fixed initial width, resizable -->
+            <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
+            <!-- Grid splitter -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Editor panel - takes remaining space -->
+            <ColumnDefinition Width="*" MinWidth="300"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel: Tab List Area (placeholder for Task 4.3) -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <!-- Tab list area -->
+                    <RowDefinition Height="*"/>
+                    <!-- New tab button area -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Tab list placeholder -->
+                <ScrollViewer Grid.Row="0"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="8">
+                        <!-- Placeholder tabs for design preview -->
+                        <TextBlock Text="Tabs will appear here"
+                                   Foreground="{DynamicResource TextControlForegroundDisabled}"
+                                   FontStyle="Italic"
+                                   Margin="0,8"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- New tab button area -->
+                <Border Grid.Row="1"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="8">
+                    <Button Content="+ New Tab"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            IsEnabled="False"
+                            ToolTip.Tip="Create new tab (Ctrl+T)"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Grid Splitter for resizing panels -->
+        <GridSplitter Grid.Column="1"
+                      Width="4"
+                      Background="Transparent"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"/>
+
+        <!-- Right Panel: Editor Area (placeholder for Task 4.4) -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <!-- Title edit area -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Editor area -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title edit area (placeholder) -->
+                <Border Grid.Row="0"
+                        Padding="16,12"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBox Watermark="Add a title (optional)..."
+                             IsEnabled="False"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             FontSize="16"
+                             FontWeight="SemiBold"/>
+                </Border>
+
+                <!-- Main text editor area (placeholder) -->
+                <TextBox Grid.Row="1"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         TextWrapping="Wrap"
+                         IsEnabled="False"
+                         BorderThickness="0"
+                         Padding="16"
+                         FontFamily="Consolas, Menlo, Monaco, monospace"
+                         FontSize="14"
+                         Watermark="Select or create a tab to start writing..."
+                         VerticalContentAlignment="Top"/>
+            </Grid>
+        </Border>
+
+        <!-- Empty state overlay (shown when no tabs are open) -->
+        <Border Grid.Column="2"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                IsVisible="{Binding !HasTabs}">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="16">
+                <TextBlock Text="No tabs open"
+                           FontSize="20"
+                           Foreground="{DynamicResource TextControlForegroundDisabled}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Press Ctrl+T to create a new tab"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextControlForegroundDisabled}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
     </Grid>
 
 </Window>

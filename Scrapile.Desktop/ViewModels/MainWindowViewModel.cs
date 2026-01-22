@@ -20,6 +20,9 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isInitialized;
 
+    [ObservableProperty]
+    private bool _hasTabs;
+
     /// <summary>
     /// Creates a new MainWindowViewModel with injected services.
     /// </summary>
@@ -50,6 +53,17 @@ public partial class MainWindowViewModel : ViewModelBase
         // Initialize the tab manager to restore previous session
         await _tabManager.InitializeAsync();
 
+        // Update HasTabs based on restored tabs
+        UpdateHasTabs();
+
         IsInitialized = true;
+    }
+
+    /// <summary>
+    /// Updates the HasTabs property based on the current tab count.
+    /// </summary>
+    private void UpdateHasTabs()
+    {
+        HasTabs = _tabManager.GetOpenTabs().Count > 0;
     }
 }
