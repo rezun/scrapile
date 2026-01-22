@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Scrapile.Desktop.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="600"
+             d:DesignHeight="500"
+             x:Class="Scrapile.Desktop.Views.EditorView"
+             x:DataType="vm:EditorViewModel">
+
+    <Design.DataContext>
+        <vm:EditorViewModel/>
+    </Design.DataContext>
+
+    <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+        <Grid>
+            <!-- Editor content (shown when a tab is selected) -->
+            <Grid IsVisible="{Binding HasTab}">
+                <Grid.RowDefinitions>
+                    <!-- Title edit area -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Editor area -->
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Title edit area -->
+                <Border Grid.Row="0"
+                        Padding="16,12"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,0,0,1">
+                    <TextBox x:Name="TitleTextBox"
+                             Text="{Binding Title, Mode=TwoWay}"
+                             Watermark="Add a title (optional)..."
+                             BorderThickness="0"
+                             Background="Transparent"
+                             FontSize="16"
+                             FontWeight="SemiBold"
+                             AcceptsReturn="False"/>
+                </Border>
+
+                <!-- Main text editor area -->
+                <TextBox x:Name="ContentTextBox"
+                         Grid.Row="1"
+                         Text="{Binding Content, Mode=TwoWay}"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         TextWrapping="Wrap"
+                         BorderThickness="0"
+                         Padding="16"
+                         FontFamily="Consolas, Menlo, Monaco, monospace"
+                         FontSize="14"
+                         Watermark="Start typing..."
+                         VerticalContentAlignment="Top"/>
+            </Grid>
+
+            <!-- Empty state (shown when no tab is selected) -->
+            <StackPanel IsVisible="{Binding !HasTab}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="16">
+                <TextBlock Text="No tabs open"
+                           FontSize="20"
+                           Foreground="{DynamicResource TextControlForegroundDisabled}"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="Press Ctrl+T or click 'New Tab' to create a new tab"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextControlForegroundDisabled}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+
+</UserControl>

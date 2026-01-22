@@ -846,13 +846,35 @@ Implement the main text editor component.
 5. Bind to current tab's content
 
 **Acceptance Criteria:**
-- [ ] Editor displays current tab content
-- [ ] Text changes reflected in ViewModel
-- [ ] Proper text wrapping behavior
-- [ ] Reasonable default font/size
-- [ ] Title field shows/edits document title
+- [x] Editor displays current tab content
+- [x] Text changes reflected in ViewModel
+- [x] Proper text wrapping behavior
+- [x] Reasonable default font/size
+- [x] Title field shows/edits document title
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Created `EditorViewModel.cs` with:
+  - `CurrentTab` property bound to selected tab from TabListViewModel
+  - `Content` and `Title` properties with two-way binding
+  - `HasTab` property for empty state display
+  - `IsDirty` property for unsaved changes indicator
+  - `ContentChanged` and `TitleChanged` events for auto-save integration
+- Created `EditorView.axaml` user control with:
+  - Title TextBox (optional, watermark "Add a title (optional)...")
+  - Main content TextBox (multiline, accepts returns/tabs, word wrap)
+  - Monospace font (Consolas, Menlo, Monaco) at 14pt for code-friendly editing
+  - Empty state overlay when no tab is selected
+- Created `EditorView.axaml.cs` with focus helper methods
+- Updated `MainWindowViewModel`:
+  - Added `EditorViewModel` property
+  - Wired tab selection to update editor's current tab
+  - Connected content changes to `AutoSaveService.ScheduleSaveAsync()`
+  - Connected title changes to `DocumentService.UpdateTitleAsync()`
+  - Refreshes tab stats after content changes
+- Updated `MainWindow.axaml` to use EditorView instead of placeholder
+- All 248 tests continue to pass (73 Infrastructure + 175 Application)
 
 ---
 

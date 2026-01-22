@@ -43,64 +43,10 @@
                       ResizeDirection="Columns"
                       ResizeBehavior="PreviousAndNext"/>
 
-        <!-- Right Panel: Editor Area (placeholder for Task 4.4) -->
-        <Border Grid.Column="2"
-                Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <!-- Title edit area -->
-                    <RowDefinition Height="Auto"/>
-                    <!-- Editor area -->
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-
-                <!-- Title edit area (placeholder) -->
-                <Border Grid.Row="0"
-                        Padding="16,12"
-                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                        BorderThickness="0,0,0,1"
-                        IsVisible="{Binding HasTabs}">
-                    <TextBox Watermark="Add a title (optional)..."
-                             IsEnabled="False"
-                             BorderThickness="0"
-                             Background="Transparent"
-                             FontSize="16"
-                             FontWeight="SemiBold"/>
-                </Border>
-
-                <!-- Main text editor area (placeholder) -->
-                <TextBox Grid.Row="1"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
-                         TextWrapping="Wrap"
-                         IsEnabled="False"
-                         IsVisible="{Binding HasTabs}"
-                         BorderThickness="0"
-                         Padding="16"
-                         FontFamily="Consolas, Menlo, Monaco, monospace"
-                         FontSize="14"
-                         Watermark="Start typing..."
-                         VerticalContentAlignment="Top"/>
-            </Grid>
-        </Border>
-
-        <!-- Empty state overlay (shown when no tabs are open) -->
-        <Border Grid.Column="2"
-                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
-                IsVisible="{Binding !HasTabs}">
-            <StackPanel HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Spacing="16">
-                <TextBlock Text="No tabs open"
-                           FontSize="20"
-                           Foreground="{DynamicResource TextControlForegroundDisabled}"
-                           HorizontalAlignment="Center"/>
-                <TextBlock Text="Press Ctrl+T or click 'New Tab' to create a new tab"
-                           FontSize="14"
-                           Foreground="{DynamicResource TextControlForegroundDisabled}"
-                           HorizontalAlignment="Center"/>
-            </StackPanel>
-        </Border>
+        <!-- Right Panel: Editor Area -->
+        <views:EditorView x:Name="EditorView"
+                          Grid.Column="2"
+                          DataContext="{Binding EditorViewModel}"/>
     </Grid>
 
 </Window>

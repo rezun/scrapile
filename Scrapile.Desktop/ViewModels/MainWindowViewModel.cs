@@ -27,6 +27,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private TabListViewModel _tabListViewModel;
 
     [ObservableProperty]
+    private EditorViewModel _editorViewModel;
+
+    [ObservableProperty]
     private TabItemViewModel? _selectedTab;
 
     /// <summary>
@@ -48,6 +51,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel = new TabListViewModel(_tabManager);
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
+
+        // Create the editor view model
+        _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
+        _editorViewModel.ContentChanged += OnEditorContentChanged;
+        _editorViewModel.TitleChanged += OnEditorTitleChanged;
     }
 
     /// <summary>
@@ -79,6 +87,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnTabSelected(object? sender, TabItemViewModel? tabViewModel)
     {
         SelectedTab = tabViewModel;
+        EditorViewModel.CurrentTab = tabViewModel;
     }
 
     /// <summary>
@@ -87,6 +96,38 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnTabsChanged(object? sender, EventArgs e)
     {
         UpdateHasTabs();
+    }
+
+    /// <summary>
+    /// Handles content changes from the editor.
+    /// Triggers auto-save for the document.
+    /// </summary>
+    private async void OnEditorContentChanged(object? sender, ContentChangedEventArgs e)
+    {
+        // Schedule debounced auto-save
+        // The AutoSaveService handles the debouncing and saving to disk
+        await _autoSaveService.ScheduleSaveAsync(e.DocumentId, e.Content);
+
+        // Refresh the tab stats in the list to show updated word count
+        if (SelectedTab != null)
+        {
+            TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+        }
+    }
+
+    /// <summary>
+    /// Handles title changes from the editor.
+    /// Updates the document title in the metadata store.
+    /// </summary>
+    private async void OnEditorTitleChanged(object? sender, TitleChangedEventArgs e)
+    {
+        await _documentService.UpdateTitleAsync(e.DocumentId, e.Title);
+
+        // Refresh the tab in the list to update the display name
+        if (SelectedTab != null)
+        {
+            TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+        }
     }
 
     /// <summary>
