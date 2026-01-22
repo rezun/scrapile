@@ -262,12 +262,12 @@ Implement `IMetadataStore` using JSON file storage.
 - Recently closed management methods
 
 **Acceptance Criteria:**
-- [ ] Metadata persists as JSON file
-- [ ] Handles missing/corrupted metadata file gracefully
-- [ ] JSON structure matches spec in `ProjectPlan.md` Section 2.3
-- [ ] Atomic writes prevent corruption
+- [x] Metadata persists as JSON file
+- [x] Handles missing/corrupted metadata file gracefully
+- [x] JSON structure matches spec in `ProjectPlan.md` Section 2.3
+- [x] Atomic writes prevent corruption
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
