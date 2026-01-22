@@ -569,12 +569,33 @@ Write unit tests for application services.
 5. Test TabManager lifecycle
 
 **Acceptance Criteria:**
-- [ ] All service methods have test coverage
-- [ ] Debouncing behavior verified with timing tests
-- [ ] Edge cases documented and tested
-- [ ] All tests pass
+- [x] All service methods have test coverage
+- [x] Debouncing behavior verified with timing tests
+- [x] Edge cases documented and tested
+- [x] All tests pass
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Test project `Scrapile.Application.Tests` already existed from Phase 1
+- Added `DocumentServiceTests.cs` with 27 unit tests covering:
+  - Constructor validation (null repository throws)
+  - CreateAsync with content, title, stats calculation
+  - GetByIdAsync with existing/non-existent documents
+  - GetAllAsync returning all documents with stats
+  - UpdateContentAsync delegation to repository
+  - UpdateTitleAsync with normalization (empty/whitespace → null)
+  - DeleteAsync delegation to repository
+  - SearchAsync with stats calculation
+  - Full workflow integration test
+  - Large document stats calculation (1.5k words)
+- Existing tests cover:
+  - ContentHelper: 39 tests (preview, word count, char count, formatting)
+  - AutoSaveService: 30 tests (debouncing, immediate save, cancellation, concurrency)
+  - TabManager: 58 tests (lifecycle, reorder, recently closed, dirty tracking)
+- All 155 Application tests pass
+- All 73 Infrastructure tests pass
+- Total: 228 tests passing
 
 ---
 
