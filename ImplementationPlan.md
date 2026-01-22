@@ -1012,12 +1012,28 @@ Connect UI to AutoSaveService.
 4. Ensure save completes on tab close
 
 **Acceptance Criteria:**
-- [ ] Typing triggers debounced save
-- [ ] No save on every keystroke (debouncing works)
-- [ ] Save indicator shows state (if implemented)
-- [ ] Closing tab waits for save to complete
+- [x] Typing triggers debounced save
+- [x] No save on every keystroke (debouncing works)
+- [x] Save indicator shows state (if implemented)
+- [x] Closing tab waits for save to complete
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Much of the auto-save integration was already implemented in Phase 4:
+  - `EditorViewModel.ContentChanged` event is raised on content changes
+  - `MainWindowViewModel.OnEditorContentChanged` calls `AutoSaveService.ScheduleSaveAsync()`
+  - `TabListViewModel.CloseTabAsync` calls `AutoSaveService.SaveImmediatelyAsync()` before close
+- Added `SaveCompleted` event to `AutoSaveService` to notify when debounced saves complete
+- Added `SaveCompletedEventArgs` class with `DocumentId` property
+- Added `MarkTabSaved(Guid documentId)` method to `TabManager` to reset dirty state by document ID
+- Updated `MainWindowViewModel` to:
+  - Subscribe to `AutoSaveService.SaveCompleted` event
+  - Reset dirty state in both `TabManager` and `EditorViewModel` on save completion
+  - Show "Saving..." status during save, "Saved" briefly after completion
+- Added save status indicator to `EditorView` (shows in title area)
+- Added dirty indicator dot (accent-colored ellipse) to tab items in `TabListView`
+- All 249 tests pass (73 infrastructure + 176 application)
 
 ---
 

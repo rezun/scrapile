@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -62,6 +63,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
         _editorViewModel.ContentChanged += OnEditorContentChanged;
         _editorViewModel.TitleChanged += OnEditorTitleChanged;
+
+        // Subscribe to auto-save completion to update dirty state
+        _autoSaveService.SaveCompleted += OnAutoSaveCompleted;
     }
 
     /// <summary>
@@ -113,6 +117,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnEditorContentChanged(object? sender, ContentChangedEventArgs e)
     {
+        // Show save status indicator
+        EditorViewModel.SaveStatus = "Saving...";
+
         // Schedule debounced auto-save
         // The AutoSaveService handles the debouncing and saving to disk
         await _autoSaveService.ScheduleSaveAsync(e.DocumentId, e.Content);
@@ -140,6 +147,37 @@ public partial class MainWindowViewModel : ViewModelBase
         if (SelectedTab != null)
         {
             TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+        }
+    }
+
+    /// <summary>
+    /// Handles auto-save completion events.
+    /// Resets the dirty state for the document that was saved.
+    /// </summary>
+    private async void OnAutoSaveCompleted(object? sender, SaveCompletedEventArgs e)
+    {
+        // Mark the tab as no longer dirty in the TabManager
+        _tabManager.MarkTabSaved(e.DocumentId);
+
+        // Update the editor's dirty state and save status if this is the current tab
+        if (SelectedTab?.DocumentId == e.DocumentId)
+        {
+            EditorViewModel.SetDirty(false);
+            EditorViewModel.SaveStatus = "Saved";
+
+            // Clear the save status after a short delay
+            await Task.Delay(1500);
+            if (EditorViewModel.SaveStatus == "Saved")
+            {
+                EditorViewModel.SaveStatus = string.Empty;
+            }
+        }
+
+        // Refresh the tab to update the dirty indicator
+        var tabWithStats = _tabManager.GetOpenTabs().FirstOrDefault(t => t.Tab.Document.Id == e.DocumentId);
+        if (tabWithStats != null)
+        {
+            TabListViewModel.RefreshTabStats(tabWithStats.Tab.TabId);
         }
     }
 

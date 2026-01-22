@@ -16,6 +16,11 @@ public class AutoSaveService : IDisposable
     private bool _disposed;
 
     /// <summary>
+    /// Event raised when a debounced save operation completes successfully.
+    /// </summary>
+    public event EventHandler<SaveCompletedEventArgs>? SaveCompleted;
+
+    /// <summary>
     /// Creates a new AutoSaveService with the default debounce delay (500ms).
     /// </summary>
     /// <param name="repository">The document repository for storage operations.</param>
@@ -186,6 +191,9 @@ public class AutoSaveService : IDisposable
                     _pendingSaves.Remove(documentId);
                 }
             }
+
+            // Raise event to notify that save completed
+            SaveCompleted?.Invoke(this, new SaveCompletedEventArgs(documentId));
         }
         catch (OperationCanceledException)
         {
@@ -218,5 +226,25 @@ public class AutoSaveService : IDisposable
             cts.Cancel();
             cts.Dispose();
         }
+    }
+}
+
+/// <summary>
+/// Event args for save completed events.
+/// </summary>
+public class SaveCompletedEventArgs : EventArgs
+{
+    /// <summary>
+    /// The ID of the document that was saved.
+    /// </summary>
+    public Guid DocumentId { get; }
+
+    /// <summary>
+    /// Creates a new SaveCompletedEventArgs.
+    /// </summary>
+    /// <param name="documentId">The ID of the document that was saved.</param>
+    public SaveCompletedEventArgs(Guid documentId)
+    {
+        DocumentId = documentId;
     }
 }

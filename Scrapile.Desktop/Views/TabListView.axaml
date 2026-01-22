@@ -63,12 +63,20 @@
                                     <StackPanel Grid.Column="0"
                                                 Spacing="2"
                                                 VerticalAlignment="Center">
-                                        <!-- Title/Preview -->
-                                        <TextBlock Text="{Binding DisplayName}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   MaxLines="1"
-                                                   FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
-                                                   ToolTip.Tip="{Binding DisplayName}"/>
+                                        <!-- Title/Preview with dirty indicator -->
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <!-- Dirty indicator dot -->
+                                            <Ellipse Width="6" Height="6"
+                                                     Fill="{DynamicResource SystemControlForegroundAccentBrush}"
+                                                     VerticalAlignment="Center"
+                                                     IsVisible="{Binding IsDirty}"
+                                                     ToolTip.Tip="Unsaved changes"/>
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="1"
+                                                       FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                       ToolTip.Tip="{Binding DisplayName}"/>
+                                        </StackPanel>
 
                                         <!-- Stats subtitle -->
                                         <TextBlock Text="{Binding FormattedWordCount}"

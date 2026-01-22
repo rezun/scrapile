@@ -68,13 +68,23 @@
                         Padding="16,12"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,0,0,1">
-                    <TextBox x:Name="TitleTextBox"
-                             Classes="editor-textbox"
-                             Text="{Binding Title, Mode=TwoWay}"
-                             Watermark="Add a title (optional)..."
-                             FontSize="16"
-                             FontWeight="SemiBold"
-                             AcceptsReturn="False"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="TitleTextBox"
+                                 Grid.Column="0"
+                                 Classes="editor-textbox"
+                                 Text="{Binding Title, Mode=TwoWay}"
+                                 Watermark="Add a title (optional)..."
+                                 FontSize="16"
+                                 FontWeight="SemiBold"
+                                 AcceptsReturn="False"/>
+                        <!-- Save status indicator -->
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding SaveStatus}"
+                                   FontSize="12"
+                                   Opacity="0.6"
+                                   VerticalAlignment="Center"
+                                   Margin="8,0,0,0"/>
+                    </Grid>
                 </Border>
 
                 <!-- Main text editor area -->

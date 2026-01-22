@@ -510,6 +510,28 @@ public class TabManager
     }
 
     /// <summary>
+    /// Marks a tab as saved (not dirty) by document ID after the document has been persisted.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <returns>True if update succeeded, false if document not found in any tab.</returns>
+    public bool MarkTabSaved(Guid documentId)
+    {
+        lock (_lock)
+        {
+            var tab = _tabs.FirstOrDefault(t => t.Document.Id == documentId);
+            if (tab == null)
+            {
+                return false;
+            }
+
+            // Update the document content to match tab content
+            tab.Document.Content = tab.Content;
+            tab.IsDirty = false;
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Gets the count of open tabs.
     /// </summary>
     public int TabCount

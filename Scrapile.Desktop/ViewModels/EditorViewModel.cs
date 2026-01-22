@@ -29,6 +29,9 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isDirty;
 
+    [ObservableProperty]
+    private string _saveStatus = string.Empty;
+
     /// <summary>
     /// Event raised when content changes for auto-save purposes.
     /// </summary>
