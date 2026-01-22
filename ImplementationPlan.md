@@ -802,13 +802,34 @@ Implement vertical tab list component.
 - Subtitle: "245 words" format
 
 **Acceptance Criteria:**
-- [ ] Tabs display vertically
-- [ ] Selected tab visually distinct
-- [ ] Close button visible on hover or always
-- [ ] New tab button functional
-- [ ] Scrollable when many tabs
+- [x] Tabs display vertically
+- [x] Selected tab visually distinct
+- [x] Close button visible on hover or always
+- [x] New tab button functional
+- [x] Scrollable when many tabs
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Created `TabListView.axaml` user control with vertical tab list
+- Created `TabListViewModel.cs` to manage tab collection and selection
+- Created `TabItemViewModel.cs` for individual tab item data binding
+- Created `Converters.cs` with `BoolToFontWeightConverter` for title styling
+- Tab items display:
+  - Title (bold) or content preview (normal weight)
+  - Stats subtitle showing word count (e.g., "245 words")
+  - Close button with hover effect
+- Visual states:
+  - Default: transparent background
+  - Hover: light highlight
+  - Selected: accent highlight
+  - Selected+hover: medium accent highlight
+- Uses Avalonia's `Classes.selected` binding for selection styling
+- ScrollViewer wraps tab list for scrollable content
+- "New Tab" button at bottom with Ctrl+T tooltip
+- MainWindowViewModel updated to include TabListViewModel
+- MainWindow.axaml updated to use TabListView control
+- All 175 existing tests continue to pass
 
 ---
 

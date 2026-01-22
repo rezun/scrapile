@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Scrapile.Desktop.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="220"
+             d:DesignHeight="600"
+             x:Class="Scrapile.Desktop.Views.TabListView"
+             x:DataType="vm:TabListViewModel">
+
+    <UserControl.Resources>
+        <vm:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            BorderThickness="0,0,1,0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <!-- Tab list area -->
+                <RowDefinition Height="*"/>
+                <!-- New tab button area -->
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Tab list -->
+            <ScrollViewer Grid.Row="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding Tabs}"
+                              Margin="4,4,4,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:TabItemViewModel">
+                            <!-- Tab item using ListBoxItem-like styling -->
+                            <Border x:Name="TabBorder"
+                                    CornerRadius="4"
+                                    Margin="0,0,0,2"
+                                    Padding="8,6"
+                                    Cursor="Hand"
+                                    PointerPressed="OnTabPointerPressed"
+                                    Classes.selected="{Binding IsSelected}">
+
+                                <Border.Styles>
+                                    <!-- Default state -->
+                                    <Style Selector="Border">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                    <!-- Hover state (not selected) -->
+                                    <Style Selector="Border:pointerover:not(.selected)">
+                                        <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+                                    </Style>
+                                    <!-- Selected state -->
+                                    <Style Selector="Border.selected">
+                                        <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
+                                    </Style>
+                                    <!-- Selected + hover state -->
+                                    <Style Selector="Border.selected:pointerover">
+                                        <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
+                                    </Style>
+                                </Border.Styles>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <!-- Tab content (title and stats) -->
+                                    <StackPanel Grid.Column="0"
+                                                Spacing="2"
+                                                VerticalAlignment="Center">
+                                        <!-- Title/Preview -->
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxLines="1"
+                                                   FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                   ToolTip.Tip="{Binding DisplayName}"/>
+
+                                        <!-- Stats subtitle -->
+                                        <TextBlock Text="{Binding FormattedWordCount}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextControlForegroundDisabled}"/>
+                                    </StackPanel>
+
+                                    <!-- Close button -->
+                                    <Button Grid.Column="1"
+                                            Command="{Binding CloseCommand}"
+                                            VerticalAlignment="Center"
+                                            Padding="4"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            ToolTip.Tip="Close tab (Ctrl+W)"
+                                            Cursor="Hand">
+                                        <Button.Styles>
+                                            <Style Selector="Button">
+                                                <Setter Property="Opacity" Value="0.5"/>
+                                            </Style>
+                                            <Style Selector="Button:pointerover">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListMediumBrush}"/>
+                                            </Style>
+                                        </Button.Styles>
+                                        <!-- X icon using path -->
+                                        <PathIcon Data="M13.46,12L19,17.54V19H17.54L12,13.46L6.46,19H5V17.54L10.54,12L5,6.46V5H6.46L12,10.54L17.54,5H19V6.46L13.46,12Z"
+                                                  Width="10"
+                                                  Height="10"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Empty state message when no tabs -->
+            <TextBlock Grid.Row="0"
+                       Text="No tabs open"
+                       IsVisible="{Binding !HasTabs}"
+                       Foreground="{DynamicResource TextControlForegroundDisabled}"
+                       FontStyle="Italic"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0,20"/>
+
+            <!-- New tab button area -->
+            <Border Grid.Row="1"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="8">
+                <Button Content="+ New Tab"
+                        Command="{Binding CreateNewTabCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        ToolTip.Tip="Create new tab (Ctrl+T)"/>
+            </Border>
+        </Grid>
+    </Border>
+
+</UserControl>
