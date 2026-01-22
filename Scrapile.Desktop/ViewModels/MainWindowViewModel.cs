@@ -247,4 +247,24 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     [RelayCommand]
     public Task CycleTheme() => _themeService.CycleThemeAsync();
+
+    /// <summary>
+    /// Saves all pending changes for dirty tabs.
+    /// Call this before application shutdown to ensure no data loss.
+    /// </summary>
+    /// <returns>A task that completes when all saves are finished.</returns>
+    public async Task SaveAllPendingChangesAsync()
+    {
+        // Get all dirty tabs that need saving
+        var dirtyTabs = _tabManager.GetDirtyTabs();
+
+        // Save each dirty tab immediately
+        foreach (var tabWithStats in dirtyTabs)
+        {
+            var documentId = tabWithStats.Tab.Document.Id;
+            var content = tabWithStats.Tab.Content;
+
+            await _autoSaveService.SaveImmediatelyAsync(documentId, content);
+        }
+    }
 }

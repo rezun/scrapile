@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Avalonia.Markup.Xaml;
 using Microsoft.Extensions.DependencyInjection;
+using Scrapile.Application.Helpers;
 using Scrapile.Desktop.DependencyInjection;
 using Scrapile.Desktop.ViewModels;
 using Scrapile.Desktop.Views;
@@ -54,6 +55,21 @@ public partial class App : Avalonia.Application
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
+        // Save all pending changes before shutting down
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
+            desktop.MainWindow?.DataContext is MainWindowViewModel viewModel)
+        {
+            try
+            {
+                // Use AsyncHelper to run async save synchronously without deadlocks
+                AsyncHelper.RunSync(viewModel.SaveAllPendingChangesAsync);
+            }
+            catch
+            {
+                // Don't prevent shutdown even if save fails
+            }
+        }
+
         // Dispose of services that implement IDisposable
         if (Services is IDisposable disposable)
         {

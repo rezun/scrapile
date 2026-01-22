@@ -664,4 +664,136 @@ public class ServicesIntegrationTests : IDisposable
     }
 
     #endregion
+
+    #region Session Save on Exit Tests
+
+    [Fact]
+    public async Task SessionSaveOnExit_DirtyTabs_SavedImmediately()
+    {
+        // Arrange - Create tabs with dirty content
+        await _tabManager.InitializeAsync();
+        var tab1 = await _tabManager.CreateTabAsync();
+        var tab2 = await _tabManager.CreateTabAsync();
+
+        // Update content (making tabs dirty)
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Dirty content 1");
+        _tabManager.UpdateTabContent(tab2.Tab.TabId, "Dirty content 2");
+
+        Assert.True(_tabManager.HasDirtyTabs);
+        var dirtyTabs = _tabManager.GetDirtyTabs();
+        Assert.Equal(2, dirtyTabs.Count);
+
+        // Act - Save all dirty tabs (simulating app shutdown)
+        foreach (var tabWithStats in dirtyTabs)
+        {
+            var documentId = tabWithStats.Tab.Document.Id;
+            var content = tabWithStats.Tab.Content;
+            await _autoSaveService.SaveImmediatelyAsync(documentId, content);
+        }
+
+        // Assert - Content should be persisted to disk
+        var doc1 = await _documentService.GetByIdAsync(tab1.Tab.Document.Id);
+        var doc2 = await _documentService.GetByIdAsync(tab2.Tab.Document.Id);
+        Assert.Equal("Dirty content 1", doc1!.Document.Content);
+        Assert.Equal("Dirty content 2", doc2!.Document.Content);
+    }
+
+    [Fact]
+    public async Task SessionSaveOnExit_CancelsPendingDebouncedSaves()
+    {
+        // Arrange - Create tab and schedule a debounced save
+        await _tabManager.InitializeAsync();
+        var tab = await _tabManager.CreateTabAsync();
+
+        await _autoSaveService.ScheduleSaveAsync(tab.Tab.Document.Id, "Pending content");
+        Assert.True(_autoSaveService.HasPendingSave(tab.Tab.Document.Id));
+
+        // Act - Save immediately (simulating app shutdown)
+        await _autoSaveService.SaveImmediatelyAsync(tab.Tab.Document.Id, "Final content");
+
+        // Assert - Pending save should be cancelled, final content saved
+        Assert.False(_autoSaveService.HasPendingSave(tab.Tab.Document.Id));
+        var doc = await _documentService.GetByIdAsync(tab.Tab.Document.Id);
+        Assert.Equal("Final content", doc!.Document.Content);
+    }
+
+    [Fact]
+    public async Task SessionSaveOnExit_NoDirtyTabs_NoOperations()
+    {
+        // Arrange - Create tabs but don't modify content
+        await _tabManager.InitializeAsync();
+        await _tabManager.CreateTabAsync();
+        await _tabManager.CreateTabAsync();
+
+        Assert.False(_tabManager.HasDirtyTabs);
+
+        // Act - Get dirty tabs (simulating app shutdown check)
+        var dirtyTabs = _tabManager.GetDirtyTabs();
+
+        // Assert - No tabs should need saving
+        Assert.Empty(dirtyTabs);
+    }
+
+    [Fact]
+    public async Task SessionSaveOnExit_PartiallyDirtyTabs_OnlySavesDirtyOnes()
+    {
+        // Arrange - Create tabs, only modify some
+        await _tabManager.InitializeAsync();
+        var tab1 = await _tabManager.CreateTabAsync();
+        var tab2 = await _tabManager.CreateTabAsync();
+        var tab3 = await _tabManager.CreateTabAsync();
+
+        // Only modify tab1 and tab3
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Modified 1");
+        // tab2 remains unchanged
+        _tabManager.UpdateTabContent(tab3.Tab.TabId, "Modified 3");
+
+        // Act - Get dirty tabs
+        var dirtyTabs = _tabManager.GetDirtyTabs();
+
+        // Assert - Only 2 tabs should be dirty
+        Assert.Equal(2, dirtyTabs.Count);
+        Assert.Contains(dirtyTabs, t => t.Tab.TabId == tab1.Tab.TabId);
+        Assert.DoesNotContain(dirtyTabs, t => t.Tab.TabId == tab2.Tab.TabId);
+        Assert.Contains(dirtyTabs, t => t.Tab.TabId == tab3.Tab.TabId);
+    }
+
+    [Fact]
+    public async Task SessionSaveOnExit_ContentSurvivesRestart()
+    {
+        // Arrange - Create tab with dirty content
+        await _tabManager.InitializeAsync();
+        var tab = await _tabManager.CreateTabAsync();
+        var documentId = tab.Tab.Document.Id;
+
+        _tabManager.UpdateTabContent(tab.Tab.TabId, "Content before shutdown");
+
+        // Act - Save dirty content (simulating app shutdown)
+        var dirtyTabs = _tabManager.GetDirtyTabs();
+        foreach (var tabWithStats in dirtyTabs)
+        {
+            await _autoSaveService.SaveImmediatelyAsync(
+                tabWithStats.Tab.Document.Id,
+                tabWithStats.Tab.Content);
+        }
+
+        // Simulate restart - create new instances
+        var newMetadataStore = new JsonMetadataStore(_testDirectory);
+        var newRepository = new FileSystemDocumentRepository(_testDirectory, newMetadataStore);
+        var newTabManager = new TabManager(newRepository, newMetadataStore);
+        var newDocumentService = new DocumentService(newRepository);
+
+        await newTabManager.InitializeAsync();
+
+        // Assert - Content should be restored
+        var restoredTabs = newTabManager.GetOpenTabs();
+        Assert.Single(restoredTabs);
+        Assert.Equal("Content before shutdown", restoredTabs[0].Tab.Content);
+
+        // Also verify via DocumentService
+        var doc = await newDocumentService.GetByIdAsync(documentId);
+        Assert.Equal("Content before shutdown", doc!.Document.Content);
+    }
+
+    #endregion
 }

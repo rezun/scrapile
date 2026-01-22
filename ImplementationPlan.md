@@ -1085,12 +1085,25 @@ Implement session save on application close.
 4. Save active tab ID
 
 **Acceptance Criteria:**
-- [ ] Closing app saves all pending changes
-- [ ] Open tabs saved to metadata
-- [ ] Active tab recorded
-- [ ] Graceful handling of save errors
+- [x] Closing app saves all pending changes
+- [x] Open tabs saved to metadata
+- [x] Active tab recorded
+- [x] Graceful handling of save errors
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added `SaveAllPendingChangesAsync()` method to `MainWindowViewModel`
+- Method iterates through all dirty tabs via `TabManager.GetDirtyTabs()` and saves each immediately
+- Added `AsyncHelper` class to `Scrapile.Application/Helpers/` for running async tasks synchronously
+  - Uses custom `SynchronizationContext` with message pump to avoid deadlocks
+  - Properly handles exceptions from async code
+- Updated `App.axaml.cs` `OnShutdownRequested` to use `AsyncHelper.RunSync()`
+- Wrapped in try/catch to handle save errors gracefully without preventing shutdown
+- Open tab list already saved to metadata on each tab operation (from previous tasks)
+- Active tab ID already recorded when user switches tabs (from Task 5.2)
+- Added 5 integration tests for session save on exit scenarios
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 
