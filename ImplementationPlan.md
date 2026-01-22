@@ -288,13 +288,13 @@ Implement document search in repository.
 - Read files only when needed (title-only matches don't need file read)
 
 **Acceptance Criteria:**
-- [ ] Search finds documents by title substring
-- [ ] Search finds documents by content substring
-- [ ] Results are sorted appropriately
-- [ ] Search is case-insensitive
-- [ ] Performance acceptable with 100+ documents
+- [x] Search finds documents by title substring
+- [x] Search finds documents by content substring
+- [x] Results are sorted appropriately
+- [x] Search is case-insensitive
+- [x] Performance acceptable with 100+ documents
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 

@@ -152,10 +152,83 @@ public class FileSystemDocumentRepository : IDocumentRepository
     }
 
     /// <inheritdoc />
-    public Task<IEnumerable<Document>> SearchAsync(string query)
+    public async Task<IEnumerable<Document>> SearchAsync(string query)
     {
-        // Search implementation is Task 2.3
-        throw new NotImplementedException("Search functionality will be implemented in Task 2.3.");
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Enumerable.Empty<Document>();
+        }
+
+        if (!Directory.Exists(_storageDirectory))
+        {
+            return Enumerable.Empty<Document>();
+        }
+
+        var titleMatches = new List<Document>();
+        var contentOnlyMatches = new List<Document>();
+        var files = Directory.GetFiles(_storageDirectory, "*.txt");
+
+        foreach (var filePath in files)
+        {
+            var filename = Path.GetFileName(filePath);
+            var id = ExtractIdFromFilename(filename);
+            if (!id.HasValue)
+            {
+                continue;
+            }
+
+            // First check title from metadata (avoids reading file content if title matches)
+            string? title = null;
+            if (_metadataStore != null)
+            {
+                title = await _metadataStore.GetDocumentTitleAsync(id.Value);
+            }
+
+            bool titleMatched = !string.IsNullOrEmpty(title) &&
+                title.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+            if (titleMatched)
+            {
+                // Title matches - load full document and add to title matches
+                var document = await LoadDocumentFromFileAsync(filePath, id.Value, filename);
+                if (document != null)
+                {
+                    titleMatches.Add(document);
+                }
+            }
+            else
+            {
+                // No title match - need to check content
+                try
+                {
+                    var content = await File.ReadAllTextAsync(filePath);
+                    if (content.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var fileInfo = new FileInfo(filePath);
+                        var document = new Document
+                        {
+                            Id = id.Value,
+                            Filename = filename,
+                            Title = title,
+                            Content = content,
+                            Created = fileInfo.CreationTimeUtc,
+                            LastModified = fileInfo.LastWriteTimeUtc
+                        };
+                        contentOnlyMatches.Add(document);
+                    }
+                }
+                catch (IOException)
+                {
+                    // File may have been deleted or is inaccessible, skip it
+                }
+            }
+        }
+
+        // Sort: title matches first (by last modified descending), then content matches (by last modified descending)
+        var sortedTitleMatches = titleMatches.OrderByDescending(d => d.LastModified);
+        var sortedContentMatches = contentOnlyMatches.OrderByDescending(d => d.LastModified);
+
+        return sortedTitleMatches.Concat(sortedContentMatches);
     }
 
     /// <summary>
