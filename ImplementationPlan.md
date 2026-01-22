@@ -508,12 +508,12 @@ Implement tab lifecycle management.
 - `GetOpenTabs()` - Return current tabs in order
 
 **Acceptance Criteria:**
-- [ ] Tabs maintain correct order
-- [ ] Closing tab adds to recently closed list
-- [ ] Duplicate creates new document with copied content
-- [ ] Tab state survives service restart (via metadata)
+- [x] Tabs maintain correct order
+- [x] Closing tab adds to recently closed list
+- [x] Duplicate creates new document with copied content
+- [x] Tab state survives service restart (via metadata)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
