@@ -139,19 +139,38 @@ Implement content processing utilities in `Scrapile.Application`.
 
 ---
 
-### Milestone 1: Domain Layer Review
+#### Task 1.5: Domain Layer Review
+**Estimated effort:** 1-2 hours
 
-**Checkpoint before proceeding to Phase 2:**
+Perform code review and verification of Phase 1 implementation.
 
+**Actions:**
+1. Verify all 4 projects exist: Domain, Application, Infrastructure, Desktop
+2. Review project references to confirm clean architecture dependency rules
+3. Review all entity files against `ProjectPlan.md` Appendix A.1:
+   - `Scrapile.Domain/Entities/Document.cs`
+   - `Scrapile.Domain/Entities/Tab.cs`
+   - `Scrapile.Domain/Entities/Metadata.cs`
+   - `Scrapile.Domain/Entities/OpenTabInfo.cs`
+   - `Scrapile.Domain/Entities/RecentlyClosedInfo.cs`
+   - `Scrapile.Domain/Entities/DocumentMetadata.cs`
+4. Review interfaces against `ProjectPlan.md` Appendix A.2:
+   - `Scrapile.Domain/Interfaces/IDocumentRepository.cs`
+   - `Scrapile.Domain/Interfaces/IMetadataStore.cs`
+5. Review `Scrapile.Application/Helpers/ContentHelper.cs` implementation
+6. Run all unit tests and verify they pass
+7. Verify Domain project has zero external NuGet dependencies
+
+**Acceptance Criteria:**
 - [x] All Phase 1 tasks completed
-- [x] Code review completed
 - [x] Domain layer has zero external dependencies (except .NET BCL)
 - [x] All entities and interfaces match specification
-- [x] Unit tests written for ContentHelper
+- [x] Unit tests written for ContentHelper and all pass
+- [x] Dependency flow is unidirectional (inward toward Domain)
 
-**Status:** ✅ **APPROVED** - 2025-01-22
+**Status:** [x] Completed 2025-01-22
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 ## Milestone 1 Review Summary
 
@@ -161,14 +180,6 @@ Implement content processing utilities in `Scrapile.Application`.
 - Proper project references follow clean architecture dependency rules
 
 ### Domain Entities (PASS)
-Files reviewed:
-- Scrapile.Domain/Entities/Document.cs
-- Scrapile.Domain/Entities/Tab.cs
-- Scrapile.Domain/Entities/Metadata.cs
-- Scrapile.Domain/Entities/OpenTabInfo.cs
-- Scrapile.Domain/Entities/RecentlyClosedInfo.cs
-- Scrapile.Domain/Entities/DocumentMetadata.cs
-
 All entities match specification in ProjectPlan.md Appendix A.1:
 - Document has Id, Filename, Title (nullable), Content, Created, LastModified
 - Tab has TabId, Document, Content, Order, IsDirty
@@ -176,10 +187,6 @@ All entities match specification in ProjectPlan.md Appendix A.1:
 - Proper use of nullable reference types (string?)
 
 ### Domain Interfaces (PASS)
-Files reviewed:
-- Scrapile.Domain/Interfaces/IDocumentRepository.cs
-- Scrapile.Domain/Interfaces/IMetadataStore.cs
-
 Interfaces match specification in ProjectPlan.md Appendix A.2:
 - All CRUD operations defined
 - All methods are async (Task-based)
@@ -187,40 +194,14 @@ Interfaces match specification in ProjectPlan.md Appendix A.2:
 - Proper abstraction for storage layer
 
 ### Content Helper (PASS)
-File reviewed: Scrapile.Application/Helpers/ContentHelper.cs
-
-Implemented methods:
-- GetContentPreview(string?) - First 40 chars with ellipsis, whitespace collapsed
-- CountWords(string?) - Splits on whitespace
-- CountCharacters(string?) - Returns string length
-- FormatCount(int) - Abbreviates large numbers (1.5k, 23k)
-
-Uses GeneratedRegex for performance optimization.
-
-### Unit Tests (PASS)
-File reviewed: Scrapile.Application.Tests/ContentHelperTests.cs
-
+Implemented methods with GeneratedRegex for performance optimization.
 Test execution: 39 tests passed (0 failed)
 
-Coverage includes:
-- Null/empty/whitespace edge cases
-- Boundary conditions (40 char preview limit)
-- Large number formatting (up to millions)
-- Various whitespace handling scenarios
-
 ### Dependencies (PASS)
-Scrapile.Domain.csproj: NO external NuGet dependencies - only .NET 9.0 BCL
-Scrapile.Application.csproj: Only references Domain project
-Scrapile.Infrastructure.csproj: Only references Domain project
-Scrapile.Desktop.csproj: Properly references Application + Infrastructure
-
 Dependency flow is unidirectional (inward toward Domain).
 
 ### Overall Assessment
-Phase 1 implementation is EXCELLENT. Clean architecture is properly
-implemented with clear separation of concerns. Code quality is high
-with proper documentation, nullable annotations, and async patterns.
-Ready to proceed to Phase 2: Infrastructure - File Storage.
+Phase 1 implementation complete. Ready to proceed to Phase 2.
 ```
 
 ---
@@ -339,17 +320,36 @@ Write integration tests for storage layer.
 
 ---
 
-### Milestone 2: Storage Layer Review
+#### Task 2.5: Storage Layer Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 3:**
+Perform integration testing and verification of Phase 2 implementation.
 
+**Actions:**
+1. Run all integration tests in `Scrapile.Infrastructure.Tests`
+2. Create a test harness or console app to manually test:
+   - Create 10+ documents with various content
+   - Read documents by ID
+   - Update document content
+   - Delete documents
+   - Verify metadata persists correctly
+3. Verify file naming convention matches spec: `{timestamp}_{guid}.txt`
+4. Verify metadata JSON structure matches `ProjectPlan.md` Section 2.3
+5. Performance test: create 100 documents and measure search time
+6. Test error handling: missing files, corrupted metadata, permission errors
+7. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 2 tasks completed
 - [ ] Integration tests pass
-- [ ] Manual testing: create, read, update, delete documents via test harness
-- [ ] Verify file format matches specification
-- [ ] Performance baseline: create/search with 100 documents
+- [ ] Manual CRUD operations work correctly
+- [ ] File format matches specification
+- [ ] Search completes in <500ms with 100 documents
+- [ ] Error scenarios handled gracefully
 
-**Reviewer Notes:**
+**Status:** [ ]
+
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -498,17 +498,44 @@ Write unit tests for application services.
 
 ---
 
-### Milestone 3: Services Layer Review
+#### Task 3.6: Services Layer Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 4:**
+Perform unit testing and integration verification of Phase 3 implementation.
 
+**Actions:**
+1. Run all unit tests in `Scrapile.Application.Tests`
+2. Create integration test for full document lifecycle:
+   - Create document via DocumentService
+   - Update content and title
+   - Verify auto-save triggers
+   - Close and reopen via TabManager
+   - Delete document
+3. Test auto-save debouncing:
+   - Rapid content changes (simulate typing)
+   - Verify only one save after debounce delay
+   - Test immediate save on tab close
+4. Test TabManager state persistence:
+   - Create multiple tabs with different orders
+   - Simulate service restart
+   - Verify tabs restored in correct order
+5. Test RecentlyClosedService:
+   - Close tabs and verify they appear in recently closed
+   - Reopen tabs and verify removal from list
+   - Test 50-item limit
+6. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 3 tasks completed
 - [ ] Unit tests pass
-- [ ] Integration test: full document lifecycle via services
-- [ ] Auto-save debouncing verified
-- [ ] Tab manager state persistence verified
+- [ ] Full document lifecycle works end-to-end
+- [ ] Auto-save debouncing verified (rapid typing = single save)
+- [ ] Tab manager state persists across restarts
+- [ ] Recently closed list works correctly
 
-**Reviewer Notes:**
+**Status:** [ ]
+
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -669,23 +696,46 @@ Implement basic tab lifecycle in UI.
 
 ---
 
-### Milestone 4: Basic UI Review
+#### Task 4.7: Basic UI Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 5:**
+Perform UI testing and verification of Phase 4 implementation.
 
+**Actions:**
+1. Launch application and verify window displays correctly
+2. Verify UI layout matches `ProjectPlan.md` Section 4.1:
+   - Two-column layout (tab list left, editor right)
+   - Panels resize appropriately
+   - Window title correct
+3. Test tab operations manually:
+   - Create new tab (button and Ctrl+T)
+   - Type content in editor
+   - Switch between tabs (click and Ctrl+Tab/Ctrl+Shift+Tab)
+   - Close tab (button and Ctrl+W)
+4. Test persistence:
+   - Create tab, type content, close app
+   - Reopen app, verify tab and content restored
+5. Test edge cases:
+   - No tabs open state
+   - Many tabs (10+) with scrolling
+   - Long content in editor
+6. Verify visual design:
+   - Selected tab visually distinct
+   - Close button visible
+   - Font and spacing appropriate
+7. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 4 tasks completed
 - [ ] Application launches and displays correctly
-- [ ] Can create, edit, and close tabs
-- [ ] Tab content persists (close and reopen app)
+- [ ] Can create, edit, switch, and close tabs
+- [ ] Tab content persists across app restarts
+- [ ] Keyboard shortcuts work (Ctrl+T, Ctrl+W, Ctrl+Tab)
 - [ ] UI matches layout in specification
 
-**Testing Checklist:**
-- [ ] Create new tab, type content, close tab - content saved
-- [ ] Close app with tabs open, reopen - tabs restored
-- [ ] Keyboard shortcuts work (Ctrl+T, Ctrl+W, Ctrl+Tab)
-- [ ] Multiple tabs work correctly
+**Status:** [ ]
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -763,22 +813,46 @@ Implement session save on application close.
 
 ---
 
-### Milestone 5: Auto-Save Review
+#### Task 5.4: Auto-Save and Session Restore Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 6:**
+Perform thorough testing of auto-save and session persistence.
 
+**Actions:**
+1. Test auto-save debouncing:
+   - Type rapidly for 10 seconds, verify single save after delay
+   - Type slowly (pause between words), verify saves occur
+   - Monitor file system to confirm write behavior
+2. Test session restore scenarios:
+   - Create 5 tabs with content
+   - Close app normally, reopen - verify all tabs present
+   - Verify tab order preserved
+   - Verify last active tab selected
+3. Test data loss prevention:
+   - Type rapidly, close app immediately
+   - Reopen and verify no data loss
+   - Type, force-quit app (kill process)
+   - Reopen and verify minimal data loss (only unsaved debounce window)
+4. Test error handling:
+   - Delete a document file externally while app running
+   - Reopen app - verify graceful handling
+   - Corrupt metadata file, reopen app - verify recovery
+5. Test save indicator (if implemented):
+   - Verify dirty state shown during typing
+   - Verify saved state shown after auto-save
+6. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 5 tasks completed
-- [ ] Auto-save verified with various typing patterns
-- [ ] Session restore tested thoroughly
+- [ ] Auto-save debouncing works correctly
+- [ ] Session restore works for all tab states
 - [ ] No data loss in normal operation
+- [ ] Graceful handling of deleted/missing files
+- [ ] Force-quit results in minimal data loss
 
-**Testing Checklist:**
-- [ ] Type rapidly, close app immediately - no data loss
-- [ ] Create 5 tabs, close app, reopen - all tabs present
-- [ ] Delete a file externally, reopen app - handles gracefully
-- [ ] Force-quit app while typing - minimal data loss
+**Status:** [ ]
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -881,24 +955,53 @@ Implement result selection and document opening.
 
 ---
 
-### Milestone 6: Search Review
+#### Task 6.5: Search Functionality Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 7:**
+Perform thorough testing of search functionality.
 
+**Actions:**
+1. Create test documents with known titles and content:
+   - Document with title "Meeting Notes"
+   - Document with title "Project Ideas"
+   - Untitled document with content "budget report"
+   - Untitled document with content "quarterly review"
+2. Test search scenarios:
+   - Empty query (should show nothing or recent documents)
+   - Partial title match ("Meet") - should find "Meeting Notes"
+   - Full title match ("Project Ideas")
+   - Content-only match ("budget") - should find untitled document
+   - No results ("xyznonexistent")
+   - Case-insensitive search ("MEETING" should match "Meeting")
+3. Test keyboard-only workflow:
+   - Ctrl+P to open search
+   - Type query
+   - Arrow keys to navigate results
+   - Enter to open selected document
+   - Escape to close without selecting
+4. Test result display:
+   - Title/preview shown correctly
+   - Snippet shows matching content
+   - Last modified date displayed
+5. Test document opening:
+   - Click opens document in new tab
+   - Already-open document focuses existing tab
+   - Search closes after selection
+6. Test performance with 50+ documents
+7. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 6 tasks completed
-- [ ] Search finds documents by title
-- [ ] Search finds documents by content
-- [ ] Results display correctly
+- [ ] Search finds documents by title (case-insensitive)
+- [ ] Search finds documents by content (case-insensitive)
+- [ ] Results display correctly formatted
+- [ ] Keyboard navigation works completely
 - [ ] Document opens successfully from search
+- [ ] Performance acceptable with many documents
 
-**Testing Checklist:**
-- [ ] Search with empty query
-- [ ] Search with partial title match
-- [ ] Search with content-only match
-- [ ] Search with no results
-- [ ] Keyboard-only search workflow
+**Status:** [ ]
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -1021,22 +1124,55 @@ Implement export functionality.
 
 ---
 
-### Milestone 7: Features Review
+#### Task 7.6: Additional Features Review
+**Estimated effort:** 2-3 hours
 
-**Checkpoint before proceeding to Phase 8:**
+Perform thorough testing of Phase 7 features.
 
+**Actions:**
+1. Test recently closed functionality:
+   - Close 5 tabs sequentially
+   - Use Ctrl+Shift+T to reopen each (LIFO order)
+   - Verify all 5 reopen correctly with content intact
+   - Test recently closed panel (if implemented)
+2. Test context menu:
+   - Right-click on tab, verify menu appears
+   - Test "Close Tab" - tab closes
+   - Test "Close All Tabs" - all tabs close
+   - Test "Close Tabs Above" - tabs above close
+   - Test "Close Tabs Below" - tabs below close
+   - Test "Duplicate Tab" - new tab with copied content
+   - Test "Edit Title" (if in menu)
+3. Test duplicate tab feature:
+   - Create tab with title and content
+   - Duplicate with Ctrl+Shift+D
+   - Verify new tab has "{title} - Copy" title
+   - Verify content fully copied
+   - Verify new tab positioned next to original
+4. Test export/copy features:
+   - Create tab with content
+   - Use Ctrl+Shift+C to copy entire document
+   - Paste in external app, verify content matches
+   - Test "Save As..." if implemented
+   - Verify original document unchanged
+5. Test edge cases:
+   - Recently closed with 50+ items (LRU eviction)
+   - Reopen document that was deleted from disk
+   - Context menu on only tab
+6. Document any issues found and verify fixes
+
+**Acceptance Criteria:**
 - [ ] All Phase 7 tasks completed
-- [ ] Recently closed functionality works
-- [ ] Context menu fully functional
-- [ ] Duplicate and export features work
+- [ ] Reopen last closed works (Ctrl+Shift+T)
+- [ ] Recently closed list shows correctly
+- [ ] All context menu options work
+- [ ] Duplicate preserves content and title correctly
+- [ ] Export to clipboard works
+- [ ] Edge cases handled gracefully
 
-**Testing Checklist:**
-- [ ] Close 5 tabs, reopen all with Ctrl+Shift+T
-- [ ] Right-click menu all options work
-- [ ] Duplicate tab preserves content and title
-- [ ] Export to clipboard, paste elsewhere - content matches
+**Status:** [ ]
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -1226,30 +1362,54 @@ Test on Linux (secondary platform).
 
 ---
 
-### Milestone 8: Polish Review (Final MVP Review)
+#### Task 8.9: MVP Feature Complete Review
+**Estimated effort:** 3-4 hours
 
-**Checkpoint - MVP Feature Complete:**
+Perform comprehensive MVP feature verification across all platforms.
 
+**Actions:**
+1. Run complete feature checklist on each platform (Windows, macOS, Linux):
+   - Multi-tab interface with vertical tabs
+   - Auto-save (debounced)
+   - Optional titles with content preview
+   - Document search
+   - Recently closed tabs
+   - Session restore
+   - Duplicate tab
+   - Export/copy to clipboard
+   - Bulk tab operations
+   - Quick stats in tabs
+   - Settings (storage location, theme, font)
+   - All keyboard shortcuts (see Appendix)
+2. Verify cross-platform consistency:
+   - UI looks consistent across platforms
+   - Keyboard shortcuts use platform-appropriate modifiers
+   - File paths work correctly on each OS
+3. Test settings on each platform:
+   - Change storage directory
+   - Switch theme (light/dark)
+   - Change font family and size
+   - Verify settings persist
+4. Run final keyboard shortcut audit (from Appendix):
+   - New Tab, Close Tab, Reopen Closed
+   - Search, Edit Title, Duplicate Tab
+   - Next/Previous Tab navigation
+5. Compile list of any platform-specific issues
+6. Verify no critical bugs remain
+7. Document known limitations
+
+**Acceptance Criteria:**
 - [ ] All Phase 8 tasks completed
-- [ ] All features from spec implemented
-- [ ] Tested on Windows, macOS, Linux
+- [ ] All MVP features work on Windows
+- [ ] All MVP features work on macOS
+- [ ] All MVP features work on Linux
 - [ ] No critical bugs
+- [ ] All keyboard shortcuts work with platform-appropriate modifiers
+- [ ] Settings persist correctly on all platforms
 
-**Full Feature Checklist:**
-- [ ] Multi-tab interface with vertical tabs
-- [ ] Auto-save (debounced)
-- [ ] Optional titles with content preview
-- [ ] Document search
-- [ ] Recently closed tabs
-- [ ] Session restore
-- [ ] Duplicate tab
-- [ ] Export/copy to clipboard
-- [ ] Bulk tab operations
-- [ ] Quick stats in tabs
-- [ ] Settings (storage location, theme, font)
-- [ ] All keyboard shortcuts
+**Status:** [ ]
 
-**Reviewer Notes:**
+**Review Notes:**
 ```
 [Add review notes here]
 ```
@@ -1372,16 +1532,44 @@ Set up build pipeline and distribution.
 
 ---
 
-### Final Milestone: MVP Release
+#### Task 9.6: MVP Release Sign-off
+**Estimated effort:** 1-2 hours
 
-**MVP Release Criteria:**
+Perform final release verification and sign-off.
 
+**Actions:**
+1. Verify all Phase 9 tasks completed:
+   - Performance testing passed
+   - Edge case testing passed
+   - Bug fixes verified
+   - Documentation complete
+   - Build and distribution setup done
+2. Final verification checklist:
+   - Run release builds on Windows, macOS, Linux
+   - Install from distribution package on clean machine
+   - Verify application launches and core features work
+   - Verify no missing dependencies
+3. Review known issues list:
+   - Ensure no critical or high-priority bugs remain
+   - Document any deferred issues with workarounds
+4. Prepare release artifacts:
+   - Verify version number set correctly (1.0.0)
+   - Verify release notes complete
+   - Verify download links work (if applicable)
+5. Obtain stakeholder sign-off
+6. Tag release in git repository
+7. Publish release artifacts
+
+**Acceptance Criteria:**
 - [ ] All Phase 9 tasks completed
 - [ ] All features work as specified
 - [ ] No critical or high-priority bugs
-- [ ] Tested on all target platforms
-- [ ] Documentation complete
-- [ ] Release builds available
+- [ ] Release builds verified on all target platforms
+- [ ] Documentation complete and accurate
+- [ ] Release artifacts published
+- [ ] Git repository tagged with version
+
+**Status:** [ ]
 
 **Sign-off:**
 ```
