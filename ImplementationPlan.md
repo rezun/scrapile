@@ -452,12 +452,12 @@ Implement document operations orchestration.
 - Search documents
 
 **Acceptance Criteria:**
-- [ ] Service properly coordinates repository and metadata store
-- [ ] Title changes update metadata only
-- [ ] Content changes update file only
-- [ ] Stats calculated on retrieval
+- [x] Service properly coordinates repository and metadata store
+- [x] Title changes update metadata only
+- [x] Content changes update file only
+- [x] Stats calculated on retrieval
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
