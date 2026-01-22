@@ -108,11 +108,11 @@ Define repository and storage interfaces in `Scrapile.Domain`.
 3. Implement `IMetadataStore.cs` - see `ProjectPlan.md` Appendix A.2
 
 **Acceptance Criteria:**
-- [ ] Interfaces define all CRUD operations needed for documents
-- [ ] Interfaces support async operations
-- [ ] No implementation details leak into interfaces
+- [x] Interfaces define all CRUD operations needed for documents
+- [x] Interfaces support async operations
+- [x] No implementation details leak into interfaces
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
 
 ---
 
