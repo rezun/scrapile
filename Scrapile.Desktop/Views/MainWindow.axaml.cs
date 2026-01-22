@@ -1,5 +1,7 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Scrapile.Desktop.ViewModels;
 
 namespace Scrapile.Desktop.Views;
@@ -13,8 +15,9 @@ public partial class MainWindow : Window
         // Initialize the view model when the window is loaded
         Loaded += OnLoaded;
 
-        // Handle keyboard shortcuts
-        KeyDown += OnKeyDown;
+        // Handle keyboard shortcuts using tunneling
+        // EditorView has its own handlers for when focus is in TextBoxes
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
     private async void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -35,11 +38,22 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Check for Ctrl modifier (Cmd on macOS)
-        var ctrlPressed = e.KeyModifiers.HasFlag(KeyModifiers.Control) ||
-                          e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        // Use platform-appropriate modifier: Cmd on macOS, Ctrl on Windows/Linux
+        bool modifierPressed;
+        if (OperatingSystem.IsMacOS())
+        {
+            // On macOS, only respond to Cmd (Meta), not Ctrl
+            modifierPressed = e.KeyModifiers.HasFlag(KeyModifiers.Meta) &&
+                              !e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        }
+        else
+        {
+            // On Windows/Linux, only respond to Ctrl, not Cmd
+            modifierPressed = e.KeyModifiers.HasFlag(KeyModifiers.Control) &&
+                              !e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+        }
 
-        if (!ctrlPressed)
+        if (!modifierPressed)
         {
             return;
         }
@@ -49,7 +63,7 @@ public partial class MainWindow : Window
         switch (e.Key)
         {
             case Key.Tab:
-                // Ctrl+Tab: Next tab, Ctrl+Shift+Tab: Previous tab
+                // Ctrl/Cmd+Tab: Next tab, Ctrl/Cmd+Shift+Tab: Previous tab
                 if (shiftPressed)
                 {
                     viewModel.SelectPreviousTab();
@@ -62,22 +76,24 @@ public partial class MainWindow : Window
                 break;
 
             case Key.T:
-                // Ctrl+T: New tab, Ctrl+Shift+T will be for reopen (later phase)
+                // Ctrl/Cmd+T: New tab, Ctrl/Cmd+Shift+T will be for reopen (later phase)
                 if (!shiftPressed)
                 {
+                    // Mark as handled BEFORE await to prevent duplicate handling
+                    e.Handled = true;
                     await viewModel.CreateNewTabAsync();
                     // Focus the editor after creating a new tab
                     EditorView?.FocusContent();
-                    e.Handled = true;
                 }
                 break;
 
             case Key.W:
-                // Ctrl+W: Close current tab
+                // Ctrl/Cmd+W: Close current tab
                 if (!shiftPressed)
                 {
-                    await viewModel.CloseCurrentTabAsync();
+                    // Mark as handled BEFORE await to prevent duplicate handling
                     e.Handled = true;
+                    await viewModel.CloseCurrentTabAsync();
                 }
                 break;
         }

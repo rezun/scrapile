@@ -94,8 +94,20 @@ public partial class TabListViewModel : ViewModelBase
     /// <param name="contentToSave">Optional content to save (used when closing via keyboard shortcut with current editor content).</param>
     public async Task CloseTabAsync(TabItemViewModel tabViewModel, string? contentToSave = null)
     {
-        var index = Tabs.IndexOf(tabViewModel);
-        var wasSelected = tabViewModel.IsSelected;
+        if (tabViewModel == null) return;
+
+        // Find the tab in collection by TabId (not by reference, since RefreshTabStats creates new instances)
+        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
+        if (tabInCollection == null)
+        {
+            return;
+        }
+
+        var index = Tabs.IndexOf(tabInCollection);
+        var wasSelected = tabInCollection.IsSelected;
+
+        // Remove from collection first to prevent duplicate close attempts
+        Tabs.Remove(tabInCollection);
 
         // Save content before closing if tab is dirty
         if (_autoSaveService != null && tabViewModel.IsDirty)
@@ -106,13 +118,16 @@ public partial class TabListViewModel : ViewModelBase
         }
 
         await _tabManager.CloseTabAsync(tabViewModel.TabId);
-        Tabs.Remove(tabViewModel);
 
         // Select another tab if the closed one was selected
+        // Recalculate safe index since collection may have changed during async operations
         if (wasSelected && Tabs.Count > 0)
         {
             var newIndex = Math.Min(index, Tabs.Count - 1);
-            SelectTab(Tabs[newIndex]);
+            if (newIndex >= 0 && newIndex < Tabs.Count)
+            {
+                SelectTab(Tabs[newIndex]);
+            }
         }
         else if (Tabs.Count == 0)
         {

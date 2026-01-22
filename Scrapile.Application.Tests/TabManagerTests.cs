@@ -279,17 +279,36 @@ public class TabManagerTests
     }
 
     [Fact]
-    public async Task CloseTabAsync_AddsToRecentlyClosed()
+    public async Task CloseTabAsync_DeletesEmptyDocuments()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var tab = await _tabManager.CreateTabAsync(); // Creates empty document
+
+        // Act
+        await _tabManager.CloseTabAsync(tab.Tab.TabId);
+
+        // Assert - empty document should be deleted, not added to recently closed
+        Assert.Contains(tab.Tab.Document.Id, _mockRepository.DeletedDocumentIds);
+        Assert.DoesNotContain(tab.Tab.Document.Id, _mockMetadataStore.AddedToRecentlyClosed.Select(r => r.DocumentId));
+    }
+
+    [Fact]
+    public async Task CloseTabAsync_AddsNonEmptyDocumentToRecentlyClosed()
     {
         // Arrange
         await _tabManager.InitializeAsync();
         var tab = await _tabManager.CreateTabAsync();
 
+        // Add content to make it non-empty
+        _tabManager.UpdateTabContent(tab.Tab.TabId, "Some content");
+
         // Act
         await _tabManager.CloseTabAsync(tab.Tab.TabId);
 
-        // Assert
+        // Assert - non-empty document should be added to recently closed, not deleted
         Assert.Contains(tab.Tab.Document.Id, _mockMetadataStore.AddedToRecentlyClosed.Select(r => r.DocumentId));
+        Assert.DoesNotContain(tab.Tab.Document.Id, _mockRepository.DeletedDocumentIds);
     }
 
     [Fact]
@@ -1045,6 +1064,7 @@ public class TabManagerTests
     {
         private readonly Dictionary<Guid, Document> _documents = new();
         public List<Document> CreatedDocuments { get; } = new();
+        public List<Guid> DeletedDocumentIds { get; } = new();
 
         public void AddDocument(Document document)
         {
@@ -1099,6 +1119,7 @@ public class TabManagerTests
         public Task DeleteAsync(Guid id)
         {
             _documents.Remove(id);
+            DeletedDocumentIds.Add(id);
             return Task.CompletedTask;
         }
 

@@ -984,7 +984,7 @@ Perform UI testing and verification of Phase 4 implementation.
 - [ ] Keyboard shortcuts work (Ctrl+T, Ctrl+W, Ctrl+Tab)
 - [ ] UI matches layout in specification
 
-**Status:** [ ]
+**Status:** [~]
 
 **Review Notes:**
 ```

@@ -1,9 +1,9 @@
-namespace Scrapile.Desktop.ViewModels;
-
 using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scrapile.Application.Services;
+
+namespace Scrapile.Desktop.ViewModels;
 
 /// <summary>
 /// Main window view model that coordinates the application's primary UI.
@@ -117,10 +117,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>
     /// Handles title changes from the editor.
-    /// Updates the document title in the metadata store.
+    /// Updates the document title in the metadata store and in-memory state.
     /// </summary>
     private async void OnEditorTitleChanged(object? sender, TitleChangedEventArgs e)
     {
+        // Update the in-memory title first so RefreshTabStats sees the new value
+        _tabManager.UpdateDocumentTitle(e.DocumentId, e.Title);
+
+        // Persist the title to the metadata store
         await _documentService.UpdateTitleAsync(e.DocumentId, e.Title);
 
         // Refresh the tab in the list to update the display name

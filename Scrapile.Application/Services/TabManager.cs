@@ -228,6 +228,7 @@ public class TabManager
 
     /// <summary>
     /// Closes a tab and adds the document to recently closed list.
+    /// Empty or whitespace-only documents are deleted instead of being added to recently closed.
     /// </summary>
     /// <param name="tabId">The ID of the tab to close.</param>
     /// <returns>True if the tab was closed, false if not found.</returns>
@@ -251,8 +252,19 @@ public class TabManager
         // Remove from open tabs in metadata
         await _metadataStore.RemoveOpenTabAsync(tabToClose.Document.Id);
 
-        // Add to recently closed
-        await _metadataStore.AddRecentlyClosedAsync(tabToClose.Document.Id, DateTime.UtcNow);
+        // Check if document is empty or whitespace-only
+        var isEmptyDocument = string.IsNullOrWhiteSpace(tabToClose.Content);
+
+        if (isEmptyDocument)
+        {
+            // Delete empty documents instead of adding to recently closed
+            await _documentRepository.DeleteAsync(tabToClose.Document.Id);
+        }
+        else
+        {
+            // Add to recently closed
+            await _metadataStore.AddRecentlyClosedAsync(tabToClose.Document.Id, DateTime.UtcNow);
+        }
 
         // Persist the new tab order
         await PersistTabOrderAsync();
@@ -449,6 +461,28 @@ public class TabManager
 
             tab.Content = content;
             tab.IsDirty = tab.Content != tab.Document.Content;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Updates the in-memory title for a tab's document without saving to disk.
+    /// Call this after updating the title in the document service to keep in-memory state in sync.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <param name="title">The new title (null for no title).</param>
+    /// <returns>True if update succeeded, false if document not found.</returns>
+    public bool UpdateDocumentTitle(Guid documentId, string? title)
+    {
+        lock (_lock)
+        {
+            var tab = _tabs.FirstOrDefault(t => t.Document.Id == documentId);
+            if (tab == null)
+            {
+                return false;
+            }
+
+            tab.Document.Title = title;
             return true;
         }
     }

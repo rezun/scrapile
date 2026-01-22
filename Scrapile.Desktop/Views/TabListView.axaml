@@ -85,7 +85,7 @@
                                             Padding="4"
                                             Background="Transparent"
                                             BorderThickness="0"
-                                            ToolTip.Tip="Close tab (Ctrl+W)"
+                                            ToolTip.Tip="Close tab"
                                             Cursor="Hand">
                                         <Button.Styles>
                                             <Style Selector="Button">
@@ -127,7 +127,7 @@
                         Command="{Binding CreateNewTabCommand}"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        ToolTip.Tip="Create new tab (Ctrl+T)"/>
+                        ToolTip.Tip="Create new tab"/>
             </Border>
         </Grid>
     </Border>

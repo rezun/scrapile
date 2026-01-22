@@ -13,6 +13,39 @@
         <vm:EditorViewModel/>
     </Design.DataContext>
 
+    <UserControl.Styles>
+        <!-- Remove focus border from editor TextBoxes -->
+        <Style Selector="TextBox.editor-textbox">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.editor-textbox:focus">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.editor-textbox:pointerover">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.editor-textbox:focus-within">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <!-- Target the inner Border in the TextBox template -->
+        <Style Selector="TextBox.editor-textbox /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.editor-textbox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox.editor-textbox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+    </UserControl.Styles>
+
     <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
         <Grid>
             <!-- Editor content (shown when a tab is selected) -->
@@ -30,10 +63,9 @@
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,0,0,1">
                     <TextBox x:Name="TitleTextBox"
+                             Classes="editor-textbox"
                              Text="{Binding Title, Mode=TwoWay}"
                              Watermark="Add a title (optional)..."
-                             BorderThickness="0"
-                             Background="Transparent"
                              FontSize="16"
                              FontWeight="SemiBold"
                              AcceptsReturn="False"/>
@@ -41,12 +73,12 @@
 
                 <!-- Main text editor area -->
                 <TextBox x:Name="ContentTextBox"
+                         Classes="editor-textbox"
                          Grid.Row="1"
                          Text="{Binding Content, Mode=TwoWay}"
                          AcceptsReturn="True"
                          AcceptsTab="True"
                          TextWrapping="Wrap"
-                         BorderThickness="0"
                          Padding="16"
                          FontFamily="Consolas, Menlo, Monaco, monospace"
                          FontSize="14"

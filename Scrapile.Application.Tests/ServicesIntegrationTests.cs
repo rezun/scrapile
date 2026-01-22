@@ -341,6 +341,11 @@ public class ServicesIntegrationTests : IDisposable
         await _tabManager.InitializeAsync();
         var tab = await _tabManager.CreateTabAsync();
         var docId = tab.Tab.Document.Id;
+
+        // Add content so document isn't deleted on close
+        _tabManager.UpdateTabContent(tab.Tab.TabId, "Some content");
+        await _documentService.UpdateContentAsync(docId, "Some content");
+
         await _tabManager.CloseTabAsync(tab.Tab.TabId);
 
         // Act
@@ -364,6 +369,14 @@ public class ServicesIntegrationTests : IDisposable
         var doc1Id = tab1.Tab.Document.Id;
         var doc2Id = tab2.Tab.Document.Id;
         var doc3Id = tab3.Tab.Document.Id;
+
+        // Add content so documents aren't deleted on close
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Content 1");
+        _tabManager.UpdateTabContent(tab2.Tab.TabId, "Content 2");
+        _tabManager.UpdateTabContent(tab3.Tab.TabId, "Content 3");
+        await _documentService.UpdateContentAsync(doc1Id, "Content 1");
+        await _documentService.UpdateContentAsync(doc2Id, "Content 2");
+        await _documentService.UpdateContentAsync(doc3Id, "Content 3");
 
         // Close in order: 1, 2, 3
         await _tabManager.CloseTabAsync(tab1.Tab.TabId);
@@ -392,11 +405,17 @@ public class ServicesIntegrationTests : IDisposable
         var doc1Id = tab1.Tab.Document.Id;
         var doc2Id = tab2.Tab.Document.Id;
 
+        // Add content so documents aren't deleted on close
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Content 1");
+        _tabManager.UpdateTabContent(tab2.Tab.TabId, "Content 2");
+        await _documentService.UpdateContentAsync(doc1Id, "Content 1");
+        await _documentService.UpdateContentAsync(doc2Id, "Content 2");
+
         // Close both
         await _tabManager.CloseTabAsync(tab1.Tab.TabId);
         await _tabManager.CloseTabAsync(tab2.Tab.TabId);
 
-        // Delete doc2's file
+        // Delete doc2's file (simulating external deletion)
         await _documentService.DeleteAsync(doc2Id);
 
         // Act - should skip deleted doc2 and return doc1
@@ -416,7 +435,17 @@ public class ServicesIntegrationTests : IDisposable
         var tab2 = await _tabManager.CreateTabAsync();
         var tab3 = await _tabManager.CreateTabAsync();
 
+        var doc1Id = tab1.Tab.Document.Id;
         var doc2Id = tab2.Tab.Document.Id;
+        var doc3Id = tab3.Tab.Document.Id;
+
+        // Add content so documents aren't deleted on close
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Content 1");
+        _tabManager.UpdateTabContent(tab2.Tab.TabId, "Content 2");
+        _tabManager.UpdateTabContent(tab3.Tab.TabId, "Content 3");
+        await _documentService.UpdateContentAsync(doc1Id, "Content 1");
+        await _documentService.UpdateContentAsync(doc2Id, "Content 2");
+        await _documentService.UpdateContentAsync(doc3Id, "Content 3");
 
         // Close all
         await _tabManager.CloseTabAsync(tab1.Tab.TabId);
