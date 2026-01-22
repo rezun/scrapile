@@ -729,12 +729,22 @@ Configure Avalonia project with MVVM structure.
 5. Create App.axaml with basic styling
 
 **Acceptance Criteria:**
-- [ ] Application launches with empty window
-- [ ] DI container configured with services
-- [ ] MVVM structure in place
-- [ ] Basic light theme applied
+- [x] Application launches with empty window
+- [x] DI container configured with services
+- [x] MVVM structure in place
+- [x] Basic light theme applied
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Added Microsoft.Extensions.DependencyInjection package
+- Created `DependencyInjection/ServiceCollectionExtensions.cs` with service registration
+- Configured services: IMetadataStore, IDocumentRepository, DocumentService, AutoSaveService, TabManager
+- Updated App.axaml.cs to build and use DI container
+- Updated MainWindowViewModel with constructor injection for services
+- MainWindow calls InitializeAsync on load to restore session state
+- Set RequestedThemeVariant="Light" in App.axaml for consistent light theme
+- Default storage directory: ~/Documents/Scrapile
 
 ---
 
