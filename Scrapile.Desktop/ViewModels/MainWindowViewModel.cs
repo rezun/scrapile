@@ -85,8 +85,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Initialize the tab manager to restore previous session
         await _tabManager.InitializeAsync();
 
-        // Load tabs into the TabListViewModel
-        TabListViewModel.LoadTabs();
+        // Load tabs into the TabListViewModel and restore active tab selection
+        await TabListViewModel.LoadTabsAsync();
 
         // Update HasTabs based on restored tabs
         UpdateHasTabs();
@@ -96,11 +96,16 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>
     /// Handles tab selection events from the tab list.
+    /// Persists the active tab document ID for session restore.
     /// </summary>
-    private void OnTabSelected(object? sender, TabItemViewModel? tabViewModel)
+    private async void OnTabSelected(object? sender, TabItemViewModel? tabViewModel)
     {
         SelectedTab = tabViewModel;
         EditorViewModel.CurrentTab = tabViewModel;
+
+        // Persist the active tab selection for session restore
+        var documentId = tabViewModel?.DocumentId;
+        await _tabManager.SetActiveTabDocumentIdAsync(documentId);
     }
 
     /// <summary>

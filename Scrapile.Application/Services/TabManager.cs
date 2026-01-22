@@ -748,6 +748,25 @@ public class TabManager
     }
 
     /// <summary>
+    /// Gets the document ID of the last active (selected) tab from metadata.
+    /// </summary>
+    /// <returns>The active tab's document ID, or null if none was set.</returns>
+    public async Task<Guid?> GetActiveTabDocumentIdAsync()
+    {
+        return await _metadataStore.GetActiveTabDocumentIdAsync();
+    }
+
+    /// <summary>
+    /// Sets the document ID of the active (selected) tab in metadata.
+    /// Called when the user switches tabs to persist the selection.
+    /// </summary>
+    /// <param name="documentId">The active tab's document ID, or null to clear.</param>
+    public async Task SetActiveTabDocumentIdAsync(Guid? documentId)
+    {
+        await _metadataStore.SetActiveTabDocumentIdAsync(documentId);
+    }
+
+    /// <summary>
     /// Ensures the tab manager has been initialized.
     /// </summary>
     private void EnsureInitialized()

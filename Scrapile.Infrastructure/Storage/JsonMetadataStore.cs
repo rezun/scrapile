@@ -347,6 +347,38 @@ public class JsonMetadataStore : IMetadataStore
         }
     }
 
+    /// <inheritdoc />
+    public async Task<Guid?> GetActiveTabDocumentIdAsync()
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+            return metadata.ActiveTabDocumentId;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SetActiveTabDocumentIdAsync(Guid? documentId)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+            metadata.ActiveTabDocumentId = documentId;
+            await SaveToFileAsync(metadata);
+            _cachedMetadata = metadata;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     /// <summary>
     /// Loads metadata from cache if available, otherwise from file.
     /// Must be called within the lock.

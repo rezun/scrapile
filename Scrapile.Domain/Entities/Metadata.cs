@@ -33,4 +33,11 @@ public class Metadata
     /// Valid values: "Light", "Dark", "System".
     /// </summary>
     public string Theme { get; set; } = "System";
+
+    /// <summary>
+    /// The document ID of the last active (selected) tab.
+    /// Used to restore tab selection on startup.
+    /// Null if no tab was selected or if the document no longer exists.
+    /// </summary>
+    public Guid? ActiveTabDocumentId { get; set; }
 }

@@ -598,4 +598,70 @@ public class ServicesIntegrationTests : IDisposable
     }
 
     #endregion
+
+    #region Active Tab Session Restore Tests
+
+    [Fact]
+    public async Task SessionRestore_ActiveTabDocumentId_PersistsAcrossRestart()
+    {
+        // Arrange - Create tabs and set active tab
+        await _tabManager.InitializeAsync();
+        var tab1 = await _tabManager.CreateTabAsync();
+        var tab2 = await _tabManager.CreateTabAsync();
+        var tab3 = await _tabManager.CreateTabAsync();
+
+        // Act - Set the middle tab as active
+        await _tabManager.SetActiveTabDocumentIdAsync(tab2.Tab.Document.Id);
+
+        // Create a new TabManager instance (simulating app restart)
+        var newTabManager = new TabManager(_repository, _metadataStore);
+        await newTabManager.InitializeAsync();
+
+        // Assert - The active tab should be persisted
+        var activeDocumentId = await newTabManager.GetActiveTabDocumentIdAsync();
+        Assert.Equal(tab2.Tab.Document.Id, activeDocumentId);
+    }
+
+    [Fact]
+    public async Task SessionRestore_ActiveTabDocumentId_WhenTabDeleted_ReturnsStaleId()
+    {
+        // Arrange - Create tabs and set active tab
+        await _tabManager.InitializeAsync();
+        var tab1 = await _tabManager.CreateTabAsync();
+        _tabManager.UpdateTabContent(tab1.Tab.TabId, "Important content");
+        await _tabManager.SetActiveTabDocumentIdAsync(tab1.Tab.Document.Id);
+        var documentId = tab1.Tab.Document.Id;
+
+        // Close the tab (deleting if empty would lose the document)
+        await _tabManager.CloseTabAsync(tab1.Tab.TabId);
+
+        // Create a new TabManager instance (simulating app restart)
+        var newTabManager = new TabManager(_repository, _metadataStore);
+        await newTabManager.InitializeAsync();
+
+        // Act - The active tab ID should still be stored (even though the document exists in recently closed)
+        var activeDocumentId = await newTabManager.GetActiveTabDocumentIdAsync();
+
+        // Assert - ID is stored; UI layer would handle selecting first tab if not found
+        Assert.Equal(documentId, activeDocumentId);
+    }
+
+    [Fact]
+    public async Task SessionRestore_NoActiveTab_ReturnsNull()
+    {
+        // Arrange - Create tabs but don't set active tab
+        await _tabManager.InitializeAsync();
+        await _tabManager.CreateTabAsync();
+        await _tabManager.CreateTabAsync();
+
+        // Create a new TabManager instance (simulating app restart)
+        var newTabManager = new TabManager(_repository, _metadataStore);
+        await newTabManager.InitializeAsync();
+
+        // Act & Assert - No active tab was persisted
+        var activeDocumentId = await newTabManager.GetActiveTabDocumentIdAsync();
+        Assert.Null(activeDocumentId);
+    }
+
+    #endregion
 }

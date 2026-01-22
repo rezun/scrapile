@@ -1041,6 +1041,72 @@ public class TabManagerTests
 
     #endregion
 
+    #region Active Tab Persistence Tests
+
+    [Fact]
+    public async Task GetActiveTabDocumentIdAsync_WhenNotSet_ReturnsNull()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+
+        // Act
+        var activeDocumentId = await _tabManager.GetActiveTabDocumentIdAsync();
+
+        // Assert
+        Assert.Null(activeDocumentId);
+    }
+
+    [Fact]
+    public async Task SetActiveTabDocumentIdAsync_StoresDocumentId()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var tab = await _tabManager.CreateTabAsync();
+        var documentId = tab.Tab.Document.Id;
+
+        // Act
+        await _tabManager.SetActiveTabDocumentIdAsync(documentId);
+        var activeDocumentId = await _tabManager.GetActiveTabDocumentIdAsync();
+
+        // Assert
+        Assert.Equal(documentId, activeDocumentId);
+    }
+
+    [Fact]
+    public async Task SetActiveTabDocumentIdAsync_WithNull_ClearsActiveTab()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var tab = await _tabManager.CreateTabAsync();
+        await _tabManager.SetActiveTabDocumentIdAsync(tab.Tab.Document.Id);
+
+        // Act
+        await _tabManager.SetActiveTabDocumentIdAsync(null);
+        var activeDocumentId = await _tabManager.GetActiveTabDocumentIdAsync();
+
+        // Assert
+        Assert.Null(activeDocumentId);
+    }
+
+    [Fact]
+    public async Task SetActiveTabDocumentIdAsync_PersistsAcrossCalls()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var tab1 = await _tabManager.CreateTabAsync();
+        var tab2 = await _tabManager.CreateTabAsync();
+
+        // Act - switch between tabs
+        await _tabManager.SetActiveTabDocumentIdAsync(tab1.Tab.Document.Id);
+        await _tabManager.SetActiveTabDocumentIdAsync(tab2.Tab.Document.Id);
+        var activeDocumentId = await _tabManager.GetActiveTabDocumentIdAsync();
+
+        // Assert
+        Assert.Equal(tab2.Tab.Document.Id, activeDocumentId);
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private static Document CreateDocument(string content, string? title = null)
@@ -1241,6 +1307,19 @@ public class TabManagerTests
         public Task<string?> GetDocumentTitleAsync(Guid documentId)
         {
             return Task.FromResult(_documentTitles.TryGetValue(documentId, out var title) ? title : null);
+        }
+
+        private Guid? _activeTabDocumentId;
+
+        public Task<Guid?> GetActiveTabDocumentIdAsync()
+        {
+            return Task.FromResult(_activeTabDocumentId);
+        }
+
+        public Task SetActiveTabDocumentIdAsync(Guid? documentId)
+        {
+            _activeTabDocumentId = documentId;
+            return Task.CompletedTask;
         }
     }
 

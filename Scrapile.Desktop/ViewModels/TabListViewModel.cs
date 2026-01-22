@@ -50,7 +50,45 @@ public partial class TabListViewModel : ViewModelBase
     public bool HasTabs => Tabs.Count > 0;
 
     /// <summary>
-    /// Loads tabs from the TabManager.
+    /// Loads tabs from the TabManager and restores the last active tab selection.
+    /// </summary>
+    public async Task LoadTabsAsync()
+    {
+        var openTabs = _tabManager.GetOpenTabs();
+        Tabs.Clear();
+
+        foreach (var tab in openTabs)
+        {
+            Tabs.Add(CreateTabItemViewModel(tab));
+        }
+
+        // Restore the last active tab selection
+        TabItemViewModel? tabToSelect = null;
+
+        var activeDocumentId = await _tabManager.GetActiveTabDocumentIdAsync();
+        if (activeDocumentId.HasValue)
+        {
+            tabToSelect = Tabs.FirstOrDefault(t => t.DocumentId == activeDocumentId.Value);
+        }
+
+        // Fall back to first tab if active tab not found
+        if (tabToSelect == null && Tabs.Count > 0)
+        {
+            tabToSelect = Tabs[0];
+        }
+
+        if (tabToSelect != null)
+        {
+            SelectTab(tabToSelect);
+        }
+
+        OnPropertyChanged(nameof(HasTabs));
+        TabsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Loads tabs from the TabManager (synchronous version, selects first tab).
+    /// Use LoadTabsAsync for restoring the active tab selection.
     /// </summary>
     public void LoadTabs()
     {

@@ -94,4 +94,17 @@ public interface IMetadataStore
     /// <param name="documentId">The document ID.</param>
     /// <returns>The title, or null if no title is set.</returns>
     Task<string?> GetDocumentTitleAsync(Guid documentId);
+
+    /// <summary>
+    /// Gets the document ID of the last active (selected) tab.
+    /// </summary>
+    /// <returns>The active tab's document ID, or null if none was set.</returns>
+    Task<Guid?> GetActiveTabDocumentIdAsync();
+
+    /// <summary>
+    /// Sets the document ID of the active (selected) tab.
+    /// Called when the user switches tabs to persist the selection.
+    /// </summary>
+    /// <param name="documentId">The active tab's document ID, or null to clear.</param>
+    Task SetActiveTabDocumentIdAsync(Guid? documentId);
 }

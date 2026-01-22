@@ -1049,12 +1049,27 @@ Implement session restore functionality.
 4. Handle missing documents gracefully
 
 **Acceptance Criteria:**
-- [ ] Tabs restored on app launch
-- [ ] Tab order preserved
-- [ ] Last active tab selected
-- [ ] Missing files handled (show error or skip)
+- [x] Tabs restored on app launch
+- [x] Tab order preserved
+- [x] Last active tab selected
+- [x] Missing files handled (show error or skip)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added `ActiveTabDocumentId` property to `Metadata` entity for persisting last selected tab
+- Added `GetActiveTabDocumentIdAsync()` and `SetActiveTabDocumentIdAsync()` methods to:
+  - `IMetadataStore` interface
+  - `JsonMetadataStore` implementation
+  - `TabManager` service (delegates to metadata store)
+- Updated `TabListViewModel.LoadTabsAsync()` to restore active tab selection from metadata
+- Updated `MainWindowViewModel`:
+  - `InitializeAsync()` now calls `LoadTabsAsync()` instead of `LoadTabs()` for proper session restore
+  - `OnTabSelected()` persists the active tab document ID when user switches tabs
+- Falls back to first tab if the saved active tab no longer exists
+- Added 4 unit tests for `TabManager` active tab methods
+- Added 3 integration tests for session restore with active tab persistence
+- All 256 tests pass (73 infrastructure + 183 application)
 
 ---
 
