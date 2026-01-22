@@ -1,7 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Scrapile.Application.Services;
+using Scrapile.Desktop.Services;
 
 namespace Scrapile.Desktop.ViewModels;
 
@@ -13,6 +15,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly TabManager _tabManager;
     private readonly DocumentService _documentService;
     private readonly AutoSaveService _autoSaveService;
+    private readonly ThemeService _themeService;
 
     [ObservableProperty]
     private string _title = "Scrapile";
@@ -38,14 +41,17 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <param name="tabManager">The tab manager service.</param>
     /// <param name="documentService">The document service.</param>
     /// <param name="autoSaveService">The auto-save service.</param>
+    /// <param name="themeService">The theme service.</param>
     public MainWindowViewModel(
         TabManager tabManager,
         DocumentService documentService,
-        AutoSaveService autoSaveService)
+        AutoSaveService autoSaveService,
+        ThemeService themeService)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
+        _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
 
         // Create the tab list view model
         _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
@@ -68,6 +74,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             return;
         }
+
+        // Initialize theme service to apply saved theme preference
+        await _themeService.InitializeAsync();
 
         // Initialize the tab manager to restore previous session
         await _tabManager.InitializeAsync();
@@ -171,4 +180,28 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Selects the previous tab.
     /// </summary>
     public void SelectPreviousTab() => TabListViewModel.SelectPreviousTab();
+
+    /// <summary>
+    /// Sets the theme to Light.
+    /// </summary>
+    [RelayCommand]
+    private Task SetLightTheme() => _themeService.SetThemeAsync("Light");
+
+    /// <summary>
+    /// Sets the theme to Dark.
+    /// </summary>
+    [RelayCommand]
+    private Task SetDarkTheme() => _themeService.SetThemeAsync("Dark");
+
+    /// <summary>
+    /// Sets the theme to System (follows OS preference).
+    /// </summary>
+    [RelayCommand]
+    private Task SetSystemTheme() => _themeService.SetThemeAsync("System");
+
+    /// <summary>
+    /// Cycles through themes: System -> Light -> Dark -> System.
+    /// </summary>
+    [RelayCommand]
+    public Task CycleTheme() => _themeService.CycleThemeAsync();
 }

@@ -13,9 +13,7 @@
         <vm:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
     </UserControl.Resources>
 
-    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-            BorderThickness="0,0,1,0">
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
         <Grid>
             <Grid.RowDefinitions>
                 <!-- Tab list area -->
@@ -75,7 +73,7 @@
                                         <!-- Stats subtitle -->
                                         <TextBlock Text="{Binding FormattedWordCount}"
                                                    FontSize="11"
-                                                   Foreground="{DynamicResource TextControlForegroundDisabled}"/>
+                                                   Opacity="0.6"/>
                                     </StackPanel>
 
                                     <!-- Close button -->
@@ -120,7 +118,7 @@
 
             <!-- New tab button area -->
             <Border Grid.Row="1"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                     BorderThickness="0,1,0,0"
                     Padding="8">
                 <Button Content="+ New Tab"

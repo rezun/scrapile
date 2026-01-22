@@ -27,4 +27,10 @@ public class Metadata
     /// Only contains metadata that cannot be derived from files.
     /// </summary>
     public Dictionary<Guid, DocumentMetadata> Documents { get; set; } = new();
+
+    /// <summary>
+    /// User's preferred theme setting.
+    /// Valid values: "Light", "Dark", "System".
+    /// </summary>
+    public string Theme { get; set; } = "System";
 }

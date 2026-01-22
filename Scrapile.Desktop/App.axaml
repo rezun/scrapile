@@ -1,9 +1,8 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Scrapile.Desktop.App"
-             xmlns:local="using:Scrapile.Desktop"
-             RequestedThemeVariant="Light">
-    <!-- Using "Light" theme for MVP. "Dark" or "Default" (system theme) are other options. -->
+             xmlns:local="using:Scrapile.Desktop">
+    <!-- Theme is set dynamically by ThemeService. Options: Light, Dark, System (default). -->
 
     <Application.DataTemplates>
         <local:ViewLocator/>

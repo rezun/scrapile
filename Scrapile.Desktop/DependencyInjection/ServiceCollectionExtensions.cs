@@ -7,6 +7,7 @@ using Scrapile.Application.Services;
 using Scrapile.Domain.Interfaces;
 using Scrapile.Infrastructure.Repositories;
 using Scrapile.Infrastructure.Storage;
+using Scrapile.Desktop.Services;
 using Scrapile.Desktop.ViewModels;
 
 /// <summary>
@@ -34,6 +35,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<DocumentService>();
         services.AddSingleton<AutoSaveService>();
         services.AddSingleton<TabManager>();
+
+        // Desktop Services - Singletons for shared state
+        services.AddSingleton<ThemeService>();
 
         // ViewModels - Transient for fresh instances
         services.AddTransient<MainWindowViewModel>();

@@ -21,32 +21,47 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <!-- Main two-column layout: Tab list (left) | Editor (right) -->
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <!-- Tab list panel - fixed initial width, resizable -->
-            <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
-            <!-- Grid splitter -->
-            <ColumnDefinition Width="Auto"/>
-            <!-- Editor panel - takes remaining space -->
-            <ColumnDefinition Width="*" MinWidth="300"/>
-        </Grid.ColumnDefinitions>
+    <DockPanel>
+        <!-- Menu Bar -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+            <Menu>
+                <MenuItem Header="_View">
+                    <MenuItem Header="_Light Theme" Command="{Binding SetLightThemeCommand}"/>
+                    <MenuItem Header="_Dark Theme" Command="{Binding SetDarkThemeCommand}"/>
+                    <MenuItem Header="_System Theme" Command="{Binding SetSystemThemeCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="C_ycle Theme" Command="{Binding CycleThemeCommand}" InputGesture="Ctrl+Shift+L"/>
+                </MenuItem>
+            </Menu>
+        </Border>
 
-        <!-- Left Panel: Tab List -->
-        <views:TabListView Grid.Column="0"
-                           DataContext="{Binding TabListViewModel}"/>
+        <!-- Main two-column layout: Tab list (left) | Editor (right) -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <!-- Tab list panel - fixed initial width, resizable -->
+                <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
+                <!-- Grid splitter -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Editor panel - takes remaining space -->
+                <ColumnDefinition Width="*" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- Grid Splitter for resizing panels -->
-        <GridSplitter Grid.Column="1"
-                      Width="4"
-                      Background="Transparent"
-                      ResizeDirection="Columns"
-                      ResizeBehavior="PreviousAndNext"/>
+            <!-- Left Panel: Tab List -->
+            <views:TabListView Grid.Column="0"
+                               DataContext="{Binding TabListViewModel}"/>
 
-        <!-- Right Panel: Editor Area -->
-        <views:EditorView x:Name="EditorView"
-                          Grid.Column="2"
-                          DataContext="{Binding EditorViewModel}"/>
-    </Grid>
+            <!-- Grid Splitter for resizing panels -->
+            <GridSplitter Grid.Column="1"
+                          Width="4"
+                          Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                          ResizeDirection="Columns"
+                          ResizeBehavior="PreviousAndNext"/>
+
+            <!-- Right Panel: Editor Area -->
+            <views:EditorView x:Name="EditorView"
+                              Grid.Column="2"
+                              DataContext="{Binding EditorViewModel}"/>
+        </Grid>
+    </DockPanel>
 
 </Window>

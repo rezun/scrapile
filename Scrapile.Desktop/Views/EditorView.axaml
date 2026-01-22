@@ -14,39 +14,45 @@
     </Design.DataContext>
 
     <UserControl.Styles>
-        <!-- Remove focus border from editor TextBoxes -->
+        <!-- Remove focus border and set consistent background for editor TextBoxes -->
         <Style Selector="TextBox.editor-textbox">
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <Style Selector="TextBox.editor-textbox:focus">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <Style Selector="TextBox.editor-textbox:pointerover">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <Style Selector="TextBox.editor-textbox:focus-within">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <!-- Target the inner Border in the TextBox template -->
         <Style Selector="TextBox.editor-textbox /template/ Border#PART_BorderElement">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <Style Selector="TextBox.editor-textbox:focus /template/ Border#PART_BorderElement">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
         <Style Selector="TextBox.editor-textbox:pointerover /template/ Border#PART_BorderElement">
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
         </Style>
     </UserControl.Styles>
 
-    <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}">
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
         <Grid>
             <!-- Editor content (shown when a tab is selected) -->
             <Grid IsVisible="{Binding HasTab}">

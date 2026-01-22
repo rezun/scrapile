@@ -96,6 +96,15 @@ public partial class MainWindow : Window
                     await viewModel.CloseCurrentTabAsync();
                 }
                 break;
+
+            case Key.L:
+                // Ctrl/Cmd+Shift+L: Cycle theme
+                if (shiftPressed)
+                {
+                    e.Handled = true;
+                    await viewModel.CycleTheme();
+                }
+                break;
         }
     }
 }
