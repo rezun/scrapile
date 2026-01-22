@@ -764,6 +764,230 @@ public class TabManagerTests
 
     #endregion
 
+    #region GetRecentlyClosedAsync Tests
+
+    [Fact]
+    public async Task GetRecentlyClosedAsync_BeforeInitialize_ThrowsInvalidOperationException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _tabManager.GetRecentlyClosedAsync());
+    }
+
+    [Fact]
+    public async Task GetRecentlyClosedAsync_WithNoItems_ReturnsEmptyList()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+
+        // Act
+        var result = await _tabManager.GetRecentlyClosedAsync();
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetRecentlyClosedAsync_ReturnsItemsWithDocumentInfo()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Test content", "Test Title");
+        _mockRepository.AddDocument(doc);
+        var closedAt = DateTime.UtcNow.AddMinutes(-5);
+        _mockMetadataStore.AddToRecentlyClosedList(doc.Id, closedAt);
+
+        // Act
+        var result = await _tabManager.GetRecentlyClosedAsync();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(doc.Id, result[0].DocumentId);
+        Assert.Equal("Test Title", result[0].Title);
+        Assert.Equal("Test content", result[0].ContentPreview);
+        Assert.False(result[0].IsDeleted);
+        Assert.Equal(closedAt, result[0].ClosedAt);
+    }
+
+    [Fact]
+    public async Task GetRecentlyClosedAsync_WithDeletedDocument_MarksAsDeleted()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var deletedDocId = Guid.NewGuid();
+        _mockMetadataStore.AddToRecentlyClosedList(deletedDocId, DateTime.UtcNow);
+        _mockMetadataStore.SetDocumentTitle(deletedDocId, "Deleted Doc Title");
+
+        // Act
+        var result = await _tabManager.GetRecentlyClosedAsync();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(deletedDocId, result[0].DocumentId);
+        Assert.True(result[0].IsDeleted);
+        Assert.Equal("Deleted Doc Title", result[0].Title);
+        Assert.Empty(result[0].ContentPreview);
+    }
+
+    [Fact]
+    public async Task GetRecentlyClosedAsync_FormatsClosedTimeCorrectly()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Content");
+        _mockRepository.AddDocument(doc);
+        _mockMetadataStore.AddToRecentlyClosedList(doc.Id, DateTime.UtcNow.AddSeconds(-30));
+
+        // Act
+        var result = await _tabManager.GetRecentlyClosedAsync();
+
+        // Assert
+        Assert.Equal("just now", result[0].FormattedClosedTime);
+    }
+
+    #endregion
+
+    #region ReopenLastClosedAsync Tests
+
+    [Fact]
+    public async Task ReopenLastClosedAsync_BeforeInitialize_ThrowsInvalidOperationException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _tabManager.ReopenLastClosedAsync());
+    }
+
+    [Fact]
+    public async Task ReopenLastClosedAsync_WithNoItems_ReturnsNull()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+
+        // Act
+        var result = await _tabManager.ReopenLastClosedAsync();
+
+        // Assert
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task ReopenLastClosedAsync_ReopensFirstAvailableDocument()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Test content", "Test Title");
+        _mockRepository.AddDocument(doc);
+        _mockMetadataStore.AddToRecentlyClosedList(doc.Id, DateTime.UtcNow);
+
+        // Act
+        var result = await _tabManager.ReopenLastClosedAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(doc.Id, result.Tab.Document.Id);
+        Assert.Equal(1, _tabManager.TabCount);
+    }
+
+    [Fact]
+    public async Task ReopenLastClosedAsync_SkipsDeletedDocuments()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var deletedDocId = Guid.NewGuid();
+        var existingDoc = CreateDocument("Existing content");
+        _mockRepository.AddDocument(existingDoc);
+
+        // Add existing first (older), then deleted (most recent)
+        // Since AddToRecentlyClosedList inserts at index 0, order becomes: [deleted, existing]
+        _mockMetadataStore.AddToRecentlyClosedList(existingDoc.Id, DateTime.UtcNow.AddMinutes(-1));
+        _mockMetadataStore.AddToRecentlyClosedList(deletedDocId, DateTime.UtcNow);
+
+        // Act
+        var result = await _tabManager.ReopenLastClosedAsync();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(existingDoc.Id, result.Tab.Document.Id);
+        Assert.Contains(deletedDocId, _mockMetadataStore.RemovedFromRecentlyClosed);
+    }
+
+    [Fact]
+    public async Task ReopenLastClosedAsync_RemovesFromRecentlyClosed()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Test content");
+        _mockRepository.AddDocument(doc);
+        _mockMetadataStore.AddToRecentlyClosedList(doc.Id, DateTime.UtcNow);
+
+        // Act
+        await _tabManager.ReopenLastClosedAsync();
+
+        // Assert
+        Assert.Contains(doc.Id, _mockMetadataStore.RemovedFromRecentlyClosed);
+    }
+
+    #endregion
+
+    #region ReopenDocumentFromRecentlyClosedAsync Tests
+
+    [Fact]
+    public async Task ReopenDocumentFromRecentlyClosedAsync_BeforeInitialize_ThrowsInvalidOperationException()
+    {
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _tabManager.ReopenDocumentFromRecentlyClosedAsync(Guid.NewGuid()));
+    }
+
+    [Fact]
+    public async Task ReopenDocumentFromRecentlyClosedAsync_WithValidDocument_OpensTab()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Test content", "Test Title");
+        _mockRepository.AddDocument(doc);
+
+        // Act
+        var result = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(doc.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(doc.Id, result.Tab.Document.Id);
+        Assert.Equal(1, _tabManager.TabCount);
+    }
+
+    [Fact]
+    public async Task ReopenDocumentFromRecentlyClosedAsync_WithDeletedDocument_ReturnsNullAndRemoves()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var deletedDocId = Guid.NewGuid();
+
+        // Act
+        var result = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(deletedDocId);
+
+        // Assert
+        Assert.Null(result);
+        Assert.Contains(deletedDocId, _mockMetadataStore.RemovedFromRecentlyClosed);
+    }
+
+    [Fact]
+    public async Task ReopenDocumentFromRecentlyClosedAsync_RemovesFromRecentlyClosed()
+    {
+        // Arrange
+        await _tabManager.InitializeAsync();
+        var doc = CreateDocument("Test content");
+        _mockRepository.AddDocument(doc);
+
+        // Act
+        await _tabManager.ReopenDocumentFromRecentlyClosedAsync(doc.Id);
+
+        // Assert
+        Assert.Contains(doc.Id, _mockMetadataStore.RemovedFromRecentlyClosed);
+    }
+
+    #endregion
+
     #region GetTabByDocumentId Tests
 
     [Fact]
@@ -889,6 +1113,9 @@ public class TabManagerTests
     private class MockMetadataStore : IMetadataStore
     {
         private List<Guid> _openTabs = new();
+        private readonly List<RecentlyClosedInfo> _recentlyClosed = new();
+        private readonly Dictionary<Guid, string?> _documentTitles = new();
+
         public List<(Guid DocumentId, int Order)> AddedOpenTabs { get; } = new();
         public List<Guid> RemovedOpenTabs { get; } = new();
         public List<(Guid DocumentId, DateTime ClosedAt)> AddedToRecentlyClosed { get; } = new();
@@ -898,6 +1125,21 @@ public class TabManagerTests
         public void SetOpenTabs(List<Guid> openTabs)
         {
             _openTabs = openTabs;
+        }
+
+        public void AddToRecentlyClosedList(Guid documentId, DateTime closedAt)
+        {
+            // Insert at beginning (most recent first)
+            _recentlyClosed.Insert(0, new RecentlyClosedInfo
+            {
+                DocumentId = documentId,
+                ClosedAt = closedAt
+            });
+        }
+
+        public void SetDocumentTitle(Guid documentId, string? title)
+        {
+            _documentTitles[documentId] = title;
         }
 
         public Task<Metadata> LoadAsync()
@@ -950,12 +1192,18 @@ public class TabManagerTests
         public Task AddRecentlyClosedAsync(Guid documentId, DateTime closedAt)
         {
             AddedToRecentlyClosed.Add((documentId, closedAt));
+            _recentlyClosed.Insert(0, new RecentlyClosedInfo
+            {
+                DocumentId = documentId,
+                ClosedAt = closedAt
+            });
             return Task.CompletedTask;
         }
 
         public Task RemoveRecentlyClosedAsync(Guid documentId)
         {
             RemovedFromRecentlyClosed.Add(documentId);
+            _recentlyClosed.RemoveAll(r => r.DocumentId == documentId);
             return Task.CompletedTask;
         }
 
@@ -966,12 +1214,12 @@ public class TabManagerTests
 
         public Task<List<RecentlyClosedInfo>> GetRecentlyClosedAsync()
         {
-            return Task.FromResult(new List<RecentlyClosedInfo>());
+            return Task.FromResult(_recentlyClosed.ToList());
         }
 
         public Task<string?> GetDocumentTitleAsync(Guid documentId)
         {
-            return Task.FromResult<string?>(null);
+            return Task.FromResult(_documentTitles.TryGetValue(documentId, out var title) ? title : null);
         }
     }
 

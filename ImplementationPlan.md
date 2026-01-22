@@ -535,12 +535,24 @@ Implement recently closed tab tracking.
 - `ReopenDocument(Guid documentId)` - Reopen specific document
 
 **Acceptance Criteria:**
-- [ ] Stack limited to 50 items (LRU eviction)
-- [ ] Reopening removes from recently closed
-- [ ] List persists across sessions
-- [ ] Handles missing documents (deleted files)
+- [x] Stack limited to 50 items (LRU eviction)
+- [x] Reopening removes from recently closed
+- [x] List persists across sessions
+- [x] Handles missing documents (deleted files)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-22
+
+**Implementation Notes:**
+- Added `RecentlyClosedItem` DTO in `Scrapile.Application/DTOs/RecentlyClosedItem.cs`
+- Added to `TabManager`:
+  - `GetRecentlyClosedAsync()` - Returns list with document info, title, preview, deletion status
+  - `ReopenLastClosedAsync()` - Reopens most recently closed, skips deleted documents
+  - `ReopenDocumentFromRecentlyClosedAsync(Guid)` - Reopens specific document
+  - `FormatClosedTime()` - Formats relative time (e.g., "2 minutes ago")
+- 50-item limit with LRU eviction handled by `JsonMetadataStore.AddRecentlyClosedAsync()`
+- Session persistence via metadata store (already implemented)
+- Deleted files are marked with `IsDeleted = true` and skipped during reopen
+- 14 new unit tests added to `TabManagerTests.cs`
 
 ---
 

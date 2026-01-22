@@ -520,6 +520,132 @@ public class TabManager
     }
 
     /// <summary>
+    /// Gets the list of recently closed documents with display information.
+    /// </summary>
+    /// <returns>List of recently closed items, most recent first.</returns>
+    public async Task<IReadOnlyList<RecentlyClosedItem>> GetRecentlyClosedAsync()
+    {
+        EnsureInitialized();
+
+        var recentlyClosed = await _metadataStore.GetRecentlyClosedAsync();
+        var result = new List<RecentlyClosedItem>();
+
+        foreach (var info in recentlyClosed)
+        {
+            var document = await _documentRepository.GetByIdAsync(info.DocumentId);
+            var isDeleted = document == null;
+
+            string? title = null;
+            string contentPreview = string.Empty;
+
+            if (!isDeleted)
+            {
+                title = document!.Title;
+                contentPreview = ContentHelper.GetContentPreview(document.Content);
+            }
+            else
+            {
+                // Try to get title from metadata even if file is deleted
+                title = await _metadataStore.GetDocumentTitleAsync(info.DocumentId);
+            }
+
+            result.Add(new RecentlyClosedItem
+            {
+                DocumentId = info.DocumentId,
+                ClosedAt = info.ClosedAt,
+                Title = title,
+                ContentPreview = contentPreview,
+                IsDeleted = isDeleted,
+                FormattedClosedTime = FormatClosedTime(info.ClosedAt)
+            });
+        }
+
+        return result.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Reopens the most recently closed tab.
+    /// </summary>
+    /// <returns>The reopened tab with stats, or null if no recently closed items or document was deleted.</returns>
+    public async Task<TabWithStats?> ReopenLastClosedAsync()
+    {
+        EnsureInitialized();
+
+        var recentlyClosed = await _metadataStore.GetRecentlyClosedAsync();
+
+        foreach (var info in recentlyClosed)
+        {
+            // Try to open the document - skip if deleted
+            var tab = await OpenDocumentInTabAsync(info.DocumentId);
+            if (tab != null)
+            {
+                return tab;
+            }
+
+            // Document was deleted - remove from recently closed and try next
+            await _metadataStore.RemoveRecentlyClosedAsync(info.DocumentId);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Reopens a specific document from the recently closed list.
+    /// </summary>
+    /// <param name="documentId">The ID of the document to reopen.</param>
+    /// <returns>The reopened tab with stats, or null if document not found or was deleted.</returns>
+    public async Task<TabWithStats?> ReopenDocumentFromRecentlyClosedAsync(Guid documentId)
+    {
+        EnsureInitialized();
+
+        // Try to open the document
+        var tab = await OpenDocumentInTabAsync(documentId);
+
+        if (tab == null)
+        {
+            // Document was deleted - remove from recently closed
+            await _metadataStore.RemoveRecentlyClosedAsync(documentId);
+        }
+
+        return tab;
+    }
+
+    /// <summary>
+    /// Formats the closed time as a human-readable relative time string.
+    /// </summary>
+    private static string FormatClosedTime(DateTime closedAt)
+    {
+        var elapsed = DateTime.UtcNow - closedAt;
+
+        if (elapsed.TotalSeconds < 60)
+        {
+            return "just now";
+        }
+        if (elapsed.TotalMinutes < 60)
+        {
+            var minutes = (int)elapsed.TotalMinutes;
+            return minutes == 1 ? "1 minute ago" : $"{minutes} minutes ago";
+        }
+        if (elapsed.TotalHours < 24)
+        {
+            var hours = (int)elapsed.TotalHours;
+            return hours == 1 ? "1 hour ago" : $"{hours} hours ago";
+        }
+        if (elapsed.TotalDays < 7)
+        {
+            var days = (int)elapsed.TotalDays;
+            return days == 1 ? "1 day ago" : $"{days} days ago";
+        }
+        if (elapsed.TotalDays < 30)
+        {
+            var weeks = (int)(elapsed.TotalDays / 7);
+            return weeks == 1 ? "1 week ago" : $"{weeks} weeks ago";
+        }
+
+        return closedAt.ToString("MMM d, yyyy");
+    }
+
+    /// <summary>
     /// Enriches a tab with calculated statistics.
     /// </summary>
     private static TabWithStats EnrichWithStats(Tab tab)
