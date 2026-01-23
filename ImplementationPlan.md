@@ -1466,7 +1466,7 @@ Implement quick reopen functionality.
 
 ---
 
-#### Task 7.2: Recently Closed Panel (Optional)
+#### Task 7.2: Recently Closed Panel
 **Estimated effort:** 3-4 hours
 
 Implement UI to view/manage recently closed tabs.
@@ -1478,12 +1478,33 @@ Implement UI to view/manage recently closed tabs.
 4. Consider placement (bottom of tab list, menu, etc.)
 
 **Acceptance Criteria:**
-- [ ] Recently closed list visible
-- [ ] Shows title and relative time
-- [ ] Click reopens document
-- [ ] List scrollable if long
+- [x] Recently closed list visible
+- [x] Shows title and relative time
+- [x] Click reopens document
+- [x] List scrollable if long
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Created `RecentlyClosedItemViewModel.cs` for individual item data binding
+- Added collapsible "Recently Closed" section to `TabListView.axaml`:
+  - Clickable header with expand/collapse chevron indicator
+  - Count badge showing number of recently closed items
+  - Items show title (bold) or content preview, plus relative close time
+  - Scrollable list (max 200px height) when expanded
+  - Empty state message when no recently closed items
+- Updated `TabListViewModel`:
+  - Added `RecentlyClosed` collection and `IsRecentlyClosedExpanded` properties
+  - Added `LoadRecentlyClosedAsync()` to fetch items from `TabManager`
+  - Added `ToggleRecentlyClosedAsync()` command for header click
+  - Added `ReopenDocumentRequested` event for item clicks
+  - Auto-refreshes recently closed list after closing a tab
+- Updated `MainWindowViewModel`:
+  - Subscribes to `ReopenDocumentRequested` event
+  - Opens document in new tab and refreshes both tab and recently closed lists
+- Added `BoolToChevronPath` converter to `Converters.cs` for expand/collapse icon
+- Recently closed items limited to 10 most recent (filters out deleted documents)
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 

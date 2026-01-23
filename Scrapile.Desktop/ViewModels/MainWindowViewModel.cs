@@ -64,6 +64,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
+        _tabListViewModel.ReopenDocumentRequested += OnReopenDocumentRequested;
 
         // Create the editor view model
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
@@ -378,5 +379,35 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnSearchCloseRequested(object? sender, EventArgs e)
     {
         HideSearch();
+    }
+
+    /// <summary>
+    /// Handles reopen document requests from the recently closed panel.
+    /// </summary>
+    private async void OnReopenDocumentRequested(object? sender, Guid documentId)
+    {
+        // Open the document in a new tab
+        var reopenedTab = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(documentId);
+
+        if (reopenedTab == null)
+        {
+            // Document not found or deleted
+            // Refresh the recently closed list to remove any invalid entries
+            await TabListViewModel.LoadRecentlyClosedAsync();
+            return;
+        }
+
+        // Refresh the tab list
+        await TabListViewModel.LoadTabsAsync();
+
+        // Refresh the recently closed list to remove the reopened document
+        await TabListViewModel.LoadRecentlyClosedAsync();
+
+        // Select the reopened tab
+        var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == documentId);
+        if (tabToSelect != null)
+        {
+            TabListViewModel.SelectTab(tabToSelect);
+        }
     }
 }

@@ -25,4 +25,26 @@ public partial class TabListView : UserControl
             }
         }
     }
+
+    /// <summary>
+    /// Handles pointer press on the recently closed header to toggle expansion.
+    /// </summary>
+    private async void OnRecentlyClosedHeaderPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is TabListViewModel listViewModel)
+        {
+            await listViewModel.ToggleRecentlyClosedAsync();
+        }
+    }
+
+    /// <summary>
+    /// Handles pointer press on a recently closed item to reopen it.
+    /// </summary>
+    private void OnRecentlyClosedItemPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is Border border && border.DataContext is RecentlyClosedItemViewModel itemViewModel)
+        {
+            itemViewModel.ReopenCommand.Execute(null);
+        }
+    }
 }

@@ -23,6 +23,12 @@ public partial class TabListViewModel : ViewModelBase
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
 
+    [ObservableProperty]
+    private ObservableCollection<RecentlyClosedItemViewModel> _recentlyClosed = new();
+
+    [ObservableProperty]
+    private bool _isRecentlyClosedExpanded = false;
+
     /// <summary>
     /// Event raised when a tab is selected.
     /// </summary>
@@ -32,6 +38,11 @@ public partial class TabListViewModel : ViewModelBase
     /// Event raised when the tab collection changes.
     /// </summary>
     public event EventHandler? TabsChanged;
+
+    /// <summary>
+    /// Event raised when a recently closed document should be reopened.
+    /// </summary>
+    public event EventHandler<Guid>? ReopenDocumentRequested;
 
     /// <summary>
     /// Creates a new TabListViewModel.
@@ -48,6 +59,11 @@ public partial class TabListViewModel : ViewModelBase
     /// Whether there are any tabs open.
     /// </summary>
     public bool HasTabs => Tabs.Count > 0;
+
+    /// <summary>
+    /// Whether there are any recently closed items.
+    /// </summary>
+    public bool HasRecentlyClosed => RecentlyClosed.Count > 0;
 
     /// <summary>
     /// Loads tabs from the TabManager and restores the last active tab selection.
@@ -175,6 +191,12 @@ public partial class TabListViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(HasTabs));
         TabsChanged?.Invoke(this, EventArgs.Empty);
+
+        // Refresh recently closed list if expanded
+        if (IsRecentlyClosedExpanded)
+        {
+            await LoadRecentlyClosedAsync();
+        }
     }
 
     /// <summary>
@@ -290,5 +312,43 @@ public partial class TabListViewModel : ViewModelBase
     private async void OnTabCloseRequested(TabItemViewModel tabViewModel)
     {
         await CloseTabAsync(tabViewModel);
+    }
+
+    /// <summary>
+    /// Loads recently closed items from the TabManager.
+    /// </summary>
+    public async Task LoadRecentlyClosedAsync()
+    {
+        var items = await _tabManager.GetRecentlyClosedAsync();
+        RecentlyClosed.Clear();
+
+        foreach (var item in items.Where(i => !i.IsDeleted).Take(10))
+        {
+            RecentlyClosed.Add(new RecentlyClosedItemViewModel(item, OnReopenRequested));
+        }
+
+        OnPropertyChanged(nameof(HasRecentlyClosed));
+    }
+
+    /// <summary>
+    /// Toggles the recently closed panel expansion state.
+    /// </summary>
+    [RelayCommand]
+    public async Task ToggleRecentlyClosedAsync()
+    {
+        IsRecentlyClosedExpanded = !IsRecentlyClosedExpanded;
+
+        if (IsRecentlyClosedExpanded)
+        {
+            await LoadRecentlyClosedAsync();
+        }
+    }
+
+    /// <summary>
+    /// Handles reopen requests from recently closed items.
+    /// </summary>
+    private void OnReopenRequested(RecentlyClosedItemViewModel item)
+    {
+        ReopenDocumentRequested?.Invoke(this, item.DocumentId);
     }
 }
