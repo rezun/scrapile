@@ -45,6 +45,16 @@ public partial class TabListViewModel : ViewModelBase
     public event EventHandler<Guid>? ReopenDocumentRequested;
 
     /// <summary>
+    /// Event raised when a tab should be duplicated.
+    /// </summary>
+    public event EventHandler<TabItemViewModel>? DuplicateTabRequested;
+
+    /// <summary>
+    /// Event raised when the title editing should be focused.
+    /// </summary>
+    public event EventHandler? EditTitleRequested;
+
+    /// <summary>
     /// Creates a new TabListViewModel.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -196,6 +206,108 @@ public partial class TabListViewModel : ViewModelBase
         if (IsRecentlyClosedExpanded)
         {
             await LoadRecentlyClosedAsync();
+        }
+    }
+
+    /// <summary>
+    /// Closes all open tabs.
+    /// </summary>
+    public async Task CloseAllTabsAsync()
+    {
+        // Close tabs from end to start to avoid index issues
+        while (Tabs.Count > 0)
+        {
+            var tab = Tabs[Tabs.Count - 1];
+            await CloseTabAsync(tab);
+        }
+    }
+
+    /// <summary>
+    /// Closes all tabs above the specified tab (lower index).
+    /// </summary>
+    /// <param name="tabViewModel">The reference tab (tabs above this will be closed).</param>
+    public async Task CloseTabsAboveAsync(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel == null) return;
+
+        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
+        if (tabInCollection == null) return;
+
+        var index = Tabs.IndexOf(tabInCollection);
+        if (index <= 0) return; // No tabs above
+
+        // Close tabs from just above the target down to index 0
+        // Work backwards to avoid index shifting issues
+        for (int i = index - 1; i >= 0; i--)
+        {
+            await CloseTabAsync(Tabs[i]);
+        }
+    }
+
+    /// <summary>
+    /// Closes all tabs below the specified tab (higher index).
+    /// </summary>
+    /// <param name="tabViewModel">The reference tab (tabs below this will be closed).</param>
+    public async Task CloseTabsBelowAsync(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel == null) return;
+
+        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
+        if (tabInCollection == null) return;
+
+        var index = Tabs.IndexOf(tabInCollection);
+        if (index >= Tabs.Count - 1) return; // No tabs below
+
+        // Close tabs from the end down to just below the target
+        while (Tabs.Count > index + 1)
+        {
+            await CloseTabAsync(Tabs[Tabs.Count - 1]);
+        }
+    }
+
+    /// <summary>
+    /// Duplicates a tab.
+    /// </summary>
+    /// <param name="tabViewModel">The tab to duplicate.</param>
+    public async Task DuplicateTabAsync(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel == null) return;
+
+        var duplicatedTab = await _tabManager.DuplicateTabAsync(tabViewModel.TabId);
+        if (duplicatedTab == null) return;
+
+        // Find the insert position (after the original tab)
+        var originalIndex = Tabs.IndexOf(Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId) ?? tabViewModel);
+        var insertIndex = originalIndex + 1;
+
+        // Create the view model and insert at the correct position
+        var newTabViewModel = CreateTabItemViewModel(duplicatedTab);
+        if (insertIndex >= Tabs.Count)
+        {
+            Tabs.Add(newTabViewModel);
+        }
+        else
+        {
+            Tabs.Insert(insertIndex, newTabViewModel);
+        }
+
+        // Select the new tab
+        SelectTab(newTabViewModel);
+        OnPropertyChanged(nameof(HasTabs));
+        TabsChanged?.Invoke(this, EventArgs.Empty);
+
+        // Notify that a duplicate was created (for focusing editor)
+        DuplicateTabRequested?.Invoke(this, newTabViewModel);
+    }
+
+    /// <summary>
+    /// Requests focus on the title editing field for the selected tab.
+    /// </summary>
+    public void RequestEditTitle()
+    {
+        if (SelectedTab != null)
+        {
+            EditTitleRequested?.Invoke(this, EventArgs.Empty);
         }
     }
 

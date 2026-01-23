@@ -1525,11 +1525,27 @@ Implement right-click context menu on tabs.
 3. Implement each action
 
 **Acceptance Criteria:**
-- [ ] Right-click shows context menu
-- [ ] All menu options work correctly
-- [ ] Bulk close operations update recently closed
+- [x] Right-click shows context menu
+- [x] All menu options work correctly
+- [x] Bulk close operations update recently closed
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added `ContextFlyout` with `MenuFlyout` to tab items in `TabListView.axaml`
+- Menu items: Close Tab, Close All Tabs, Close Tabs Above, Close Tabs Below, Duplicate Tab, Edit Title
+- Added bulk close methods to `TabListViewModel`:
+  - `CloseAllTabsAsync()` - closes all tabs from end to start
+  - `CloseTabsAboveAsync(TabItemViewModel)` - closes tabs with lower index
+  - `CloseTabsBelowAsync(TabItemViewModel)` - closes tabs with higher index
+  - `DuplicateTabAsync(TabItemViewModel)` - duplicates tab and inserts after original
+- Added `EditTitleRequested` and `DuplicateTabRequested` events for UI coordination
+- Added context menu click handlers in `TabListView.axaml.cs`
+- Added `FocusTitleRequested` event to `MainWindowViewModel` for title focus coordination
+- Added F2 keyboard shortcut to edit title (works globally when a tab is selected)
+- Edit Title selects the tab first, then focuses the title TextBox
+- Bulk close operations properly update recently closed list via existing `CloseTabAsync` method
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 

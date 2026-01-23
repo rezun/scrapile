@@ -24,8 +24,19 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
+            // Subscribe to FocusTitleRequested event
+            viewModel.FocusTitleRequested += OnFocusTitleRequested;
+
             await viewModel.InitializeAsync();
         }
+    }
+
+    /// <summary>
+    /// Handles focus title requests from the view model.
+    /// </summary>
+    private void OnFocusTitleRequested(object? sender, EventArgs e)
+    {
+        EditorView?.FocusTitle();
     }
 
     /// <summary>
@@ -43,6 +54,14 @@ public partial class MainWindow : Window
         {
             e.Handled = true;
             viewModel.HideSearch();
+            return;
+        }
+
+        // Handle F2 for Edit Title (no modifier needed)
+        if (e.Key == Key.F2 && viewModel.SelectedTab != null)
+        {
+            e.Handled = true;
+            viewModel.RequestEditTitle();
             return;
         }
 

@@ -43,6 +43,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private TabItemViewModel? _selectedTab;
 
     /// <summary>
+    /// Event raised when the title field should be focused.
+    /// </summary>
+    public event EventHandler? FocusTitleRequested;
+
+    /// <summary>
     /// Creates a new MainWindowViewModel with injected services.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -65,6 +70,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
         _tabListViewModel.ReopenDocumentRequested += OnReopenDocumentRequested;
+        _tabListViewModel.DuplicateTabRequested += OnDuplicateTabRequested;
+        _tabListViewModel.EditTitleRequested += OnEditTitleRequested;
 
         // Create the editor view model
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
@@ -409,5 +416,43 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             TabListViewModel.SelectTab(tabToSelect);
         }
+    }
+
+    /// <summary>
+    /// Handles duplicate tab requests from the context menu.
+    /// </summary>
+    private void OnDuplicateTabRequested(object? sender, TabItemViewModel duplicatedTab)
+    {
+        // Focus the editor for the newly duplicated tab
+        FocusTitleRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Handles edit title requests from the context menu.
+    /// </summary>
+    private void OnEditTitleRequested(object? sender, EventArgs e)
+    {
+        FocusTitleRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Duplicates the currently selected tab.
+    /// </summary>
+    public async Task DuplicateCurrentTabAsync()
+    {
+        if (SelectedTab == null)
+        {
+            return;
+        }
+
+        await TabListViewModel.DuplicateTabAsync(SelectedTab);
+    }
+
+    /// <summary>
+    /// Requests focus on the title editing field.
+    /// </summary>
+    public void RequestEditTitle()
+    {
+        TabListViewModel.RequestEditTitle();
     }
 }

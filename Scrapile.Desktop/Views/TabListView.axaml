@@ -41,6 +41,24 @@
                                     PointerPressed="OnTabPointerPressed"
                                     Classes.selected="{Binding IsSelected}">
 
+                                <Border.ContextFlyout>
+                                    <MenuFlyout>
+                                        <MenuItem Header="Close Tab"
+                                                  Click="OnContextMenuClose"/>
+                                        <MenuItem Header="Close All Tabs"
+                                                  Click="OnContextMenuCloseAll"/>
+                                        <MenuItem Header="Close Tabs Above"
+                                                  Click="OnContextMenuCloseAbove"/>
+                                        <MenuItem Header="Close Tabs Below"
+                                                  Click="OnContextMenuCloseBelow"/>
+                                        <Separator/>
+                                        <MenuItem Header="Duplicate Tab"
+                                                  Click="OnContextMenuDuplicate"/>
+                                        <MenuItem Header="Edit Title"
+                                                  Click="OnContextMenuEditTitle"/>
+                                    </MenuFlyout>
+                                </Border.ContextFlyout>
+
                                 <Border.Styles>
                                     <!-- Default state -->
                                     <Style Selector="Border">
