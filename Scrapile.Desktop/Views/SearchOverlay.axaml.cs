@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Scrapile.Desktop.ViewModels;
 
 namespace Scrapile.Desktop.Views;
@@ -25,9 +26,6 @@ public partial class SearchOverlay : UserControl
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
-
-        // Focus the search input when the overlay is shown
-        SearchInput?.Focus();
 
         // Handle click on result items
         AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
@@ -87,7 +85,7 @@ public partial class SearchOverlay : UserControl
 
         // Check if clicked on the backdrop (semi-transparent panel)
         // The search modal itself has a solid background
-        if (source is Panel panel && panel.Background?.ToString()?.Contains("40000000") == true)
+        if (source is Panel panel && panel.Background?.ToString()?.Contains("50000000") == true)
         {
             ViewModel?.RequestClose();
             e.Handled = true;
@@ -112,10 +110,15 @@ public partial class SearchOverlay : UserControl
 
     /// <summary>
     /// Focuses the search input field.
+    /// Uses dispatcher to ensure focus happens after layout is complete.
     /// </summary>
     public void FocusSearchInput()
     {
-        SearchInput?.Focus();
-        SearchInput?.SelectAll();
+        // Use dispatcher to ensure the control is ready and visible before focusing
+        Dispatcher.UIThread.Post(() =>
+        {
+            SearchInput?.Focus();
+            SearchInput?.SelectAll();
+        }, DispatcherPriority.Input);
     }
 }

@@ -13,8 +13,27 @@
         <vm:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
     </UserControl.Resources>
 
+    <UserControl.Styles>
+        <!-- Remove focus styling from search input - keep it clean and transparent -->
+        <Style Selector="TextBox#SearchInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox#SearchInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox#SearchInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+    </UserControl.Styles>
+
     <!-- Semi-transparent backdrop that captures clicks to close -->
-    <Panel Background="#40000000">
+    <Panel Background="#50000000">
         <!-- Click on backdrop closes the overlay -->
         <Panel.Styles>
             <Style Selector="Panel">
@@ -28,11 +47,11 @@
                 Margin="0,80,0,0"
                 Width="550"
                 MaxHeight="500"
-                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                 BorderThickness="1"
                 CornerRadius="8"
-                BoxShadow="0 4 20 2 #40000000">
+                BoxShadow="0 8 32 4 #30000000">
 
             <DockPanel>
                 <!-- Header with search input -->
