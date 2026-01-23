@@ -1,6 +1,7 @@
 namespace Scrapile.Desktop.ViewModels;
 
 using System;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scrapile.Application.Services;
 
@@ -13,6 +14,7 @@ public partial class EditorViewModel : ViewModelBase
     private readonly TabManager _tabManager;
     private readonly DocumentService _documentService;
     private readonly AutoSaveService _autoSaveService;
+    private readonly SettingsService _settingsService;
 
     private TabItemViewModel? _currentTab;
     private bool _isUpdatingFromTab;
@@ -32,6 +34,12 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _saveStatus = string.Empty;
 
+    [ObservableProperty]
+    private FontFamily _editorFontFamily = new FontFamily("Consolas, Menlo, Monaco, monospace");
+
+    [ObservableProperty]
+    private double _editorFontSize = 14;
+
     /// <summary>
     /// Event raised when content changes for auto-save purposes.
     /// </summary>
@@ -48,14 +56,53 @@ public partial class EditorViewModel : ViewModelBase
     /// <param name="tabManager">The tab manager service.</param>
     /// <param name="documentService">The document service.</param>
     /// <param name="autoSaveService">The auto-save service.</param>
+    /// <param name="settingsService">The settings service.</param>
     public EditorViewModel(
         TabManager tabManager,
         DocumentService documentService,
-        AutoSaveService autoSaveService)
+        AutoSaveService autoSaveService,
+        SettingsService settingsService)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+
+        // Subscribe to settings changes
+        _settingsService.SettingsChanged += OnSettingsChanged;
+
+        // Apply initial font settings
+        ApplyFontSettings();
+    }
+
+    /// <summary>
+    /// Handles settings change events to update font properties.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
+    {
+        if (e.SettingName == "FontFamily" || e.SettingName == "FontSize" || e.SettingName == "All")
+        {
+            ApplyFontSettings();
+        }
+    }
+
+    /// <summary>
+    /// Applies the current font settings from the settings service.
+    /// </summary>
+    private void ApplyFontSettings()
+    {
+        var fontFamily = _settingsService.GetFontFamily();
+        if (string.IsNullOrWhiteSpace(fontFamily))
+        {
+            EditorFontFamily = new FontFamily("Consolas, Menlo, Monaco, monospace");
+        }
+        else
+        {
+            // Use the specified font with fallbacks
+            EditorFontFamily = new FontFamily($"{fontFamily}, Consolas, Menlo, Monaco, monospace");
+        }
+
+        EditorFontSize = _settingsService.GetFontSize();
     }
 
     /// <summary>

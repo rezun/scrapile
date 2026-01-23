@@ -32,6 +32,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _isSearchVisible;
 
     [ObservableProperty]
+    private bool _isTabListOnLeft = true;
+
+    [ObservableProperty]
     private TabListViewModel _tabListViewModel;
 
     [ObservableProperty]
@@ -85,7 +88,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel.SaveAsRequested += OnSaveAsRequested;
 
         // Create the editor view model
-        _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
+        _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService, _settingsService);
         _editorViewModel.ContentChanged += OnEditorContentChanged;
         _editorViewModel.TitleChanged += OnEditorTitleChanged;
 
@@ -96,6 +99,28 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Subscribe to auto-save completion to update dirty state
         _autoSaveService.SaveCompleted += OnAutoSaveCompleted;
+
+        // Subscribe to settings changes for tab position
+        _settingsService.SettingsChanged += OnSettingsChanged;
+    }
+
+    /// <summary>
+    /// Handles settings change events to update layout properties.
+    /// </summary>
+    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
+    {
+        if (e.SettingName == "TabPosition" || e.SettingName == "All")
+        {
+            ApplyTabPositionSetting();
+        }
+    }
+
+    /// <summary>
+    /// Applies the current tab position setting.
+    /// </summary>
+    private void ApplyTabPositionSetting()
+    {
+        IsTabListOnLeft = _settingsService.GetTabPosition() == "Left";
     }
 
     /// <summary>
@@ -111,6 +136,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
         // Initialize settings service first (other services may depend on settings)
         await _settingsService.InitializeAsync();
+
+        // Apply initial tab position setting
+        ApplyTabPositionSetting();
 
         // Initialize theme service to apply saved theme preference
         await _themeService.InitializeAsync();

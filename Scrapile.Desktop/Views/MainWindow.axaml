@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Scrapile.Desktop.ViewModels"
         xmlns:views="using:Scrapile.Desktop.Views"
+        xmlns:converters="using:Scrapile.Desktop.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
@@ -40,8 +41,8 @@
                 </Menu>
             </Border>
 
-            <!-- Main two-column layout: Tab list (left) | Editor (right) -->
-            <Grid>
+            <!-- Main two-column layout: Tab list | Editor (position based on setting) -->
+            <Grid x:Name="MainLayoutGrid">
                 <Grid.ColumnDefinitions>
                     <!-- Tab list panel - fixed initial width, resizable -->
                     <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
@@ -51,8 +52,8 @@
                     <ColumnDefinition Width="*" MinWidth="300"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Left Panel: Tab List -->
-                <views:TabListView Grid.Column="0"
+                <!-- Tab List Panel (left or right based on setting) -->
+                <views:TabListView Grid.Column="{Binding $parent[Window].DataContext.IsTabListOnLeft, Converter={x:Static converters:Converters.BoolToTabListColumn}}"
                                    DataContext="{Binding TabListViewModel}"/>
 
                 <!-- Grid Splitter for resizing panels -->
@@ -62,9 +63,9 @@
                               ResizeDirection="Columns"
                               ResizeBehavior="PreviousAndNext"/>
 
-                <!-- Right Panel: Editor Area -->
+                <!-- Editor Panel (right or left based on setting) -->
                 <views:EditorView x:Name="EditorView"
-                                  Grid.Column="2"
+                                  Grid.Column="{Binding $parent[Window].DataContext.IsTabListOnLeft, Converter={x:Static converters:Converters.BoolToEditorColumn}}"
                                   DataContext="{Binding EditorViewModel}"/>
             </Grid>
         </DockPanel>

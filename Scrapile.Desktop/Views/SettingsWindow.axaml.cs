@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using Scrapile.Desktop.ViewModels;
 
@@ -14,6 +15,24 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        // Close window with Cmd+W (macOS) or Ctrl+W (Windows/Linux)
+        if (e.Key == Key.W && (e.KeyModifiers.HasFlag(KeyModifiers.Meta) || e.KeyModifiers.HasFlag(KeyModifiers.Control)))
+        {
+            e.Handled = true;
+            Close();
+        }
+        // Also close with Escape
+        else if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            Close();
+        }
     }
 
     protected override void OnDataContextChanged(EventArgs e)

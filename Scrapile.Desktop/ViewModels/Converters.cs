@@ -21,6 +21,18 @@ public static class Converters
             : "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"; // Right
         return StreamGeometry.Parse(pathData);
     });
+
+    /// <summary>
+    /// Converts IsTabListOnLeft to the tab list's Grid.Column value.
+    /// Returns 0 when true (left), 2 when false (right).
+    /// </summary>
+    public static readonly IValueConverter BoolToTabListColumn = new FuncValueConverter<bool, int>(isLeft => isLeft ? 0 : 2);
+
+    /// <summary>
+    /// Converts IsTabListOnLeft to the editor's Grid.Column value.
+    /// Returns 2 when true (tabs on left), 0 when false (tabs on right).
+    /// </summary>
+    public static readonly IValueConverter BoolToEditorColumn = new FuncValueConverter<bool, int>(isLeft => isLeft ? 2 : 0);
 }
 
 /// <summary>

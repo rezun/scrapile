@@ -13,14 +13,16 @@
         Height="450"
         MinWidth="400"
         MinHeight="350"
+        MaxHeight="700"
         WindowStartupLocation="CenterOwner"
-        CanResize="False"
+        CanResize="True"
         ShowInTaskbar="False">
 
     <Design.DataContext>
         <vm:SettingsViewModel/>
     </Design.DataContext>
 
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
     <DockPanel Margin="16">
         <!-- Bottom buttons -->
         <StackPanel DockPanel.Dock="Bottom"
@@ -37,7 +39,7 @@
 
         <!-- Settings content -->
         <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel Spacing="24">
+            <StackPanel Spacing="24" Margin="0,0,16,0">
 
                 <!-- Appearance Section -->
                 <StackPanel Spacing="12">
@@ -169,4 +171,5 @@
             </StackPanel>
         </ScrollViewer>
     </DockPanel>
+    </Border>
 </Window>

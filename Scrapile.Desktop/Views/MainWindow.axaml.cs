@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
@@ -37,7 +38,60 @@ public partial class MainWindow : Window
             // Subscribe to settings window request
             viewModel.OpenSettingsRequested += OnOpenSettingsRequested;
 
+            // Subscribe to property changes to update layout when tab position changes
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
             await viewModel.InitializeAsync();
+
+            // Apply initial tab position layout
+            UpdateTabPositionLayout(viewModel.IsTabListOnLeft);
+        }
+    }
+
+    /// <summary>
+    /// Handles property changes from the view model.
+    /// </summary>
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.IsTabListOnLeft) &&
+            sender is MainWindowViewModel viewModel)
+        {
+            UpdateTabPositionLayout(viewModel.IsTabListOnLeft);
+        }
+    }
+
+    /// <summary>
+    /// Updates the grid column definitions based on tab position setting.
+    /// </summary>
+    private void UpdateTabPositionLayout(bool isTabListOnLeft)
+    {
+        if (MainLayoutGrid?.ColumnDefinitions == null || MainLayoutGrid.ColumnDefinitions.Count < 3)
+        {
+            return;
+        }
+
+        var col0 = MainLayoutGrid.ColumnDefinitions[0];
+        var col2 = MainLayoutGrid.ColumnDefinitions[2];
+
+        if (isTabListOnLeft)
+        {
+            // Tab list on left: col0 = fixed width, col2 = flexible
+            col0.Width = new GridLength(220);
+            col0.MinWidth = 150;
+            col0.MaxWidth = 400;
+            col2.Width = new GridLength(1, GridUnitType.Star);
+            col2.MinWidth = 300;
+            col2.MaxWidth = double.PositiveInfinity;
+        }
+        else
+        {
+            // Tab list on right: col0 = flexible, col2 = fixed width
+            col0.Width = new GridLength(1, GridUnitType.Star);
+            col0.MinWidth = 300;
+            col0.MaxWidth = double.PositiveInfinity;
+            col2.Width = new GridLength(220);
+            col2.MinWidth = 150;
+            col2.MaxWidth = 400;
         }
     }
 

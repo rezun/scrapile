@@ -96,8 +96,8 @@
                          AcceptsTab="True"
                          TextWrapping="Wrap"
                          Padding="16"
-                         FontFamily="Consolas, Menlo, Monaco, monospace"
-                         FontSize="14"
+                         FontFamily="{Binding EditorFontFamily}"
+                         FontSize="{Binding EditorFontSize}"
                          Watermark="Start typing..."
                          VerticalContentAlignment="Top"/>
             </Grid>

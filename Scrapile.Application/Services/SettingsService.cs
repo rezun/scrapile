@@ -39,6 +39,9 @@ public class SettingsService
     public async Task InitializeAsync()
     {
         _currentSettings = await _settingsStore.LoadAsync();
+
+        // Notify listeners that settings have been loaded
+        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs("All"));
     }
 
     /// <summary>
