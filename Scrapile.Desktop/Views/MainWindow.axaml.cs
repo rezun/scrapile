@@ -38,6 +38,14 @@ public partial class MainWindow : Window
             return;
         }
 
+        // Handle Escape separately (no modifier needed)
+        if (e.Key == Key.Escape && viewModel.IsSearchVisible)
+        {
+            e.Handled = true;
+            viewModel.HideSearch();
+            return;
+        }
+
         // Use platform-appropriate modifier: Cmd on macOS, Ctrl on Windows/Linux
         bool modifierPressed;
         if (OperatingSystem.IsMacOS())
@@ -103,6 +111,18 @@ public partial class MainWindow : Window
                 {
                     e.Handled = true;
                     await viewModel.CycleTheme();
+                }
+                break;
+
+            case Key.P:
+            case Key.K:
+                // Ctrl/Cmd+P or Ctrl/Cmd+K: Open search
+                if (!shiftPressed)
+                {
+                    e.Handled = true;
+                    viewModel.ShowSearch();
+                    // Focus the search input after showing
+                    SearchOverlay?.FocusSearchInput();
                 }
                 break;
         }

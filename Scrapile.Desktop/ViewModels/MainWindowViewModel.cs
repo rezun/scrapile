@@ -28,10 +28,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _hasTabs;
 
     [ObservableProperty]
+    private bool _isSearchVisible;
+
+    [ObservableProperty]
     private TabListViewModel _tabListViewModel;
 
     [ObservableProperty]
     private EditorViewModel _editorViewModel;
+
+    [ObservableProperty]
+    private SearchViewModel _searchViewModel;
 
     [ObservableProperty]
     private TabItemViewModel? _selectedTab;
@@ -63,6 +69,11 @@ public partial class MainWindowViewModel : ViewModelBase
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
         _editorViewModel.ContentChanged += OnEditorContentChanged;
         _editorViewModel.TitleChanged += OnEditorTitleChanged;
+
+        // Create the search view model
+        _searchViewModel = new SearchViewModel(_documentService);
+        _searchViewModel.ResultSelected += OnSearchResultSelected;
+        _searchViewModel.CloseRequested += OnSearchCloseRequested;
 
         // Subscribe to auto-save completion to update dirty state
         _autoSaveService.SaveCompleted += OnAutoSaveCompleted;
@@ -266,5 +277,78 @@ public partial class MainWindowViewModel : ViewModelBase
 
             await _autoSaveService.SaveImmediatelyAsync(documentId, content);
         }
+    }
+
+    /// <summary>
+    /// Shows the search overlay.
+    /// </summary>
+    public void ShowSearch()
+    {
+        SearchViewModel.Reset();
+        IsSearchVisible = true;
+    }
+
+    /// <summary>
+    /// Hides the search overlay.
+    /// </summary>
+    public void HideSearch()
+    {
+        IsSearchVisible = false;
+    }
+
+    /// <summary>
+    /// Toggles the search overlay visibility.
+    /// </summary>
+    public void ToggleSearch()
+    {
+        if (IsSearchVisible)
+        {
+            HideSearch();
+        }
+        else
+        {
+            ShowSearch();
+        }
+    }
+
+    /// <summary>
+    /// Handles search result selection.
+    /// Opens the selected document in a tab.
+    /// </summary>
+    private async void OnSearchResultSelected(object? sender, SearchResultItemViewModel result)
+    {
+        // Close the search overlay
+        HideSearch();
+
+        // Check if the document is already open in a tab
+        var existingTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
+        if (existingTab != null)
+        {
+            // Select the existing tab
+            TabListViewModel.SelectTab(existingTab);
+        }
+        else
+        {
+            // Open the document in a new tab
+            await _tabManager.OpenDocumentInTabAsync(result.DocumentId);
+
+            // Refresh the tab list
+            await TabListViewModel.LoadTabsAsync();
+
+            // Select the newly opened tab
+            var newTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
+            if (newTab != null)
+            {
+                TabListViewModel.SelectTab(newTab);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Handles search close request.
+    /// </summary>
+    private void OnSearchCloseRequested(object? sender, EventArgs e)
+    {
+        HideSearch();
     }
 }

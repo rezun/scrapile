@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Scrapile.Desktop.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="500"
+             d:DesignHeight="400"
+             x:Class="Scrapile.Desktop.Views.SearchOverlay"
+             x:DataType="vm:SearchViewModel">
+
+    <UserControl.Resources>
+        <vm:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter"/>
+    </UserControl.Resources>
+
+    <!-- Semi-transparent backdrop that captures clicks to close -->
+    <Panel Background="#40000000">
+        <!-- Click on backdrop closes the overlay -->
+        <Panel.Styles>
+            <Style Selector="Panel">
+                <Setter Property="Cursor" Value="Arrow"/>
+            </Style>
+        </Panel.Styles>
+
+        <!-- Search modal dialog - centered -->
+        <Border HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Margin="0,80,0,0"
+                Width="550"
+                MaxHeight="500"
+                Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                BoxShadow="0 4 20 2 #40000000">
+
+            <DockPanel>
+                <!-- Header with search input -->
+                <Border DockPanel.Dock="Top"
+                        Padding="16,16,16,12"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <!-- Search input -->
+                        <TextBox x:Name="SearchInput"
+                                 Grid.Column="0"
+                                 Text="{Binding SearchQuery, Mode=TwoWay}"
+                                 Watermark="Search documents..."
+                                 FontSize="16"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 Padding="0"/>
+
+                        <!-- Loading indicator -->
+                        <ProgressBar Grid.Column="1"
+                                     IsIndeterminate="True"
+                                     IsVisible="{Binding IsSearching}"
+                                     Width="20"
+                                     Height="20"
+                                     Margin="8,0,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Results area -->
+                <Panel>
+                    <!-- Results list -->
+                    <ScrollViewer IsVisible="{Binding HasResults}"
+                                  MaxHeight="380">
+                        <ItemsControl ItemsSource="{Binding Results}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:SearchResultItemViewModel">
+                                    <Border x:Name="ResultItem"
+                                            Padding="16,10"
+                                            Cursor="Hand"
+                                            Background="Transparent">
+                                        <Border.Styles>
+                                            <!-- Hover effect -->
+                                            <Style Selector="Border#ResultItem:pointerover">
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+                                            </Style>
+                                            <!-- Selected state -->
+                                            <Style Selector="Border#ResultItem.selected">
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
+                                            </Style>
+                                            <Style Selector="Border#ResultItem.selected:pointerover">
+                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
+                                            </Style>
+                                        </Border.Styles>
+                                        <Classes.selected>
+                                            <Binding Path="IsSelected"/>
+                                        </Classes.selected>
+
+                                        <Grid RowDefinitions="Auto,Auto,Auto">
+                                            <!-- Title/Preview (primary line) -->
+                                            <TextBlock Grid.Row="0"
+                                                       Text="{Binding DisplayName}"
+                                                       FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                       FontSize="14"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="1"/>
+
+                                            <!-- Content snippet (secondary line) -->
+                                            <TextBlock Grid.Row="1"
+                                                       Text="{Binding ContentSnippet}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="1"
+                                                       Margin="0,2,0,0"
+                                                       IsVisible="{Binding HasTitle}"/>
+
+                                            <!-- Last modified (tertiary line) -->
+                                            <TextBlock Grid.Row="2"
+                                                       Text="{Binding LastModified}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                                       Margin="0,4,0,0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- No results message -->
+                    <StackPanel IsVisible="{Binding ShowNoResults}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="0,40">
+                        <TextBlock Text="No documents found"
+                                   FontSize="14"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Try a different search term"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,4,0,0"/>
+                    </StackPanel>
+
+                    <!-- Empty state (no query) -->
+                    <StackPanel IsVisible="{Binding !HasResults}"
+                                IsEnabled="{Binding !ShowNoResults}">
+                        <StackPanel.Styles>
+                            <Style Selector="StackPanel:disabled">
+                                <Setter Property="IsVisible" Value="False"/>
+                            </Style>
+                        </StackPanel.Styles>
+                        <TextBlock Text="Type to search all documents"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,20"/>
+                    </StackPanel>
+                </Panel>
+            </DockPanel>
+        </Border>
+    </Panel>
+
+</UserControl>

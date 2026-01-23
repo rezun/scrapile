@@ -21,47 +21,55 @@
         <vm:MainWindowViewModel/>
     </Design.DataContext>
 
-    <DockPanel>
-        <!-- Menu Bar -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-            <Menu>
-                <MenuItem Header="_View">
-                    <MenuItem Header="_Light Theme" Command="{Binding SetLightThemeCommand}"/>
-                    <MenuItem Header="_Dark Theme" Command="{Binding SetDarkThemeCommand}"/>
-                    <MenuItem Header="_System Theme" Command="{Binding SetSystemThemeCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="C_ycle Theme" Command="{Binding CycleThemeCommand}" InputGesture="Ctrl+Shift+L"/>
-                </MenuItem>
-            </Menu>
-        </Border>
+    <!-- Use a Panel to layer the search overlay on top of the main content -->
+    <Panel>
+        <DockPanel>
+            <!-- Menu Bar -->
+            <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+                <Menu>
+                    <MenuItem Header="_View">
+                        <MenuItem Header="_Light Theme" Command="{Binding SetLightThemeCommand}"/>
+                        <MenuItem Header="_Dark Theme" Command="{Binding SetDarkThemeCommand}"/>
+                        <MenuItem Header="_System Theme" Command="{Binding SetSystemThemeCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="C_ycle Theme" Command="{Binding CycleThemeCommand}" InputGesture="Ctrl+Shift+L"/>
+                    </MenuItem>
+                </Menu>
+            </Border>
 
-        <!-- Main two-column layout: Tab list (left) | Editor (right) -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <!-- Tab list panel - fixed initial width, resizable -->
-                <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
-                <!-- Grid splitter -->
-                <ColumnDefinition Width="Auto"/>
-                <!-- Editor panel - takes remaining space -->
-                <ColumnDefinition Width="*" MinWidth="300"/>
-            </Grid.ColumnDefinitions>
+            <!-- Main two-column layout: Tab list (left) | Editor (right) -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <!-- Tab list panel - fixed initial width, resizable -->
+                    <ColumnDefinition Width="220" MinWidth="150" MaxWidth="400"/>
+                    <!-- Grid splitter -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Editor panel - takes remaining space -->
+                    <ColumnDefinition Width="*" MinWidth="300"/>
+                </Grid.ColumnDefinitions>
 
-            <!-- Left Panel: Tab List -->
-            <views:TabListView Grid.Column="0"
-                               DataContext="{Binding TabListViewModel}"/>
+                <!-- Left Panel: Tab List -->
+                <views:TabListView Grid.Column="0"
+                                   DataContext="{Binding TabListViewModel}"/>
 
-            <!-- Grid Splitter for resizing panels -->
-            <GridSplitter Grid.Column="1"
-                          Width="4"
-                          Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-                          ResizeDirection="Columns"
-                          ResizeBehavior="PreviousAndNext"/>
+                <!-- Grid Splitter for resizing panels -->
+                <GridSplitter Grid.Column="1"
+                              Width="4"
+                              Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                              ResizeDirection="Columns"
+                              ResizeBehavior="PreviousAndNext"/>
 
-            <!-- Right Panel: Editor Area -->
-            <views:EditorView x:Name="EditorView"
-                              Grid.Column="2"
-                              DataContext="{Binding EditorViewModel}"/>
-        </Grid>
-    </DockPanel>
+                <!-- Right Panel: Editor Area -->
+                <views:EditorView x:Name="EditorView"
+                                  Grid.Column="2"
+                                  DataContext="{Binding EditorViewModel}"/>
+            </Grid>
+        </DockPanel>
+
+        <!-- Search Overlay - layered on top of main content -->
+        <views:SearchOverlay x:Name="SearchOverlay"
+                             DataContext="{Binding SearchViewModel}"
+                             IsVisible="{Binding $parent[Window].DataContext.IsSearchVisible}"/>
+    </Panel>
 
 </Window>

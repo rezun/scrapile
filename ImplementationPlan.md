@@ -1174,12 +1174,46 @@ Create the search interface.
 **Reference:** `ProjectPlan.md` Section 4.2 for mockup
 
 **Acceptance Criteria:**
-- [ ] Search window appears as overlay/modal
-- [ ] Clean, minimal design
-- [ ] Results display correctly formatted
-- [ ] Keyboard navigable
+- [x] Search window appears as overlay/modal
+- [x] Clean, minimal design
+- [x] Results display correctly formatted
+- [x] Keyboard navigable
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Created `SearchResultItemViewModel.cs` for individual search result items with:
+  - Display name (title or content preview)
+  - HasTitle indicator for bold styling
+  - Content snippet for secondary line
+  - Formatted last modified date (relative time: "2 hours ago", "Yesterday", etc.)
+- Created `SearchViewModel.cs` with:
+  - Real-time search with 100ms debounce
+  - Maximum 50 results displayed
+  - Keyboard navigation: Up/Down arrows to navigate, Enter to select
+  - `ResultSelected` and `CloseRequested` events
+  - Loading indicator during search
+- Created `SearchOverlay.axaml` and `SearchOverlay.axaml.cs`:
+  - Semi-transparent backdrop that closes on click
+  - Centered modal dialog with search input and results list
+  - Clean, minimal design using Fluent theme dynamic resources
+  - Selected result highlighted with accent color
+  - Hover effects on result items
+  - Title shown in bold, content snippet as secondary line
+  - Last modified date as tertiary line
+  - "No documents found" message for empty results
+  - "Type to search all documents" hint when no query
+- Updated `MainWindowViewModel`:
+  - Added `SearchViewModel` property
+  - Added `IsSearchVisible` for overlay visibility
+  - Added `ShowSearch()`, `HideSearch()`, `ToggleSearch()` methods
+  - Result selection opens document in new tab or focuses existing tab
+- Updated `MainWindow.axaml`:
+  - Added SearchOverlay layered on top of main content
+- Updated `MainWindow.axaml.cs`:
+  - Added Ctrl+P and Ctrl+K keyboard shortcuts to open search
+  - Escape key closes search overlay
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 
