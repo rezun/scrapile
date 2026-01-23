@@ -10,6 +10,8 @@ namespace Scrapile.Desktop.Views;
 
 public partial class EditorView : UserControl
 {
+    private string? _titleBeforeEdit;
+
     public EditorView()
     {
         InitializeComponent();
@@ -24,7 +26,49 @@ public partial class EditorView : UserControl
         // This intercepts shortcuts before the native text system can consume them
         // Use both Tunnel and Bubble to catch at every stage
         ContentTextBox.AddHandler(KeyDownEvent, OnTextBoxKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
-        TitleTextBox.AddHandler(KeyDownEvent, OnTextBoxKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
+        TitleTextBox.AddHandler(KeyDownEvent, OnTitleKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
+
+        // Store the title value when the title TextBox gains focus (for Escape to restore)
+        TitleTextBox.GotFocus += OnTitleGotFocus;
+    }
+
+    private void OnTitleGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        _titleBeforeEdit = TitleTextBox.Text;
+    }
+
+    /// <summary>
+    /// Handles keyboard events in the title TextBox.
+    /// Enter saves and moves focus to content, Escape cancels and restores original value.
+    /// </summary>
+    private void OnTitleKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Handled)
+        {
+            return;
+        }
+
+        switch (e.Key)
+        {
+            case Key.Enter:
+                // Enter: Save title (already bound) and move focus to content
+                e.Handled = true;
+                FocusContent();
+                break;
+
+            case Key.Escape:
+                // Escape: Cancel edit and restore original value
+                e.Handled = true;
+                TitleTextBox.Text = _titleBeforeEdit;
+                FocusContent();
+                break;
+        }
+
+        // If not Enter or Escape, check for global shortcuts
+        if (!e.Handled)
+        {
+            OnTextBoxKeyDown(sender, e);
+        }
     }
 
     /// <summary>

@@ -1661,20 +1661,19 @@ Perform thorough testing of Phase 7 features.
 6. Document any issues found and verify fixes
 
 **Acceptance Criteria:**
-- [ ] All Phase 7 tasks completed
-- [ ] Reopen last closed works (Ctrl+Shift+T)
-- [ ] Recently closed list shows correctly
-- [ ] All context menu options work
-- [ ] Duplicate preserves content and title correctly
-- [ ] Export to clipboard works
-- [ ] Edge cases handled gracefully
+- [x] All Phase 7 tasks completed
+- [x] Reopen last closed works (Ctrl+Shift+T)
+- [x] Recently closed list shows correctly
+- [x] All context menu options work
+- [x] Duplicate preserves content and title correctly
+- [x] Export to clipboard works
+- [x] Edge cases handled gracefully
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
 
 **Review Notes:**
-```
-[Add review notes here]
-```
+- Everything functions as specified
+- All tests pass
 
 ---
 
@@ -1698,12 +1697,12 @@ Finalize stats display in tabs.
 4. Cache stats for performance
 
 **Acceptance Criteria:**
-- [ ] Stats show in tab subtitle
-- [ ] Stats update when content changes
-- [ ] Format: "245 words" or "1.5k words"
-- [ ] No performance issues
+- [x] Stats show in tab subtitle
+- [x] Stats update when content changes
+- [x] Format: "245 words" or "1.5k words"
+- [x] No performance issues
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-24
 
 ---
 
@@ -1720,12 +1719,18 @@ Polish the title editing experience.
 5. Visual distinction between titled and untitled tabs
 
 **Acceptance Criteria:**
-- [ ] Title editing is intuitive
-- [ ] Keyboard shortcuts work
-- [ ] Titled tabs visually distinct
-- [ ] Empty title clears title (not sets to empty string)
+- [x] Title editing is intuitive
+- [x] Keyboard shortcuts work
+- [x] Titled tabs visually distinct
+- [x] Empty title clears title (not sets to empty string)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added Ctrl/Cmd+Shift+E keyboard shortcut as alternative to F2 for focusing title field
+- Added Enter key handling in title TextBox to confirm and move focus to content
+- Added Escape key handling in title TextBox to cancel edit and restore original value
+- Title value stored on focus to enable Escape cancellation
 
 ---
 

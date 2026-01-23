@@ -242,6 +242,15 @@ public partial class MainWindow : Window
                     viewModel.RequestSaveAs();
                 }
                 break;
+
+            case Key.E:
+                // Ctrl/Cmd+Shift+E: Edit Title
+                if (shiftPressed && viewModel.SelectedTab != null)
+                {
+                    e.Handled = true;
+                    viewModel.RequestEditTitle();
+                }
+                break;
         }
     }
 }
