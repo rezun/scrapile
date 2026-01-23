@@ -1561,12 +1561,22 @@ Implement tab duplication.
 4. Insert new tab next to source
 
 **Acceptance Criteria:**
-- [ ] Keyboard shortcut works
-- [ ] Content fully copied
-- [ ] Title handled correctly
-- [ ] New tab positioned correctly
+- [x] Keyboard shortcut works
+- [x] Content fully copied
+- [x] Title handled correctly
+- [x] New tab positioned correctly
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Duplicate tab functionality was already implemented in previous tasks:
+  - `TabManager.DuplicateTabAsync()` handles content copying and title formatting ("{title} - Copy")
+  - `TabListViewModel.DuplicateTabAsync()` handles UI collection management and selection
+  - `MainWindowViewModel.DuplicateCurrentTabAsync()` coordinates the operation
+- Added Ctrl/Cmd+Shift+D keyboard shortcut in `MainWindow.axaml.cs`
+  - Uses platform-appropriate modifier (Cmd on macOS, Ctrl on Windows/Linux)
+  - Focuses the editor content after duplicating the tab
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 

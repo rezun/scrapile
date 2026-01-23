@@ -155,6 +155,17 @@ public partial class MainWindow : Window
                     SearchOverlay?.FocusSearchInput();
                 }
                 break;
+
+            case Key.D:
+                // Ctrl/Cmd+Shift+D: Duplicate current tab
+                if (shiftPressed)
+                {
+                    e.Handled = true;
+                    await viewModel.DuplicateCurrentTabAsync();
+                    // Focus the editor after duplicating
+                    EditorView?.FocusContent();
+                }
+                break;
         }
     }
 }
