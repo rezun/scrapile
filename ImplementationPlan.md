@@ -1443,12 +1443,26 @@ Implement quick reopen functionality.
 4. Handle empty recently closed list
 
 **Acceptance Criteria:**
-- [ ] Ctrl+Shift+T reopens last closed tab
-- [ ] Tab appears in correct position (or at end)
-- [ ] Document removed from recently closed list
-- [ ] No-op if list is empty (show message optional)
+- [x] Ctrl+Shift+T reopens last closed tab
+- [x] Tab appears in correct position (or at end)
+- [x] Document removed from recently closed list
+- [x] No-op if list is empty (show message optional)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added `ReopenLastClosedAsync()` method to `MainWindowViewModel` that:
+  - Calls `TabManager.ReopenLastClosedAsync()` which opens the most recently closed tab
+  - Refreshes the tab list and selects the reopened tab
+  - Returns false (no-op) if recently closed list is empty or all documents deleted
+- Added keyboard shortcut handler for Ctrl/Cmd+Shift+T in `MainWindow.axaml.cs`
+  - Uses platform-appropriate modifier (Cmd on macOS, Ctrl on Windows/Linux)
+  - Focuses the editor after reopening a tab
+- The `TabManager.ReopenLastClosedAsync()` method (already implemented in Phase 3):
+  - Iterates through recently closed items, skipping deleted documents
+  - Opens the first available document in a new tab at the end
+  - Removes from recently closed list via `OpenDocumentInTabAsync` which calls `RemoveRecentlyClosedAsync`
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 

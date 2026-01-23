@@ -84,10 +84,21 @@ public partial class MainWindow : Window
                 break;
 
             case Key.T:
-                // Ctrl/Cmd+T: New tab, Ctrl/Cmd+Shift+T will be for reopen (later phase)
-                if (!shiftPressed)
+                // Ctrl/Cmd+T: New tab, Ctrl/Cmd+Shift+T: Reopen last closed tab
+                if (shiftPressed)
                 {
-                    // Mark as handled BEFORE await to prevent duplicate handling
+                    // Ctrl/Cmd+Shift+T: Reopen last closed tab
+                    e.Handled = true;
+                    var reopened = await viewModel.ReopenLastClosedAsync();
+                    if (reopened)
+                    {
+                        // Focus the editor after reopening a tab
+                        EditorView?.FocusContent();
+                    }
+                }
+                else
+                {
+                    // Ctrl/Cmd+T: New tab
                     e.Handled = true;
                     await viewModel.CreateNewTabAsync();
                     // Focus the editor after creating a new tab

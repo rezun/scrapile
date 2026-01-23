@@ -236,6 +236,34 @@ public partial class MainWindowViewModel : ViewModelBase
     public void SelectPreviousTab() => TabListViewModel.SelectPreviousTab();
 
     /// <summary>
+    /// Reopens the most recently closed tab.
+    /// Does nothing if the recently closed list is empty.
+    /// </summary>
+    /// <returns>True if a tab was reopened, false if none available.</returns>
+    public async Task<bool> ReopenLastClosedAsync()
+    {
+        var reopenedTab = await _tabManager.ReopenLastClosedAsync();
+
+        if (reopenedTab == null)
+        {
+            // No recently closed tabs available (list empty or all deleted)
+            return false;
+        }
+
+        // Refresh the tab list to show the reopened tab
+        await TabListViewModel.LoadTabsAsync();
+
+        // Select the reopened tab
+        var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == reopenedTab.Tab.Document.Id);
+        if (tabToSelect != null)
+        {
+            TabListViewModel.SelectTab(tabToSelect);
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Sets the theme to Light.
     /// </summary>
     [RelayCommand]
