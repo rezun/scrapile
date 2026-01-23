@@ -32,6 +32,12 @@ public partial class EditorView : UserControl
     /// </summary>
     private async void OnTextBoxKeyDown(object? sender, KeyEventArgs e)
     {
+        // Skip if already handled by MainWindow
+        if (e.Handled)
+        {
+            return;
+        }
+
         // Check for platform-appropriate modifier
         bool modifierPressed;
         if (OperatingSystem.IsMacOS())
