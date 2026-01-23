@@ -34,8 +34,30 @@ public partial class MainWindow : Window
             viewModel.ClipboardCopyRequested += OnClipboardCopyRequested;
             viewModel.SaveAsRequested += OnSaveAsRequested;
 
+            // Subscribe to settings window request
+            viewModel.OpenSettingsRequested += OnOpenSettingsRequested;
+
             await viewModel.InitializeAsync();
         }
+    }
+
+    /// <summary>
+    /// Handles open settings requests from the view model.
+    /// </summary>
+    private async void OnOpenSettingsRequested(object? sender, EventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        var settingsViewModel = new SettingsViewModel(viewModel.SettingsService, viewModel.ThemeService);
+        var settingsWindow = new SettingsWindow
+        {
+            DataContext = settingsViewModel
+        };
+
+        await settingsWindow.ShowDialog(this);
     }
 
     /// <summary>
@@ -249,6 +271,15 @@ public partial class MainWindow : Window
                 {
                     e.Handled = true;
                     viewModel.RequestEditTitle();
+                }
+                break;
+
+            case Key.OemComma:
+                // Ctrl/Cmd+,: Open Settings
+                if (!shiftPressed)
+                {
+                    e.Handled = true;
+                    viewModel.OpenSettingsCommand.Execute(null);
                 }
                 break;
         }

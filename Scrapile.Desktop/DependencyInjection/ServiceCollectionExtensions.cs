@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddScrapileServices(this IServiceCollection services, string storageDirectory)
     {
         // Infrastructure - Singletons for shared state
+        services.AddSingleton<ISettingsStore, JsonSettingsStore>();
         services.AddSingleton<IMetadataStore>(sp => new JsonMetadataStore(storageDirectory));
         services.AddSingleton<IDocumentRepository>(sp =>
         {
@@ -32,6 +33,7 @@ public static class ServiceCollectionExtensions
         });
 
         // Application Services - Singletons for shared state
+        services.AddSingleton<SettingsService>();
         services.AddSingleton<DocumentService>();
         services.AddSingleton<AutoSaveService>();
         services.AddSingleton<TabManager>();
@@ -41,6 +43,7 @@ public static class ServiceCollectionExtensions
 
         // ViewModels - Transient for fresh instances
         services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<SettingsViewModel>();
 
         return services;
     }

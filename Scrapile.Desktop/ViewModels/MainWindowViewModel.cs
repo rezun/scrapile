@@ -17,6 +17,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly DocumentService _documentService;
     private readonly AutoSaveService _autoSaveService;
     private readonly ThemeService _themeService;
+    private readonly SettingsService _settingsService;
 
     [ObservableProperty]
     private string _title = "Scrapile";
@@ -48,22 +49,30 @@ public partial class MainWindowViewModel : ViewModelBase
     public event EventHandler? FocusTitleRequested;
 
     /// <summary>
+    /// Event raised when the settings window should be opened.
+    /// </summary>
+    public event EventHandler? OpenSettingsRequested;
+
+    /// <summary>
     /// Creates a new MainWindowViewModel with injected services.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
     /// <param name="documentService">The document service.</param>
     /// <param name="autoSaveService">The auto-save service.</param>
     /// <param name="themeService">The theme service.</param>
+    /// <param name="settingsService">The settings service.</param>
     public MainWindowViewModel(
         TabManager tabManager,
         DocumentService documentService,
         AutoSaveService autoSaveService,
-        ThemeService themeService)
+        ThemeService themeService,
+        SettingsService settingsService)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
+        _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 
         // Create the tab list view model
         _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
@@ -99,6 +108,9 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             return;
         }
+
+        // Initialize settings service first (other services may depend on settings)
+        await _settingsService.InitializeAsync();
 
         // Initialize theme service to apply saved theme preference
         await _themeService.InitializeAsync();
@@ -296,6 +308,25 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     [RelayCommand]
     public Task CycleTheme() => _themeService.CycleThemeAsync();
+
+    /// <summary>
+    /// Opens the settings dialog.
+    /// </summary>
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        OpenSettingsRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Gets the settings service for the settings window.
+    /// </summary>
+    public SettingsService SettingsService => _settingsService;
+
+    /// <summary>
+    /// Gets the theme service for the settings window.
+    /// </summary>
+    public ThemeService ThemeService => _themeService;
 
     /// <summary>
     /// Saves all pending changes for dirty tabs.

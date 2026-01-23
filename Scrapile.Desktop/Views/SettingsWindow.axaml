@@ -1,0 +1,172 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Scrapile.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="500"
+        d:DesignHeight="450"
+        x:Class="Scrapile.Desktop.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Settings"
+        Width="500"
+        Height="450"
+        MinWidth="400"
+        MinHeight="350"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel/>
+    </Design.DataContext>
+
+    <DockPanel Margin="16">
+        <!-- Bottom buttons -->
+        <StackPanel DockPanel.Dock="Bottom"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="8"
+                    Margin="0,16,0,0">
+            <Button Content="Reset to Defaults"
+                    Command="{Binding ResetToDefaultsCommand}"/>
+            <Button Content="Close"
+                    Command="{Binding CloseCommand}"
+                    IsDefault="True"/>
+        </StackPanel>
+
+        <!-- Settings content -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="24">
+
+                <!-- Appearance Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Appearance"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+
+                    <!-- Theme -->
+                    <Grid ColumnDefinitions="150,*">
+                        <TextBlock Text="Theme" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Themes}"
+                                  SelectedItem="{Binding SelectedTheme}"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
+
+                    <!-- Tab Position -->
+                    <Grid ColumnDefinitions="150,*">
+                        <TextBlock Text="Tab Position" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding TabPositions}"
+                                  SelectedItem="{Binding SelectedTabPosition}"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- Editor Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Editor"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+
+                    <!-- Font Family -->
+                    <Grid ColumnDefinitions="150,*">
+                        <TextBlock Text="Font Family" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding FontFamilies}"
+                                  SelectedItem="{Binding SelectedFontFamily}"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
+
+                    <!-- Font Size -->
+                    <Grid ColumnDefinitions="150,*,60">
+                        <TextBlock Text="Font Size" VerticalAlignment="Center"/>
+                        <Slider Grid.Column="1"
+                                Minimum="8"
+                                Maximum="72"
+                                Value="{Binding FontSize}"
+                                TickFrequency="1"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding FontSize, StringFormat={}{0} pt}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- Saving Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Saving"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+
+                    <!-- Auto-Save Delay -->
+                    <Grid ColumnDefinitions="150,*,70">
+                        <TextBlock Text="Auto-Save Delay" VerticalAlignment="Center"/>
+                        <Slider Grid.Column="1"
+                                Minimum="100"
+                                Maximum="5000"
+                                Value="{Binding AutoSaveDelayMs}"
+                                TickFrequency="100"
+                                IsSnapToTickEnabled="True"
+                                VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding AutoSaveDelayMs, StringFormat={}{0} ms}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"/>
+                    </Grid>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- Storage Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Storage"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+
+                    <!-- Storage Directory -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Document Storage Directory"/>
+                        <Grid ColumnDefinitions="*,Auto,Auto">
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding StorageDirectory}"
+                                     Watermark="Default: ~/Documents/Scrapile"
+                                     IsReadOnly="True"/>
+                            <Button Grid.Column="1"
+                                    Content="Browse..."
+                                    Command="{Binding BrowseStorageDirectoryCommand}"
+                                    Margin="8,0,0,0"/>
+                            <Button Grid.Column="2"
+                                    Content="Reset"
+                                    Command="{Binding ClearStorageDirectoryCommand}"
+                                    Margin="4,0,0,0"/>
+                        </Grid>
+                        <TextBlock Text="Note: Changing storage directory requires app restart"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- Info Section -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Settings Location"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    <TextBlock Text="{Binding SettingsFilePath}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

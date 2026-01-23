@@ -27,6 +27,9 @@
             <!-- Menu Bar -->
             <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
                 <Menu>
+                    <MenuItem Header="_Edit">
+                        <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" InputGesture="Ctrl+,"/>
+                    </MenuItem>
                     <MenuItem Header="_View">
                         <MenuItem Header="_Light Theme" Command="{Binding SetLightThemeCommand}"/>
                         <MenuItem Header="_Dark Theme" Command="{Binding SetDarkThemeCommand}"/>

@@ -1751,12 +1751,46 @@ Implement settings storage and basic UI.
 4. Create simple settings dialog
 
 **Acceptance Criteria:**
-- [ ] Settings persist across sessions
-- [ ] Settings file in correct location per platform
-- [ ] Settings dialog allows changes
-- [ ] Changes apply immediately or on restart
+- [x] Settings persist across sessions
+- [x] Settings file in correct location per platform
+- [x] Settings dialog allows changes
+- [x] Changes apply immediately or on restart
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Created `AppSettings.cs` domain model with properties for:
+  - StorageDirectory (nullable, uses default if not set)
+  - TabPosition ("Left" or "Right")
+  - FontFamily (nullable, uses default monospace if not set)
+  - FontSize (8-72 points, default 14)
+  - Theme ("Light", "Dark", "System")
+  - AutoSaveDelayMs (100-5000ms, default 500)
+- Created `ISettingsStore` interface in Domain layer
+- Created `JsonSettingsStore` implementation in Infrastructure layer:
+  - Platform-specific settings directory: Windows (%APPDATA%/Scrapile), macOS/Linux (~/.config/Scrapile)
+  - Atomic writes with backup file for corruption recovery
+  - In-memory caching to reduce disk I/O
+  - Validation of settings on load
+- Created `SettingsService` in Application layer:
+  - Typed access to settings with change notifications via `SettingsChanged` event
+  - Individual setters for each setting with validation
+  - `ResetToDefaultsAsync()` to restore factory defaults
+- Created `SettingsViewModel` for the dialog:
+  - Two-way binding for all settings
+  - Folder browser integration for storage directory
+  - Changes apply immediately (no Apply/Cancel buttons needed)
+- Created `SettingsWindow.axaml` dialog:
+  - Appearance section: Theme, Tab Position
+  - Editor section: Font Family, Font Size
+  - Saving section: Auto-Save Delay slider
+  - Storage section: Document Storage Directory with Browse button
+  - Reset to Defaults button
+  - Shows settings file path for reference
+- Integrated with MainWindow:
+  - Edit > Settings menu item (Ctrl+, keyboard shortcut)
+  - Settings service initialized on app startup
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 
