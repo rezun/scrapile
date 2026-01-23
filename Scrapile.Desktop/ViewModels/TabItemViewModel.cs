@@ -10,11 +10,23 @@ using Scrapile.Application.DTOs;
 /// </summary>
 public partial class TabItemViewModel : ViewModelBase
 {
-    private readonly TabWithStats _tabWithStats;
     private readonly Action<TabItemViewModel> _onCloseRequested;
+    private TabWithStats _tabWithStats;
 
     [ObservableProperty]
     private bool _isSelected;
+
+    [ObservableProperty]
+    private string _displayName = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasTitle;
+
+    [ObservableProperty]
+    private string _formattedWordCount = string.Empty;
+
+    [ObservableProperty]
+    private bool _isDirty;
 
     /// <summary>
     /// Creates a new TabItemViewModel.
@@ -25,6 +37,7 @@ public partial class TabItemViewModel : ViewModelBase
     {
         _tabWithStats = tabWithStats ?? throw new ArgumentNullException(nameof(tabWithStats));
         _onCloseRequested = onCloseRequested ?? throw new ArgumentNullException(nameof(onCloseRequested));
+        UpdatePropertiesFromTabWithStats();
     }
 
     /// <summary>
@@ -38,29 +51,31 @@ public partial class TabItemViewModel : ViewModelBase
     public Guid DocumentId => _tabWithStats.Tab.Document.Id;
 
     /// <summary>
-    /// The display name for the tab (title if set, otherwise content preview).
-    /// </summary>
-    public string DisplayName => _tabWithStats.DisplayName;
-
-    /// <summary>
-    /// Whether this tab has a user-provided title.
-    /// </summary>
-    public bool HasTitle => _tabWithStats.HasTitle;
-
-    /// <summary>
-    /// The formatted word count (e.g., "245 words").
-    /// </summary>
-    public string FormattedWordCount => _tabWithStats.FormattedWordCount;
-
-    /// <summary>
-    /// Whether the tab has unsaved changes.
-    /// </summary>
-    public bool IsDirty => _tabWithStats.Tab.IsDirty;
-
-    /// <summary>
     /// The underlying TabWithStats data.
     /// </summary>
     public TabWithStats TabWithStats => _tabWithStats;
+
+    /// <summary>
+    /// Updates this view model with new tab data in place.
+    /// This preserves the object identity, keeping context menus and other UI elements attached.
+    /// </summary>
+    /// <param name="tabWithStats">The updated tab data.</param>
+    public void UpdateFrom(TabWithStats tabWithStats)
+    {
+        _tabWithStats = tabWithStats ?? throw new ArgumentNullException(nameof(tabWithStats));
+        UpdatePropertiesFromTabWithStats();
+    }
+
+    /// <summary>
+    /// Updates observable properties from the current TabWithStats data.
+    /// </summary>
+    private void UpdatePropertiesFromTabWithStats()
+    {
+        DisplayName = _tabWithStats.DisplayName;
+        HasTitle = _tabWithStats.HasTitle;
+        FormattedWordCount = _tabWithStats.FormattedWordCount;
+        IsDirty = _tabWithStats.Tab.IsDirty;
+    }
 
     /// <summary>
     /// Command to close this tab.
@@ -69,18 +84,5 @@ public partial class TabItemViewModel : ViewModelBase
     private void Close()
     {
         _onCloseRequested(this);
-    }
-
-    /// <summary>
-    /// Updates this view model with new tab data.
-    /// </summary>
-    /// <param name="tabWithStats">The updated tab data.</param>
-    /// <returns>A new TabItemViewModel with the updated data.</returns>
-    public TabItemViewModel WithUpdatedStats(TabWithStats tabWithStats)
-    {
-        return new TabItemViewModel(tabWithStats, _onCloseRequested)
-        {
-            IsSelected = this.IsSelected
-        };
     }
 }

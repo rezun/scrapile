@@ -385,7 +385,8 @@ public partial class TabListViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Updates the stats for a specific tab.
+    /// Updates the stats for a specific tab in place.
+    /// This preserves object identity, keeping context menus and other UI elements attached.
     /// </summary>
     /// <param name="tabId">The tab ID.</param>
     public void RefreshTabStats(Guid tabId)
@@ -396,18 +397,8 @@ public partial class TabListViewModel : ViewModelBase
         var existingTab = Tabs.FirstOrDefault(t => t.TabId == tabId);
         if (existingTab == null) return;
 
-        var index = Tabs.IndexOf(existingTab);
-        var wasSelected = existingTab.IsSelected;
-
-        var updatedTab = CreateTabItemViewModel(tabWithStats);
-        updatedTab.IsSelected = wasSelected;
-
-        Tabs[index] = updatedTab;
-
-        if (wasSelected)
-        {
-            SelectedTab = updatedTab;
-        }
+        // Update in place instead of replacing - preserves UI element attachments
+        existingTab.UpdateFrom(tabWithStats);
     }
 
     /// <summary>
