@@ -208,20 +208,15 @@
                     </ScrollViewer>
 
                     <!-- Empty state when expanded but no items -->
-                    <TextBlock Text="No recently closed tabs"
-                               IsVisible="{Binding !HasRecentlyClosed}"
-                               Foreground="{DynamicResource TextControlForegroundDisabled}"
-                               FontStyle="Italic"
-                               FontSize="11"
-                               HorizontalAlignment="Center"
-                               Margin="0,8"
-                               IsEnabled="{Binding IsRecentlyClosedExpanded}">
-                        <TextBlock.Styles>
-                            <Style Selector="TextBlock:disabled">
-                                <Setter Property="IsVisible" Value="False"/>
-                            </Style>
-                        </TextBlock.Styles>
-                    </TextBlock>
+                    <Panel IsVisible="{Binding IsRecentlyClosedExpanded}">
+                        <TextBlock Text="No recently closed tabs"
+                                   IsVisible="{Binding !HasRecentlyClosed}"
+                                   Foreground="{DynamicResource TextControlForegroundDisabled}"
+                                   FontStyle="Italic"
+                                   FontSize="11"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,8"/>
+                    </Panel>
                 </StackPanel>
             </Border>
 
