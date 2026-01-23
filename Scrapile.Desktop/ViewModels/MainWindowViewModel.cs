@@ -72,6 +72,8 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel.ReopenDocumentRequested += OnReopenDocumentRequested;
         _tabListViewModel.DuplicateTabRequested += OnDuplicateTabRequested;
         _tabListViewModel.EditTitleRequested += OnEditTitleRequested;
+        _tabListViewModel.CopyToClipboardRequested += OnCopyToClipboardRequested;
+        _tabListViewModel.SaveAsRequested += OnSaveAsRequested;
 
         // Create the editor view model
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService);
@@ -436,6 +438,34 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Handles copy to clipboard requests from the context menu.
+    /// </summary>
+    private void OnCopyToClipboardRequested(object? sender, TabItemViewModel tabViewModel)
+    {
+        // Get the content from the tab via TabManager
+        var tabWithStats = _tabManager.GetOpenTabs().FirstOrDefault(t => t.Tab.TabId == tabViewModel.TabId);
+        if (tabWithStats == null)
+        {
+            return;
+        }
+
+        var content = tabWithStats.Tab.Content;
+        if (!string.IsNullOrEmpty(content))
+        {
+            ClipboardCopyRequested?.Invoke(this, content);
+            StatusMessageRequested?.Invoke(this, "Copied to clipboard");
+        }
+    }
+
+    /// <summary>
+    /// Handles Save As requests from the context menu.
+    /// </summary>
+    private void OnSaveAsRequested(object? sender, TabItemViewModel tabViewModel)
+    {
+        RequestSaveAs(tabViewModel);
+    }
+
+    /// <summary>
     /// Duplicates the currently selected tab.
     /// </summary>
     public async Task DuplicateCurrentTabAsync()
@@ -454,5 +484,97 @@ public partial class MainWindowViewModel : ViewModelBase
     public void RequestEditTitle()
     {
         TabListViewModel.RequestEditTitle();
+    }
+
+    /// <summary>
+    /// Event raised when clipboard copy completes to show feedback.
+    /// </summary>
+    public event EventHandler<string>? StatusMessageRequested;
+
+    /// <summary>
+    /// Copies the current tab's content to the clipboard.
+    /// </summary>
+    /// <returns>True if content was copied, false if no tab is selected.</returns>
+    public bool CopyCurrentTabToClipboard()
+    {
+        if (SelectedTab == null || string.IsNullOrEmpty(EditorViewModel.Content))
+        {
+            return false;
+        }
+
+        // Request the view to handle the clipboard copy
+        // We'll raise an event that the view can handle since clipboard access
+        // requires the TopLevel (which we don't have in the ViewModel)
+        ClipboardCopyRequested?.Invoke(this, EditorViewModel.Content);
+        StatusMessageRequested?.Invoke(this, "Copied to clipboard");
+        return true;
+    }
+
+    /// <summary>
+    /// Event raised when clipboard copy is requested.
+    /// The view handles this since clipboard access requires TopLevel.
+    /// </summary>
+    public event EventHandler<string>? ClipboardCopyRequested;
+
+    /// <summary>
+    /// Event raised when Save As is requested.
+    /// The view handles this since file dialog access requires TopLevel.
+    /// </summary>
+    public event EventHandler<SaveAsRequestEventArgs>? SaveAsRequested;
+
+    /// <summary>
+    /// Requests a Save As dialog for the current tab.
+    /// </summary>
+    public void RequestSaveAs()
+    {
+        if (SelectedTab == null)
+        {
+            return;
+        }
+
+        var suggestedName = !string.IsNullOrWhiteSpace(EditorViewModel.Title)
+            ? EditorViewModel.Title + ".txt"
+            : "untitled.txt";
+
+        SaveAsRequested?.Invoke(this, new SaveAsRequestEventArgs(
+            EditorViewModel.Content ?? string.Empty,
+            suggestedName));
+    }
+
+    /// <summary>
+    /// Requests a Save As dialog for a specific tab.
+    /// </summary>
+    /// <param name="tabViewModel">The tab to save.</param>
+    public void RequestSaveAs(TabItemViewModel tabViewModel)
+    {
+        // Get the content from the tab via TabManager
+        var tabWithStats = _tabManager.GetOpenTabs().FirstOrDefault(t => t.Tab.TabId == tabViewModel.TabId);
+        if (tabWithStats == null)
+        {
+            return;
+        }
+
+        var content = tabWithStats.Tab.Content;
+        var title = tabWithStats.Tab.Document.Title;
+        var suggestedName = !string.IsNullOrWhiteSpace(title)
+            ? title + ".txt"
+            : "untitled.txt";
+
+        SaveAsRequested?.Invoke(this, new SaveAsRequestEventArgs(content, suggestedName));
+    }
+}
+
+/// <summary>
+/// Event arguments for Save As requests.
+/// </summary>
+public class SaveAsRequestEventArgs : EventArgs
+{
+    public string Content { get; }
+    public string SuggestedFileName { get; }
+
+    public SaveAsRequestEventArgs(string content, string suggestedFileName)
+    {
+        Content = content;
+        SuggestedFileName = suggestedFileName;
     }
 }

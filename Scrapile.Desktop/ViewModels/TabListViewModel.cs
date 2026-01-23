@@ -55,6 +55,16 @@ public partial class TabListViewModel : ViewModelBase
     public event EventHandler? EditTitleRequested;
 
     /// <summary>
+    /// Event raised when a tab's content should be copied to clipboard.
+    /// </summary>
+    public event EventHandler<TabItemViewModel>? CopyToClipboardRequested;
+
+    /// <summary>
+    /// Event raised when a tab's content should be saved to a file.
+    /// </summary>
+    public event EventHandler<TabItemViewModel>? SaveAsRequested;
+
+    /// <summary>
     /// Creates a new TabListViewModel.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -308,6 +318,30 @@ public partial class TabListViewModel : ViewModelBase
         if (SelectedTab != null)
         {
             EditTitleRequested?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Requests copying a tab's content to clipboard.
+    /// </summary>
+    /// <param name="tabViewModel">The tab to copy.</param>
+    public void RequestCopyToClipboard(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel != null)
+        {
+            CopyToClipboardRequested?.Invoke(this, tabViewModel);
+        }
+    }
+
+    /// <summary>
+    /// Requests saving a tab's content to a file (Save As).
+    /// </summary>
+    /// <param name="tabViewModel">The tab to save.</param>
+    public void RequestSaveAs(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel != null)
+        {
+            SaveAsRequested?.Invoke(this, tabViewModel);
         }
     }
 

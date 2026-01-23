@@ -56,6 +56,11 @@
                                                   Click="OnContextMenuDuplicate"/>
                                         <MenuItem Header="Edit Title"
                                                   Click="OnContextMenuEditTitle"/>
+                                        <Separator/>
+                                        <MenuItem Header="Copy to Clipboard"
+                                                  Click="OnContextMenuCopyToClipboard"/>
+                                        <MenuItem Header="Save As..."
+                                                  Click="OnContextMenuSaveAs"/>
                                     </MenuFlyout>
                                 </Border.ContextFlyout>
 

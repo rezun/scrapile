@@ -1,7 +1,10 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Scrapile.Desktop.ViewModels;
 
 namespace Scrapile.Desktop.Views;
@@ -27,6 +30,10 @@ public partial class MainWindow : Window
             // Subscribe to FocusTitleRequested event
             viewModel.FocusTitleRequested += OnFocusTitleRequested;
 
+            // Subscribe to clipboard and save as events
+            viewModel.ClipboardCopyRequested += OnClipboardCopyRequested;
+            viewModel.SaveAsRequested += OnSaveAsRequested;
+
             await viewModel.InitializeAsync();
         }
     }
@@ -37,6 +44,57 @@ public partial class MainWindow : Window
     private void OnFocusTitleRequested(object? sender, EventArgs e)
     {
         EditorView?.FocusTitle();
+    }
+
+    /// <summary>
+    /// Handles clipboard copy requests from the view model.
+    /// </summary>
+    private async void OnClipboardCopyRequested(object? sender, string content)
+    {
+        var clipboard = GetTopLevel(this)?.Clipboard;
+        if (clipboard != null)
+        {
+            await clipboard.SetTextAsync(content);
+        }
+    }
+
+    /// <summary>
+    /// Handles Save As requests from the view model.
+    /// </summary>
+    private async void OnSaveAsRequested(object? sender, SaveAsRequestEventArgs e)
+    {
+        await ShowSaveAsDialogAsync(e.Content, e.SuggestedFileName);
+    }
+
+    /// <summary>
+    /// Shows a Save As dialog and saves the content to the selected file.
+    /// </summary>
+    private async Task ShowSaveAsDialogAsync(string content, string suggestedFileName)
+    {
+        var storageProvider = GetTopLevel(this)?.StorageProvider;
+        if (storageProvider == null)
+        {
+            return;
+        }
+
+        var file = await storageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save As",
+            SuggestedFileName = suggestedFileName,
+            DefaultExtension = "txt",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("Text Files") { Patterns = new[] { "*.txt" } },
+                new FilePickerFileType("All Files") { Patterns = new[] { "*" } }
+            }
+        });
+
+        if (file != null)
+        {
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(content);
+        }
     }
 
     /// <summary>
@@ -164,6 +222,24 @@ public partial class MainWindow : Window
                     await viewModel.DuplicateCurrentTabAsync();
                     // Focus the editor after duplicating
                     EditorView?.FocusContent();
+                }
+                break;
+
+            case Key.C:
+                // Ctrl/Cmd+Shift+C: Copy entire document to clipboard
+                if (shiftPressed)
+                {
+                    e.Handled = true;
+                    viewModel.CopyCurrentTabToClipboard();
+                }
+                break;
+
+            case Key.S:
+                // Ctrl/Cmd+Shift+S: Save As
+                if (shiftPressed)
+                {
+                    e.Handled = true;
+                    viewModel.RequestSaveAs();
                 }
                 break;
         }

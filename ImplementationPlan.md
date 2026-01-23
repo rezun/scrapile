@@ -1591,12 +1591,35 @@ Implement export functionality.
 3. Save As opens file dialog for location selection
 
 **Acceptance Criteria:**
-- [ ] Copy to clipboard works
-- [ ] Save As creates file at chosen location
-- [ ] Original document unchanged
-- [ ] Feedback shown (toast/notification optional)
+- [x] Copy to clipboard works
+- [x] Save As creates file at chosen location
+- [x] Original document unchanged
+- [x] Feedback shown (toast/notification optional)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Added keyboard shortcuts:
+  - Ctrl/Cmd+Shift+C: Copy entire document content to clipboard
+  - Ctrl/Cmd+Shift+S: Save As (opens file dialog)
+- Added context menu items to tab right-click menu:
+  - "Copy to Clipboard" - copies the tab's content
+  - "Save As..." - opens file save dialog with suggested filename
+- Implementation flow uses events to communicate between ViewModel and View:
+  - `ClipboardCopyRequested` event triggers clipboard write via TopLevel.Clipboard
+  - `SaveAsRequested` event triggers file picker dialog via TopLevel.StorageProvider
+  - `StatusMessageRequested` event for showing "Copied to clipboard" feedback
+- Save As dialog:
+  - Suggests filename based on document title (or "untitled.txt")
+  - Offers Text Files (*.txt) and All Files (*) filters
+  - Creates file at user-selected location (original document unchanged)
+- Updated files:
+  - `MainWindowViewModel.cs`: Added events and methods for copy/save operations
+  - `MainWindow.axaml.cs`: Added keyboard shortcut handlers and event subscriptions
+  - `TabListViewModel.cs`: Added events and methods for context menu integration
+  - `TabListView.axaml`: Added context menu items
+  - `TabListView.axaml.cs`: Added context menu handlers
+- All 261 tests pass (73 infrastructure + 188 application)
 
 ---
 

@@ -133,4 +133,28 @@ public partial class TabListView : UserControl
             listViewModel.RequestEditTitle();
         }
     }
+
+    /// <summary>
+    /// Handles the "Copy to Clipboard" context menu item click.
+    /// </summary>
+    private void OnContextMenuCopyToClipboard(object? sender, RoutedEventArgs e)
+    {
+        var tabViewModel = GetTabFromContextMenu(sender);
+        if (tabViewModel != null && DataContext is TabListViewModel listViewModel)
+        {
+            listViewModel.RequestCopyToClipboard(tabViewModel);
+        }
+    }
+
+    /// <summary>
+    /// Handles the "Save As..." context menu item click.
+    /// </summary>
+    private void OnContextMenuSaveAs(object? sender, RoutedEventArgs e)
+    {
+        var tabViewModel = GetTabFromContextMenu(sender);
+        if (tabViewModel != null && DataContext is TabListViewModel listViewModel)
+        {
+            listViewModel.RequestSaveAs(tabViewModel);
+        }
+    }
 }
