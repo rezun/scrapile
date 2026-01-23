@@ -60,20 +60,20 @@
                                 </Border.ContextFlyout>
 
                                 <Border.Styles>
-                                    <!-- Default state -->
-                                    <Style Selector="Border">
+                                    <!-- Default state - use Border#TabBorder to target only this border, not menu items -->
+                                    <Style Selector="Border#TabBorder">
                                         <Setter Property="Background" Value="Transparent"/>
                                     </Style>
                                     <!-- Hover state (not selected) -->
-                                    <Style Selector="Border:pointerover:not(.selected)">
+                                    <Style Selector="Border#TabBorder:pointerover:not(.selected)">
                                         <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
                                     </Style>
                                     <!-- Selected state -->
-                                    <Style Selector="Border.selected">
+                                    <Style Selector="Border#TabBorder.selected">
                                         <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
                                     </Style>
                                     <!-- Selected + hover state -->
-                                    <Style Selector="Border.selected:pointerover">
+                                    <Style Selector="Border#TabBorder.selected:pointerover">
                                         <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
                                     </Style>
                                 </Border.Styles>
