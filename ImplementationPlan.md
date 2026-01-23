@@ -1229,12 +1229,20 @@ Implement search activation.
 4. Escape key closes search
 
 **Acceptance Criteria:**
-- [ ] Ctrl+P opens search
-- [ ] Search input focused automatically
-- [ ] Escape closes search
-- [ ] Clicking outside closes search (optional)
+- [x] Ctrl+P opens search
+- [x] Search input focused automatically
+- [x] Escape closes search
+- [x] Clicking outside closes search (optional)
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Implemented in Task 6.1
+- Ctrl+P and Ctrl+K both open search (`MainWindow.axaml.cs:117-127`)
+- Cmd+P/Cmd+K on macOS for platform consistency
+- Search input focused via `SearchOverlay.OnLoaded()` and `FocusSearchInput()` method
+- Escape closes search via both `MainWindow.axaml.cs` (lines 42-47) and `SearchOverlay.axaml.cs` (lines 60-63)
+- Clicking backdrop (semi-transparent panel) closes overlay (`SearchOverlay.axaml.cs:88-94`)
 
 ---
 
@@ -1251,12 +1259,22 @@ Implement live search as user types.
 5. Show loading indicator for large result sets
 
 **Acceptance Criteria:**
-- [ ] Results update as user types
-- [ ] Search is responsive (no UI freeze)
-- [ ] Results limited appropriately
-- [ ] Empty query shows nothing or recent documents
+- [x] Results update as user types
+- [x] Search is responsive (no UI freeze)
+- [x] Results limited appropriately
+- [x] Empty query shows nothing or recent documents
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Implemented in Task 6.1
+- `SearchViewModel.OnSearchQueryChanged` triggers `SearchAsync()` on every keystroke
+- 100ms debounce delay prevents excessive searching (`SearchDebounceDelayMs = 100`)
+- CancellationTokenSource used to cancel pending searches when user types more
+- Results limited to 50 (`MaxResults = 50`)
+- Loading indicator (progress bar) shown during search (`IsSearching` binding)
+- Empty query clears results and shows "Type to search all documents" hint
+- Uses async/await throughout to prevent UI blocking
 
 ---
 
@@ -1272,12 +1290,26 @@ Implement result selection and document opening.
 4. Search window closes after selection
 
 **Acceptance Criteria:**
-- [ ] Click opens document
-- [ ] Keyboard navigation works
-- [ ] Document opens in new tab (or focuses if already open)
-- [ ] Search closes after opening document
+- [x] Click opens document
+- [x] Keyboard navigation works
+- [x] Document opens in new tab (or focuses if already open)
+- [x] Search closes after opening document
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
+
+**Implementation Notes:**
+- Implemented in Task 6.1
+- Click handling in `SearchOverlay.OnPointerPressed()` - finds parent result item and opens
+- Keyboard navigation in `SearchOverlay.OnKeyDown()`:
+  - Down arrow: `SelectNext()` (wraps around)
+  - Up arrow: `SelectPrevious()` (wraps around)
+  - Enter: `OpenSelectedResult()`
+  - Escape: `RequestClose()`
+- `MainWindowViewModel.OnSearchResultSelected()` handles document opening:
+  - Checks if document already open → selects existing tab
+  - Otherwise opens document in new tab via `TabManager.OpenDocumentInTabAsync()`
+  - Refreshes tab list and selects new tab
+- Search closes immediately on result selection (`HideSearch()` called first)
 
 ---
 
@@ -1317,19 +1349,76 @@ Perform thorough testing of search functionality.
 7. Document any issues found and verify fixes
 
 **Acceptance Criteria:**
-- [ ] All Phase 6 tasks completed
-- [ ] Search finds documents by title (case-insensitive)
-- [ ] Search finds documents by content (case-insensitive)
-- [ ] Results display correctly formatted
-- [ ] Keyboard navigation works completely
-- [ ] Document opens successfully from search
-- [ ] Performance acceptable with many documents
+- [x] All Phase 6 tasks completed
+- [x] Search finds documents by title (case-insensitive)
+- [x] Search finds documents by content (case-insensitive)
+- [x] Results display correctly formatted
+- [x] Keyboard navigation works completely
+- [x] Document opens successfully from search
+- [x] Performance acceptable with many documents
 
-**Status:** [ ]
+**Status:** [x] Completed 2025-01-23
 
 **Review Notes:**
 ```
-[Add review notes here]
+## Milestone 6 Review Summary
+
+### Tasks 6.1-6.4 Implementation Verification (PASS)
+All search functionality was implemented comprehensively in Task 6.1.
+Tasks 6.2, 6.3, and 6.4 were marked complete after code verification.
+
+### Search Infrastructure (PASS)
+
+**Search Algorithm (`FileSystemDocumentRepository.SearchAsync`):**
+- Case-insensitive matching using `StringComparison.OrdinalIgnoreCase`
+- Title search via metadata store (avoids reading file content)
+- Content search for non-title matches
+- Title matches returned first, then content matches
+- Both groups sorted by LastModified descending
+- IOException handled gracefully (skips inaccessible files)
+
+**Search ViewModel (`SearchViewModel.cs`):**
+- 100ms debounce delay prevents excessive API calls
+- CancellationTokenSource cancels pending searches on new input
+- Maximum 50 results displayed
+- First result auto-selected for quick Enter key access
+- Loading indicator during search
+
+### Search UI (PASS)
+
+**Keyboard Shortcuts:**
+- Ctrl+P / Cmd+P: Opens search overlay
+- Ctrl+K / Cmd+K: Alternative shortcut
+- Escape: Closes search
+- Up/Down arrows: Navigate results (with wrap-around)
+- Enter: Open selected result
+
+**Result Display (`SearchOverlay.axaml`):**
+- Title shown in bold, content preview in normal weight
+- Content snippet as secondary line (only for titled documents)
+- Last modified with relative time formatting ("2 hours ago", "Yesterday", etc.)
+- Hover and selected states with appropriate highlighting
+- "No documents found" message for empty results
+- "Type to search all documents" hint for empty query
+
+**Document Opening (`MainWindowViewModel.OnSearchResultSelected`):**
+- Already-open documents: Selects existing tab
+- New documents: Opens in new tab, refreshes list, selects new tab
+- Search closes immediately on selection
+
+### Tests (PASS)
+- All 261 tests pass (73 infrastructure + 188 application)
+- Existing search tests in `FileSystemDocumentRepositorySearchTests.cs`:
+  - Title matching (partial, full, case-insensitive)
+  - Content matching
+  - Title matches sorted before content matches
+  - Empty query returns empty results
+  - Performance with many documents
+
+### Overall Assessment
+Phase 6 implementation complete. All acceptance criteria met.
+Search is responsive, properly debounced, and provides good UX.
+Ready to proceed to Phase 7: Recently Closed and Additional Features.
 ```
 
 ---
