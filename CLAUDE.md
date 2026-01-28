@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Versioning
+
+Version is defined in `Scrapile.Desktop/Scrapile.Desktop.csproj`. When updating, change all three properties together:
+- `<Version>` - Assembly version
+- `<CFBundleVersion>` - macOS bundle version
+- `<CFBundleShortVersionString>` - macOS display version
+
 ## Build Commands
 
 ```bash
@@ -17,7 +24,7 @@ dotnet test Scrapile.Application.Tests/Scrapile.Application.Tests.csproj
 # Run desktop app
 dotnet run --project Scrapile.Desktop/Scrapile.Desktop.csproj
 
-# Publish all platforms (self-contained, single-file)
+# Publish macOS and Windows (self-contained + slim variants)
 ./publish.sh
 
 # Publish macOS only
@@ -85,10 +92,14 @@ Infrastructure (File System & JSON Storage)
 - Note: App is not code-signed; users may need to right-click → Open on first launch
 
 **Publish Script** (`publish.sh`):
-- Builds all three platforms with self-contained, single-file output
-- Output goes to `pub/macos/`, `pub/windows/`, `pub/linux/`
-- Windows/Linux produce single executables (~90MB each with bundled runtime)
-- macOS produces `.app` bundle (~110MB)
+- Builds macOS (arm64) and Windows (x64) with both self-contained and framework-dependent variants
+- Linux builds are supported but currently commented out
+- Output structure:
+  - `pub/macos/` and `pub/macos-slim/` - macOS `.app` bundles
+  - `pub/windows/` and `pub/windows-slim/` - Windows executables
+  - `pub/linux/` and `pub/linux-slim/` - Linux executables (when enabled)
+- Self-contained: ~90-110MB (includes .NET runtime)
+- Framework-dependent (slim): ~30MB (requires .NET 9.0 installed)
 
 ## Key Files
 

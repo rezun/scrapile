@@ -21,14 +21,17 @@ Think of it like Gmail: most emails get archived without labels, but adding cont
 
 ## Features
 
-- **Multi-tab interface** with vertical tab layout
+- **Multi-tab interface** with vertical tab layout (configurable left/right)
 - **Auto-save** - 500ms after you stop typing, no save button needed
 - **Session restore** - Close the app, reopen later, everything's still there
 - **Document search** (Ctrl/Cmd+P) - Find any document by title or content
 - **Recently closed** (Ctrl/Cmd+Shift+T) - Reopen tabs you closed
 - **Quick stats** - Word count shown on each tab
 - **Duplicate, export, copy** - All the standard operations
-- **Dark mode** - Easy on the eyes
+- **Theming** - Light, Dark, or System theme
+- **Customizable fonts** - Font family and size settings
+- **Word wrap** - Global default with per-document override
+- **First-run setup** - Welcome window for choosing storage location
 
 ## Keyboard Shortcuts
 
@@ -66,18 +69,21 @@ dotnet build Scrapile.slnx
 
 ### Publish
 
-Build self-contained executables for all platforms:
+Build executables for macOS and Windows:
 
 ```bash
 ./publish.sh
 ```
 
 Output in `pub/`:
-- `pub/macos/Scrapile.app` - macOS application bundle (Apple Silicon)
-- `pub/windows/Scrapile.Desktop.exe` - Windows single-file executable
-- `pub/linux/Scrapile.Desktop` - Linux single-file executable
+- `pub/macos/Scrapile.app` - macOS application bundle (Apple Silicon, self-contained)
+- `pub/macos-slim/Scrapile.app` - macOS bundle (requires .NET 9.0 runtime)
+- `pub/windows/Scrapile.exe` - Windows executable (self-contained)
+- `pub/windows-slim/Scrapile.exe` - Windows executable (requires .NET 9.0 runtime)
 
-All builds are self-contained (no .NET runtime required on target machine).
+Self-contained builds include the .NET runtime (~90-110MB). Slim builds require .NET 9.0 installed on the target machine but are much smaller (~30MB).
+
+Linux builds are supported but currently disabled in the publish script. Uncomment the Linux section in `publish.sh` to enable them.
 
 ## Data Storage
 
