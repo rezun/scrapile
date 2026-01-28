@@ -52,7 +52,9 @@
     <Panel>
         <DockPanel>
             <!-- Menu Bar - NativeMenuBar auto-renders in system bar on macOS, in-window on Windows/Linux -->
-            <NativeMenuBar DockPanel.Dock="Top" />
+            <Border x:Name="MenuBarBackground" DockPanel.Dock="Top">
+                <NativeMenuBar Background="Transparent" />
+            </Border>
 
             <!-- Main two-column layout: Tab list | Editor (position based on setting) -->
             <Grid x:Name="MainLayoutGrid">

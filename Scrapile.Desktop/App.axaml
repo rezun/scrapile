@@ -10,5 +10,10 @@
 
     <Application.Styles>
         <FluentTheme />
+
+        <!-- Make menu bar background lighter in dark mode for better contrast (Windows/Linux only) -->
+        <Style Selector="Border#MenuBarBackground">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+        </Style>
     </Application.Styles>
 </Application>
