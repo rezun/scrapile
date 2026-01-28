@@ -67,6 +67,7 @@ public partial class MainWindow : Window
 
         // Find menu items by traversing the menu structure
         NativeMenuItem? reopenLastClosedItem = null;
+        NativeMenuItem? searchItem = null;
         NativeMenuItem? settingsItem = null;
         NativeMenuItem? recentlyClosedItem = null;
         NativeMenuItem? versionItem = null;
@@ -97,9 +98,16 @@ public partial class MainWindow : Window
                 {
                     foreach (var subItem in menuItem.Menu.Items)
                     {
-                        if (subItem is NativeMenuItem subMenuItem && subMenuItem.Header == "Settings...")
+                        if (subItem is NativeMenuItem subMenuItem)
                         {
-                            settingsItem = subMenuItem;
+                            if (subMenuItem.Header == "Search...")
+                            {
+                                searchItem = subMenuItem;
+                            }
+                            else if (subMenuItem.Header == "Settings...")
+                            {
+                                settingsItem = subMenuItem;
+                            }
                         }
                     }
                 }
@@ -124,6 +132,14 @@ public partial class MainWindow : Window
             reopenLastClosedItem.Gesture = OperatingSystem.IsMacOS()
                 ? new KeyGesture(Key.T, KeyModifiers.Meta | KeyModifiers.Shift)
                 : new KeyGesture(Key.T, KeyModifiers.Control | KeyModifiers.Shift);
+        }
+
+        if (searchItem != null)
+        {
+            searchItem.Command = viewModel.ShowSearchCommand;
+            searchItem.Gesture = OperatingSystem.IsMacOS()
+                ? new KeyGesture(Key.P, KeyModifiers.Meta)
+                : new KeyGesture(Key.P, KeyModifiers.Control);
         }
 
         if (settingsItem != null)

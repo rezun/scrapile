@@ -442,8 +442,14 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Gets the keyboard gesture string for "Search" menu item.
+    /// </summary>
+    public string SearchGesture => $"{PlatformModifier}+P";
+
+    /// <summary>
     /// Shows the search overlay.
     /// </summary>
+    [RelayCommand]
     public void ShowSearch()
     {
         SearchViewModel.Reset();

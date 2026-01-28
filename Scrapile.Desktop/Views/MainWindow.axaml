@@ -36,6 +36,8 @@
             <NativeMenuItem Header="Edit">
                 <NativeMenuItem.Menu>
                     <NativeMenu>
+                        <NativeMenuItem Header="Search..." />
+                        <NativeMenuItemSeparator />
                         <NativeMenuItem Header="Settings..." />
                     </NativeMenu>
                 </NativeMenuItem.Menu>
