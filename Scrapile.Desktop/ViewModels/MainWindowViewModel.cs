@@ -110,7 +110,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
-        _tabListViewModel.ReopenDocumentRequested += OnReopenDocumentRequested;
         _tabListViewModel.DuplicateTabRequested += OnDuplicateTabRequested;
         _tabListViewModel.EditTitleRequested += OnEditTitleRequested;
         _tabListViewModel.CopyToClipboardRequested += OnCopyToClipboardRequested;
@@ -222,9 +221,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Refresh the tab list
         await TabListViewModel.LoadTabsAsync();
 
-        // Refresh the recently closed lists (menu and sidebar)
+        // Refresh the recently closed menu
         await RefreshRecentlyClosedMenuAsync();
-        await TabListViewModel.LoadRecentlyClosedAsync();
 
         // Select the reopened tab
         var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == documentId);
@@ -514,38 +512,6 @@ public partial class MainWindowViewModel : ViewModelBase
     private void OnSearchCloseRequested(object? sender, EventArgs e)
     {
         HideSearch();
-    }
-
-    /// <summary>
-    /// Handles reopen document requests from the recently closed panel.
-    /// </summary>
-    private async void OnReopenDocumentRequested(object? sender, Guid documentId)
-    {
-        // Open the document in a new tab
-        var reopenedTab = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(documentId);
-
-        if (reopenedTab == null)
-        {
-            // Document not found or deleted
-            // Refresh the recently closed lists to remove any invalid entries
-            await TabListViewModel.LoadRecentlyClosedAsync();
-            await RefreshRecentlyClosedMenuAsync();
-            return;
-        }
-
-        // Refresh the tab list
-        await TabListViewModel.LoadTabsAsync();
-
-        // Refresh the recently closed lists (sidebar and menu)
-        await TabListViewModel.LoadRecentlyClosedAsync();
-        await RefreshRecentlyClosedMenuAsync();
-
-        // Select the reopened tab
-        var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == documentId);
-        if (tabToSelect != null)
-        {
-            TabListViewModel.SelectTab(tabToSelect);
-        }
     }
 
     /// <summary>
