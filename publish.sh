@@ -57,7 +57,7 @@ dotnet publish "$PROJECT" \
     -p:IncludeNativeLibrariesForSelfExtract=true \
     --verbosity quiet
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.Desktop.exe" "$PUB_DIR/windows/"
+cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows/"
 # Native libs that can't be bundled
 cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB_DIR/windows/" 2>/dev/null || true
 
@@ -71,7 +71,7 @@ dotnet publish "$PROJECT" \
     -p:PublishSingleFile=true \
     --verbosity quiet
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.Desktop.exe" "$PUB_DIR/windows-slim/"
+cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows-slim/"
 # Native libs that can't be bundled
 cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB_DIR/windows-slim/" 2>/dev/null || true
 
@@ -92,7 +92,7 @@ cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB
 #     -p:IncludeNativeLibrariesForSelfExtract=true \
 #     --verbosity quiet
 
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux/"
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile" "$PUB_DIR/linux/"
 # # Native libs that can't be bundled
 # cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux/" 2>/dev/null || true
 
@@ -106,7 +106,7 @@ cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB
 #     -p:PublishSingleFile=true \
 #     --verbosity quiet
 
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux-slim/"
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile" "$PUB_DIR/linux-slim/"
 # # Native libs that can't be bundled
 # cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux-slim/" 2>/dev/null || true
 

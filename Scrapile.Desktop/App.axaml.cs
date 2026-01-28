@@ -38,8 +38,8 @@ public partial class App : Avalonia.Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
 
-            // Check for first-run condition and initialize accordingly
-            _ = InitializeApplicationAsync(desktop);
+            // Schedule async initialization on UI thread after framework is ready
+            Dispatcher.UIThread.InvokeAsync(() => InitializeApplicationAsync(desktop));
         }
 
         base.OnFrameworkInitializationCompleted();

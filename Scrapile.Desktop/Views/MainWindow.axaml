@@ -16,7 +16,7 @@
         MinWidth="600"
         MinHeight="400"
         WindowStartupLocation="CenterScreen"
-        Icon="avares://Scrapile.Desktop/Assets/app-icon.png">
+        Icon="avares://Scrapile/Assets/app-icon.png">
 
     <NativeMenu.Menu>
         <NativeMenu>
