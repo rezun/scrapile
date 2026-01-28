@@ -17,6 +17,31 @@
         MinHeight="400"
         WindowStartupLocation="CenterScreen">
 
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="Tab">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Recently Closed">
+                            <NativeMenuItem.Menu>
+                                <NativeMenu />
+                            </NativeMenuItem.Menu>
+                        </NativeMenuItem>
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Reopen Last Closed" />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
+            <NativeMenuItem Header="Edit">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Settings..." />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
+
     <Design.DataContext>
         <!-- This only sets the DataContext for the previewer in an IDE -->
         <vm:MainWindowViewModel/>
@@ -25,31 +50,8 @@
     <!-- Use a Panel to layer the search overlay on top of the main content -->
     <Panel>
         <DockPanel>
-            <!-- Menu Bar -->
-            <Border DockPanel.Dock="Top" Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
-                <Menu>
-                    <MenuItem Header="_Tab">
-                        <MenuItem Header="_Recently Closed"
-                                  ItemsSource="{Binding RecentlyClosedMenuItems}"
-                                  IsEnabled="{Binding HasRecentlyClosedMenuItems}">
-                            <MenuItem.Styles>
-                                <Style Selector="MenuItem > MenuItem" x:DataType="vm:RecentlyClosedMenuItemViewModel">
-                                    <Setter Property="Header" Value="{Binding MenuHeader}"/>
-                                    <Setter Property="Command" Value="{Binding ReopenCommand}"/>
-                                </Style>
-                            </MenuItem.Styles>
-                        </MenuItem>
-                        <Separator/>
-                        <MenuItem Header="Reopen _Last Closed"
-                                  Command="{Binding ReopenLastClosedCommand}"
-                                  InputGesture="{Binding ReopenLastClosedGesture}"
-                                  IsEnabled="{Binding HasRecentlyClosedMenuItems}"/>
-                    </MenuItem>
-                    <MenuItem Header="_Edit">
-                        <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" InputGesture="{Binding SettingsGesture}"/>
-                    </MenuItem>
-                </Menu>
-            </Border>
+            <!-- Menu Bar - NativeMenuBar auto-renders in system bar on macOS, in-window on Windows/Linux -->
+            <NativeMenuBar DockPanel.Dock="Top" />
 
             <!-- Main two-column layout: Tab list | Editor (position based on setting) -->
             <Grid x:Name="MainLayoutGrid">

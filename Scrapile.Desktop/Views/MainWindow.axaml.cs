@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,6 +13,9 @@ namespace Scrapile.Desktop.Views;
 
 public partial class MainWindow : Window
 {
+    private NativeMenu? _recentlyClosedNativeMenu;
+    private NativeMenuItem? _recentlyClosedMenuItem;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -41,10 +45,126 @@ public partial class MainWindow : Window
             // Subscribe to property changes to update layout when tab position changes
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
+            // Set up native menu commands and dynamic items
+            SetupNativeMenu(viewModel);
+
             await viewModel.InitializeAsync();
 
             // Apply initial tab position layout
             UpdateTabPositionLayout(viewModel.IsTabListOnLeft);
+        }
+    }
+
+    /// <summary>
+    /// Sets up native menu commands and dynamic menu items.
+    /// </summary>
+    private void SetupNativeMenu(MainWindowViewModel viewModel)
+    {
+        // Get the native menu from the attached property
+        var nativeMenu = NativeMenu.GetMenu(this);
+        if (nativeMenu == null) return;
+
+        // Find menu items by traversing the menu structure
+        NativeMenuItem? reopenLastClosedItem = null;
+        NativeMenuItem? settingsItem = null;
+        NativeMenuItem? recentlyClosedItem = null;
+
+        foreach (var topLevelItem in nativeMenu.Items)
+        {
+            if (topLevelItem is NativeMenuItem menuItem)
+            {
+                if (menuItem.Header == "Tab" && menuItem.Menu != null)
+                {
+                    foreach (var subItem in menuItem.Menu.Items)
+                    {
+                        if (subItem is NativeMenuItem subMenuItem)
+                        {
+                            if (subMenuItem.Header == "Recently Closed")
+                            {
+                                recentlyClosedItem = subMenuItem;
+                                _recentlyClosedNativeMenu = subMenuItem.Menu;
+                            }
+                            else if (subMenuItem.Header == "Reopen Last Closed")
+                            {
+                                reopenLastClosedItem = subMenuItem;
+                            }
+                        }
+                    }
+                }
+                else if (menuItem.Header == "Edit" && menuItem.Menu != null)
+                {
+                    foreach (var subItem in menuItem.Menu.Items)
+                    {
+                        if (subItem is NativeMenuItem subMenuItem && subMenuItem.Header == "Settings...")
+                        {
+                            settingsItem = subMenuItem;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Wire up commands
+        if (reopenLastClosedItem != null)
+        {
+            reopenLastClosedItem.Command = viewModel.ReopenLastClosedCommand;
+            // Set platform-appropriate gesture
+            reopenLastClosedItem.Gesture = OperatingSystem.IsMacOS()
+                ? new KeyGesture(Key.T, KeyModifiers.Meta | KeyModifiers.Shift)
+                : new KeyGesture(Key.T, KeyModifiers.Control | KeyModifiers.Shift);
+        }
+
+        if (settingsItem != null)
+        {
+            settingsItem.Command = viewModel.OpenSettingsCommand;
+            settingsItem.Gesture = OperatingSystem.IsMacOS()
+                ? new KeyGesture(Key.OemComma, KeyModifiers.Meta)
+                : new KeyGesture(Key.OemComma, KeyModifiers.Control);
+        }
+
+        // Store reference for dynamic updates
+        _recentlyClosedMenuItem = recentlyClosedItem;
+
+        // Subscribe to collection changes
+        viewModel.RecentlyClosedMenuItems.CollectionChanged += OnRecentlyClosedMenuItemsChanged;
+
+        // Initial population
+        UpdateRecentlyClosedNativeMenu(viewModel);
+    }
+
+    /// <summary>
+    /// Handles changes to the RecentlyClosedMenuItems collection.
+    /// </summary>
+    private void OnRecentlyClosedMenuItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            UpdateRecentlyClosedNativeMenu(viewModel);
+        }
+    }
+
+    /// <summary>
+    /// Updates the native Recently Closed submenu with current items.
+    /// </summary>
+    private void UpdateRecentlyClosedNativeMenu(MainWindowViewModel viewModel)
+    {
+        if (_recentlyClosedNativeMenu == null) return;
+
+        _recentlyClosedNativeMenu.Items.Clear();
+
+        foreach (var item in viewModel.RecentlyClosedMenuItems)
+        {
+            _recentlyClosedNativeMenu.Items.Add(new NativeMenuItem
+            {
+                Header = item.MenuHeader,
+                Command = item.ReopenCommand
+            });
+        }
+
+        // Update enabled state
+        if (_recentlyClosedMenuItem != null)
+        {
+            _recentlyClosedMenuItem.IsEnabled = viewModel.HasRecentlyClosedMenuItems;
         }
     }
 
