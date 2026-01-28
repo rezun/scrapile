@@ -1321,6 +1321,19 @@ public class TabManagerTests
             _activeTabDocumentId = documentId;
             return Task.CompletedTask;
         }
+
+        private readonly Dictionary<Guid, string?> _documentWordWrap = new();
+
+        public Task<string?> GetDocumentWordWrapAsync(Guid documentId)
+        {
+            return Task.FromResult(_documentWordWrap.TryGetValue(documentId, out var wordWrap) ? wordWrap : null);
+        }
+
+        public Task UpdateDocumentWordWrapAsync(Guid documentId, string? wordWrap)
+        {
+            _documentWordWrap[documentId] = wordWrap;
+            return Task.CompletedTask;
+        }
     }
 
     #endregion

@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Scrapile.Application.Services;
 using Scrapile.Desktop.Services;
+using Scrapile.Domain.Interfaces;
 
 namespace Scrapile.Desktop.ViewModels;
 
@@ -19,6 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly AutoSaveService _autoSaveService;
     private readonly ThemeService _themeService;
     private readonly SettingsService _settingsService;
+    private readonly IMetadataStore _metadataStore;
 
     [ObservableProperty]
     private string _title = "Scrapile";
@@ -88,18 +90,21 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <param name="autoSaveService">The auto-save service.</param>
     /// <param name="themeService">The theme service.</param>
     /// <param name="settingsService">The settings service.</param>
+    /// <param name="metadataStore">The metadata store for per-document settings.</param>
     public MainWindowViewModel(
         TabManager tabManager,
         DocumentService documentService,
         AutoSaveService autoSaveService,
         ThemeService themeService,
-        SettingsService settingsService)
+        SettingsService settingsService,
+        IMetadataStore metadataStore)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _metadataStore = metadataStore ?? throw new ArgumentNullException(nameof(metadataStore));
 
         // Create the tab list view model
         _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
@@ -113,7 +118,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel.RecentlyClosedChanged += OnRecentlyClosedChanged;
 
         // Create the editor view model
-        _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService, _settingsService);
+        _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService, _settingsService, _metadataStore);
         _editorViewModel.ContentChanged += OnEditorContentChanged;
         _editorViewModel.TitleChanged += OnEditorTitleChanged;
 

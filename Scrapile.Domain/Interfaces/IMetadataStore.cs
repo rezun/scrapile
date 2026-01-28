@@ -96,6 +96,20 @@ public interface IMetadataStore
     Task<string?> GetDocumentTitleAsync(Guid documentId);
 
     /// <summary>
+    /// Gets the word wrap setting for a specific document.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <returns>The word wrap setting, or null if using global default.</returns>
+    Task<string?> GetDocumentWordWrapAsync(Guid documentId);
+
+    /// <summary>
+    /// Updates the word wrap setting for a document.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <param name="wordWrap">The word wrap setting, or null to use global default.</param>
+    Task UpdateDocumentWordWrapAsync(Guid documentId, string? wordWrap);
+
+    /// <summary>
     /// Gets the document ID of the last active (selected) tab.
     /// </summary>
     /// <returns>The active tab's document ID, or null if none was set.</returns>

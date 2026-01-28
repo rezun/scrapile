@@ -53,6 +53,15 @@ public partial class SettingsViewModel : ViewModelBase
         "Right"
     };
 
+    /// <summary>
+    /// Available word wrap options.
+    /// </summary>
+    public ObservableCollection<string> WordWrapOptions { get; } = new()
+    {
+        "Wrap",
+        "No Wrap"
+    };
+
     [ObservableProperty]
     private string? _storageDirectory;
 
@@ -70,6 +79,9 @@ public partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private int _autoSaveDelayMs = 500;
+
+    [ObservableProperty]
+    private string _selectedWordWrap = "Wrap";
 
     [ObservableProperty]
     private string _settingsFilePath = string.Empty;
@@ -119,6 +131,7 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedTabPosition = settings.TabPosition;
             SelectedFontFamily = settings.FontFamily ?? "Default";
             FontSize = settings.FontSize;
+            SelectedWordWrap = settings.WordWrap == "NoWrap" ? "No Wrap" : "Wrap";
             SelectedTheme = settings.Theme;
             AutoSaveDelayMs = settings.AutoSaveDelayMs;
             SettingsFilePath = _settingsService.SettingsFilePath;
@@ -149,6 +162,13 @@ public partial class SettingsViewModel : ViewModelBase
         {
             _ = _settingsService.SetFontSizeAsync(value);
         }
+    }
+
+    partial void OnSelectedWordWrapChanged(string value)
+    {
+        if (_isInitializing) return;
+        var wordWrap = value == "No Wrap" ? "NoWrap" : "Wrap";
+        _ = _settingsService.SetWordWrapAsync(wordWrap);
     }
 
     partial void OnSelectedThemeChanged(string value)

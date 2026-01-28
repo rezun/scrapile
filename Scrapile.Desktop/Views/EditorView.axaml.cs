@@ -41,6 +41,15 @@ public partial class EditorView : UserControl
             .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionStart = index; }));
         _selectionEndSubscription = ContentTextBox.GetObservable(TextBox.SelectionEndProperty)
             .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionEnd = index; }));
+
+    }
+
+    private async void OnWordWrapTextPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is EditorViewModel vm)
+        {
+            await vm.CycleWordWrapAsync();
+        }
     }
 
     /// <summary>

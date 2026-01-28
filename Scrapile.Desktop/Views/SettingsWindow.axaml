@@ -98,6 +98,15 @@
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Right"/>
                     </Grid>
+
+                    <!-- Word Wrap -->
+                    <Grid ColumnDefinitions="150,*">
+                        <TextBlock Text="Word Wrap" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding WordWrapOptions}"
+                                  SelectedItem="{Binding SelectedWordWrap}"
+                                  HorizontalAlignment="Stretch"/>
+                    </Grid>
                 </StackPanel>
 
                 <Separator/>

@@ -1,10 +1,12 @@
 namespace Scrapile.Desktop.ViewModels;
 
 using System;
+using System.Threading.Tasks;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scrapile.Application.Helpers;
 using Scrapile.Application.Services;
+using Scrapile.Domain.Interfaces;
 
 /// <summary>
 /// ViewModel for the text editor component.
@@ -16,9 +18,11 @@ public partial class EditorViewModel : ViewModelBase
     private readonly DocumentService _documentService;
     private readonly AutoSaveService _autoSaveService;
     private readonly SettingsService _settingsService;
+    private readonly IMetadataStore _metadataStore;
 
     private TabItemViewModel? _currentTab;
     private bool _isUpdatingFromTab;
+    private string? _currentDocumentWordWrap;
 
     [ObservableProperty]
     private string _content = string.Empty;
@@ -62,6 +66,15 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private bool _hasSelection;
 
+    [ObservableProperty]
+    private TextWrapping _textWrapping = TextWrapping.Wrap;
+
+    [ObservableProperty]
+    private string _selectedWordWrap = "Default";
+
+    [ObservableProperty]
+    private string _wordWrapDisplayText = "Wrap: Default";
+
     /// <summary>
     /// Event raised when content changes for auto-save purposes.
     /// </summary>
@@ -79,32 +92,43 @@ public partial class EditorViewModel : ViewModelBase
     /// <param name="documentService">The document service.</param>
     /// <param name="autoSaveService">The auto-save service.</param>
     /// <param name="settingsService">The settings service.</param>
+    /// <param name="metadataStore">The metadata store for per-document settings.</param>
     public EditorViewModel(
         TabManager tabManager,
         DocumentService documentService,
         AutoSaveService autoSaveService,
-        SettingsService settingsService)
+        SettingsService settingsService,
+        IMetadataStore metadataStore)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _metadataStore = metadataStore ?? throw new ArgumentNullException(nameof(metadataStore));
 
         // Subscribe to settings changes
         _settingsService.SettingsChanged += OnSettingsChanged;
 
         // Apply initial font settings
         ApplyFontSettings();
+
+        // Apply initial word wrap setting
+        ApplyWordWrapSetting();
     }
 
     /// <summary>
-    /// Handles settings change events to update font properties.
+    /// Handles settings change events to update font and word wrap properties.
     /// </summary>
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
     {
         if (e.SettingName == "FontFamily" || e.SettingName == "FontSize" || e.SettingName == "All")
         {
             ApplyFontSettings();
+        }
+
+        if (e.SettingName == "WordWrap" || e.SettingName == "All")
+        {
+            ApplyWordWrapSetting();
         }
     }
 
@@ -125,6 +149,78 @@ public partial class EditorViewModel : ViewModelBase
         }
 
         EditorFontSize = _settingsService.GetFontSize();
+    }
+
+    /// <summary>
+    /// Applies the word wrap setting, taking into account per-document override.
+    /// </summary>
+    private void ApplyWordWrapSetting()
+    {
+        // Determine effective word wrap: per-document overrides global
+        string effectiveWordWrap;
+        if (!string.IsNullOrEmpty(_currentDocumentWordWrap) && _currentDocumentWordWrap != "Default")
+        {
+            effectiveWordWrap = _currentDocumentWordWrap;
+        }
+        else
+        {
+            effectiveWordWrap = _settingsService.GetWordWrap();
+        }
+
+        TextWrapping = effectiveWordWrap == "NoWrap" ? TextWrapping.NoWrap : TextWrapping.Wrap;
+    }
+
+    /// <summary>
+    /// Sets the per-document word wrap setting.
+    /// </summary>
+    /// <param name="wordWrap">The word wrap setting: "Default", "Wrap", or "No Wrap".</param>
+    public async Task SetDocumentWordWrapAsync(string wordWrap)
+    {
+        if (_currentTab == null)
+        {
+            return;
+        }
+
+        // Convert UI value to storage value
+        string? storageValue = wordWrap switch
+        {
+            "No Wrap" => "NoWrap",
+            "Wrap" => "Wrap",
+            _ => null // "Default" or anything else
+        };
+
+        _currentDocumentWordWrap = storageValue;
+        SelectedWordWrap = wordWrap;
+        UpdateWordWrapDisplayText();
+        await _metadataStore.UpdateDocumentWordWrapAsync(_currentTab.DocumentId, storageValue);
+        ApplyWordWrapSetting();
+    }
+
+    /// <summary>
+    /// Cycles to the next word wrap option (Default -> Wrap -> No Wrap -> Default).
+    /// </summary>
+    public async Task CycleWordWrapAsync()
+    {
+        var nextWordWrap = SelectedWordWrap switch
+        {
+            "Default" => "Wrap",
+            "Wrap" => "No Wrap",
+            _ => "Default"
+        };
+        await SetDocumentWordWrapAsync(nextWordWrap);
+    }
+
+    /// <summary>
+    /// Updates the word wrap display text for the status bar.
+    /// </summary>
+    private void UpdateWordWrapDisplayText()
+    {
+        WordWrapDisplayText = SelectedWordWrap switch
+        {
+            "No Wrap" => "No Wrap",
+            "Wrap" => "Wrap",
+            _ => "Wrap: Default"
+        };
     }
 
     /// <summary>
@@ -160,6 +256,10 @@ public partial class EditorViewModel : ViewModelBase
                 CaretIndex = 0;
                 SelectionStart = 0;
                 SelectionEnd = 0;
+                _currentDocumentWordWrap = null;
+                SelectedWordWrap = "Default";
+                UpdateWordWrapDisplayText();
+                ApplyWordWrapSetting();
                 UpdateStatusBarProperties();
                 return;
             }
@@ -174,11 +274,34 @@ public partial class EditorViewModel : ViewModelBase
             SelectionStart = 0;
             SelectionEnd = 0;
             UpdateStatusBarProperties();
+
+            // Load per-document word wrap setting asynchronously
+            _ = LoadDocumentWordWrapAsync(_currentTab.DocumentId);
         }
         finally
         {
             _isUpdatingFromTab = false;
         }
+    }
+
+    /// <summary>
+    /// Loads the per-document word wrap setting.
+    /// </summary>
+    private async Task LoadDocumentWordWrapAsync(Guid documentId)
+    {
+        var wordWrap = await _metadataStore.GetDocumentWordWrapAsync(documentId);
+        _currentDocumentWordWrap = wordWrap;
+
+        // Update UI selection
+        SelectedWordWrap = wordWrap switch
+        {
+            "NoWrap" => "No Wrap",
+            "Wrap" => "Wrap",
+            _ => "Default"
+        };
+
+        UpdateWordWrapDisplayText();
+        ApplyWordWrapSetting();
     }
 
     /// <summary>

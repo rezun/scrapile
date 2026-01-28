@@ -10,4 +10,11 @@ public class DocumentMetadata
     /// User-provided title. Null means no title (content preview mode).
     /// </summary>
     public string? Title { get; set; }
+
+    /// <summary>
+    /// Per-document word wrap override.
+    /// Null or "Default" means use global setting.
+    /// "Wrap" or "NoWrap" overrides the global setting.
+    /// </summary>
+    public string? WordWrap { get; set; }
 }

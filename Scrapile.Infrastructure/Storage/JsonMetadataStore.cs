@@ -379,6 +379,53 @@ public class JsonMetadataStore : IMetadataStore
         }
     }
 
+    /// <inheritdoc />
+    public async Task<string?> GetDocumentWordWrapAsync(Guid documentId)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+
+            if (metadata.Documents.TryGetValue(documentId, out var docMeta))
+            {
+                return docMeta.WordWrap;
+            }
+
+            return null;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateDocumentWordWrapAsync(Guid documentId, string? wordWrap)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+
+            if (!metadata.Documents.TryGetValue(documentId, out var docMeta))
+            {
+                docMeta = new DocumentMetadata();
+                metadata.Documents[documentId] = docMeta;
+            }
+
+            // Normalize "Default" to null
+            docMeta.WordWrap = (string.IsNullOrWhiteSpace(wordWrap) || wordWrap == "Default") ? null : wordWrap;
+
+            await SaveToFileAsync(metadata);
+            _cachedMetadata = metadata;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     /// <summary>
     /// Loads metadata from cache if available, otherwise from file.
     /// Must be called within the lock.

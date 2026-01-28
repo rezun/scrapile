@@ -35,6 +35,12 @@ public class AppSettings
     public int FontSize { get; set; } = 14;
 
     /// <summary>
+    /// Word wrap setting for the editor.
+    /// Valid values: "Wrap", "NoWrap".
+    /// </summary>
+    public string WordWrap { get; set; } = "Wrap";
+
+    /// <summary>
     /// Theme preference.
     /// Valid values: "Light", "Dark", "System".
     /// </summary>
@@ -58,6 +64,7 @@ public class AppSettings
             TabPosition = "Left",
             FontFamily = null,
             FontSize = 14,
+            WordWrap = "Wrap",
             Theme = "System",
             AutoSaveDelayMs = 500
         };
@@ -88,6 +95,12 @@ public class AppSettings
         if (Theme != "Light" && Theme != "Dark" && Theme != "System")
         {
             Theme = "System";
+        }
+
+        // Validate WordWrap
+        if (WordWrap != "Wrap" && WordWrap != "NoWrap")
+        {
+            WordWrap = "Wrap";
         }
 
         // Validate AutoSaveDelayMs (reasonable range: 100-5000)

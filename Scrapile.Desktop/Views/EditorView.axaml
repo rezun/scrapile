@@ -96,7 +96,7 @@
                          Text="{Binding Content, Mode=TwoWay}"
                          AcceptsReturn="True"
                          AcceptsTab="True"
-                         TextWrapping="Wrap"
+                         TextWrapping="{Binding TextWrapping}"
                          Padding="16"
                          FontFamily="{Binding EditorFontFamily}"
                          FontSize="{Binding EditorFontSize}"
@@ -108,7 +108,7 @@
                         Padding="12,6"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,1,0,0">
-                    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
                         <TextBlock Grid.Column="0"
                                    Text="{Binding StatusText}"
                                    FontSize="12" Opacity="0.7"/>
@@ -117,7 +117,15 @@
                                    FontSize="12" Opacity="0.7"
                                    Margin="16,0,0,0"
                                    IsVisible="{Binding HasSelection}"/>
-                        <TextBlock Grid.Column="3"
+                        <TextBlock x:Name="WordWrapText"
+                                   Grid.Column="2"
+                                   Text="{Binding WordWrapDisplayText}"
+                                   FontSize="12"
+                                   Opacity="0.7"
+                                   Margin="16,0,0,0"
+                                   Cursor="Hand"
+                                   PointerPressed="OnWordWrapTextPressed"/>
+                        <TextBlock Grid.Column="4"
                                    Text="{Binding CursorPositionText}"
                                    FontSize="12" Opacity="0.7"/>
                     </Grid>

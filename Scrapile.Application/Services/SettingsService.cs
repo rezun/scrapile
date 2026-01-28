@@ -174,6 +174,33 @@ public class SettingsService
     }
 
     /// <summary>
+    /// Gets the word wrap setting.
+    /// </summary>
+    public string GetWordWrap()
+    {
+        return _currentSettings.WordWrap;
+    }
+
+    /// <summary>
+    /// Sets the word wrap setting.
+    /// </summary>
+    public async Task SetWordWrapAsync(string wordWrap)
+    {
+        if (wordWrap != "Wrap" && wordWrap != "NoWrap")
+        {
+            throw new ArgumentException("Word wrap must be 'Wrap' or 'NoWrap'.", nameof(wordWrap));
+        }
+
+        if (_currentSettings.WordWrap == wordWrap)
+        {
+            return;
+        }
+
+        _currentSettings.WordWrap = wordWrap;
+        await SaveAndNotifyAsync("WordWrap");
+    }
+
+    /// <summary>
     /// Gets the auto-save delay setting in milliseconds.
     /// </summary>
     public int GetAutoSaveDelayMs()
