@@ -12,7 +12,6 @@ using Scrapile.Domain.Interfaces;
 public class ThemeService
 {
     private readonly IMetadataStore _metadataStore;
-    private static readonly string[] ThemeOrder = { "System", "Light", "Dark" };
 
     /// <summary>
     /// Gets the current theme setting.
@@ -48,16 +47,6 @@ public class ThemeService
         CurrentTheme = theme;
         ApplyTheme();
         await SaveThemeAsync();
-    }
-
-    /// <summary>
-    /// Cycles through themes: System -> Light -> Dark -> System.
-    /// </summary>
-    public async Task CycleThemeAsync()
-    {
-        var currentIndex = Array.IndexOf(ThemeOrder, CurrentTheme);
-        var nextIndex = (currentIndex + 1) % ThemeOrder.Length;
-        await SetThemeAsync(ThemeOrder[nextIndex]);
     }
 
     /// <summary>

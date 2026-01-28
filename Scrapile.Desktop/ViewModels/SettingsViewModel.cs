@@ -2,6 +2,7 @@ namespace Scrapile.Desktop.ViewModels;
 
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,6 +16,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
     private readonly ThemeService _themeService;
+    private readonly StorageDirectoryValidator _storageDirectoryValidator;
     private bool _isInitializing;
 
     /// <summary>
@@ -82,10 +84,26 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public event EventHandler<FolderBrowserEventArgs>? FolderBrowserRequested;
 
+    /// <summary>
+    /// Event raised when storage directory validation needs user interaction.
+    /// </summary>
+    public event EventHandler<StorageDirectoryDialogEventArgs>? StorageDirectoryDialogRequested;
+
+    /// <summary>
+    /// Event raised when reset to defaults needs confirmation.
+    /// </summary>
+    public event EventHandler<ResetConfirmationEventArgs>? ResetConfirmationRequested;
+
     public SettingsViewModel(SettingsService settingsService, ThemeService themeService)
+        : this(settingsService, themeService, new StorageDirectoryValidator())
+    {
+    }
+
+    public SettingsViewModel(SettingsService settingsService, ThemeService themeService, StorageDirectoryValidator storageDirectoryValidator)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
+        _storageDirectoryValidator = storageDirectoryValidator ?? throw new ArgumentNullException(nameof(storageDirectoryValidator));
     }
 
     /// <summary>
@@ -170,6 +188,34 @@ public partial class SettingsViewModel : ViewModelBase
         await _settingsService.SetStorageDirectoryAsync(directory);
     }
 
+    /// <summary>
+    /// Validates a selected directory and raises the appropriate dialog event.
+    /// </summary>
+    /// <param name="path">The selected path to validate.</param>
+    public void ValidateAndRequestStorageDirectoryChange(string path)
+    {
+        var validationResult = _storageDirectoryValidator.ValidateDirectory(path);
+        var hasExistingData = _storageDirectoryValidator.HasDataToCopy(StorageDirectory);
+
+        var args = new StorageDirectoryDialogEventArgs(path, validationResult, StorageDirectory, hasExistingData);
+        StorageDirectoryDialogRequested?.Invoke(this, args);
+    }
+
+    /// <summary>
+    /// Completes the storage directory change after user confirmation.
+    /// </summary>
+    /// <param name="newPath">The new storage directory path.</param>
+    /// <param name="copyData">Whether to copy data from the current directory.</param>
+    public async Task CompleteStorageDirectoryChangeAsync(string newPath, bool copyData)
+    {
+        if (copyData && !string.IsNullOrEmpty(StorageDirectory))
+        {
+            await _storageDirectoryValidator.CopyDataAsync(StorageDirectory, newPath);
+        }
+
+        await SetStorageDirectoryAsync(newPath);
+    }
+
     [RelayCommand]
     private void ClearStorageDirectory()
     {
@@ -177,7 +223,15 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task ResetToDefaults()
+    private void ResetToDefaults()
+    {
+        ResetConfirmationRequested?.Invoke(this, new ResetConfirmationEventArgs());
+    }
+
+    /// <summary>
+    /// Performs the actual reset after user confirmation.
+    /// </summary>
+    public async Task ConfirmResetToDefaultsAsync()
     {
         await _settingsService.ResetToDefaultsAsync();
         await _themeService.SetThemeAsync("System");
@@ -205,4 +259,49 @@ public class FolderBrowserEventArgs : EventArgs
     {
         InitialDirectory = initialDirectory;
     }
+}
+
+/// <summary>
+/// Event args for storage directory validation dialog requests.
+/// </summary>
+public class StorageDirectoryDialogEventArgs : EventArgs
+{
+    /// <summary>
+    /// The path the user selected.
+    /// </summary>
+    public string SelectedPath { get; }
+
+    /// <summary>
+    /// The validation result for the selected path.
+    /// </summary>
+    public StorageDirectoryValidationResult ValidationResult { get; }
+
+    /// <summary>
+    /// The current storage directory (may be null).
+    /// </summary>
+    public string? CurrentStorageDirectory { get; }
+
+    /// <summary>
+    /// Whether there is existing data that could be copied.
+    /// </summary>
+    public bool HasExistingData { get; }
+
+    public StorageDirectoryDialogEventArgs(
+        string selectedPath,
+        StorageDirectoryValidationResult validationResult,
+        string? currentStorageDirectory,
+        bool hasExistingData)
+    {
+        SelectedPath = selectedPath;
+        ValidationResult = validationResult;
+        CurrentStorageDirectory = currentStorageDirectory;
+        HasExistingData = hasExistingData;
+    }
+}
+
+/// <summary>
+/// Event args for reset confirmation requests.
+/// </summary>
+public class ResetConfirmationEventArgs : EventArgs
+{
 }

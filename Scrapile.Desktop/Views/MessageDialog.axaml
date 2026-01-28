@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Scrapile.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="400"
+        d:DesignHeight="200"
+        x:Class="Scrapile.Desktop.Views.MessageDialog"
+        x:DataType="vm:MessageDialogViewModel"
+        Title="{Binding Title}"
+        Width="400"
+        SizeToContent="Height"
+        MinWidth="300"
+        MinHeight="150"
+        MaxWidth="600"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <Design.DataContext>
+        <vm:MessageDialogViewModel/>
+    </Design.DataContext>
+
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+        <DockPanel Margin="24">
+            <!-- Buttons at the bottom -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,24,0,0">
+                <!-- Tertiary button (leftmost, optional) -->
+                <Button Content="{Binding TertiaryButtonText}"
+                        Command="{Binding TertiaryCommand}"
+                        IsVisible="{Binding HasTertiaryButton}"/>
+                <!-- Secondary button (middle, optional) -->
+                <Button Content="{Binding SecondaryButtonText}"
+                        Command="{Binding SecondaryCommand}"
+                        IsVisible="{Binding HasSecondaryButton}"/>
+                <!-- Primary button (rightmost, always shown) -->
+                <Button Content="{Binding PrimaryButtonText}"
+                        Command="{Binding PrimaryCommand}"
+                        IsDefault="True"/>
+            </StackPanel>
+
+            <!-- Message content -->
+            <TextBlock Text="{Binding Message}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"/>
+        </DockPanel>
+    </Border>
+</Window>

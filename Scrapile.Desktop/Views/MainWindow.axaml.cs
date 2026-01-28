@@ -269,15 +269,6 @@ public partial class MainWindow : Window
                 }
                 break;
 
-            case Key.L:
-                // Ctrl/Cmd+Shift+L: Cycle theme
-                if (shiftPressed)
-                {
-                    e.Handled = true;
-                    await viewModel.CycleTheme();
-                }
-                break;
-
             case Key.P:
             case Key.K:
                 // Ctrl/Cmd+P or Ctrl/Cmd+K: Open search

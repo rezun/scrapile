@@ -314,30 +314,6 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Sets the theme to Light.
-    /// </summary>
-    [RelayCommand]
-    private Task SetLightTheme() => _themeService.SetThemeAsync("Light");
-
-    /// <summary>
-    /// Sets the theme to Dark.
-    /// </summary>
-    [RelayCommand]
-    private Task SetDarkTheme() => _themeService.SetThemeAsync("Dark");
-
-    /// <summary>
-    /// Sets the theme to System (follows OS preference).
-    /// </summary>
-    [RelayCommand]
-    private Task SetSystemTheme() => _themeService.SetThemeAsync("System");
-
-    /// <summary>
-    /// Cycles through themes: System -> Light -> Dark -> System.
-    /// </summary>
-    [RelayCommand]
-    public Task CycleTheme() => _themeService.CycleThemeAsync();
-
-    /// <summary>
     /// Opens the settings dialog.
     /// </summary>
     [RelayCommand]

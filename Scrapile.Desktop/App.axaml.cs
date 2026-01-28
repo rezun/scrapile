@@ -35,7 +35,7 @@ public partial class App : Avalonia.Application
 
             // Configure dependency injection
             var services = new ServiceCollection();
-            var storageDirectory = ServiceCollectionExtensions.GetDefaultStorageDirectory();
+            var storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
             services.AddScrapileServices(storageDirectory);
             Services = services.BuildServiceProvider();
 

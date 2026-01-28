@@ -2,8 +2,10 @@ namespace Scrapile.Desktop.DependencyInjection;
 
 using System;
 using System.IO;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Scrapile.Application.Services;
+using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
 using Scrapile.Infrastructure.Repositories;
 using Scrapile.Infrastructure.Storage;
@@ -58,5 +60,45 @@ public static class ServiceCollectionExtensions
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         var scrapilePath = Path.Combine(documentsPath, "Scrapile");
         return scrapilePath;
+    }
+
+    /// <summary>
+    /// Gets the storage directory, checking settings first for a user-configured path.
+    /// Falls back to the default if no custom directory is configured.
+    /// </summary>
+    /// <returns>The storage directory path to use.</returns>
+    public static string GetStorageDirectory()
+    {
+        var defaultDirectory = GetDefaultStorageDirectory();
+
+        // Try to load the configured storage directory from settings
+        var settingsDirectory = JsonSettingsStore.GetPlatformSettingsDirectory();
+        var settingsFilePath = Path.Combine(settingsDirectory, "settings.json");
+
+        if (!File.Exists(settingsFilePath))
+        {
+            return defaultDirectory;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(settingsFilePath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+
+            if (settings != null && !string.IsNullOrWhiteSpace(settings.StorageDirectory))
+            {
+                return settings.StorageDirectory;
+            }
+        }
+        catch
+        {
+            // If we can't read settings, use the default
+        }
+
+        return defaultDirectory;
     }
 }
