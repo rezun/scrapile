@@ -1,15 +1,20 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Scrapile.Application.Helpers;
 using Scrapile.Desktop.DependencyInjection;
 using Scrapile.Desktop.ViewModels;
 using Scrapile.Desktop.Views;
+using Scrapile.Domain.Entities;
+using Scrapile.Infrastructure.Storage;
 
 namespace Scrapile.Desktop;
 
@@ -33,24 +38,71 @@ public partial class App : Avalonia.Application
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
 
-            // Configure dependency injection
-            var services = new ServiceCollection();
-            var storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
-            services.AddScrapileServices(storageDirectory);
-            Services = services.BuildServiceProvider();
-
-            // Create main window with DI-resolved view model
-            var viewModel = Services.GetRequiredService<MainWindowViewModel>();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = viewModel,
-            };
-
-            // Handle application shutdown
-            desktop.ShutdownRequested += OnShutdownRequested;
+            // Check for first-run condition and initialize accordingly
+            _ = InitializeApplicationAsync(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async Task InitializeApplicationAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var settingsStore = new JsonSettingsStore();
+        string storageDirectory;
+
+        if (!settingsStore.SettingsFileExists())
+        {
+            // Prevent app from shutting down when welcome window closes
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            // First run - show welcome window to let user choose storage directory
+            storageDirectory = await ShowWelcomeWindowAsync();
+
+            // Save initial settings with selected directory
+            var settings = AppSettings.CreateDefault();
+            settings.StorageDirectory = storageDirectory;
+            await settingsStore.SaveAsync(settings);
+
+            // Restore normal shutdown behavior
+            desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
+        }
+        else
+        {
+            // Existing user - load configured directory
+            storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
+        }
+
+        // Configure dependency injection
+        var services = new ServiceCollection();
+        services.AddScrapileServices(storageDirectory);
+        Services = services.BuildServiceProvider();
+
+        // Create main window with DI-resolved view model
+        var viewModel = Services.GetRequiredService<MainWindowViewModel>();
+        desktop.MainWindow = new MainWindow
+        {
+            DataContext = viewModel,
+        };
+        desktop.MainWindow.Show();
+
+        // Handle application shutdown
+        desktop.ShutdownRequested += OnShutdownRequested;
+    }
+
+    private async Task<string> ShowWelcomeWindowAsync()
+    {
+        var viewModel = new WelcomeViewModel();
+        var welcomeWindow = new WelcomeWindow { DataContext = viewModel };
+
+        var storageDirectory = await welcomeWindow.ShowAndGetResultAsync();
+
+        // If empty (user closed without selecting), use default
+        if (string.IsNullOrEmpty(storageDirectory))
+        {
+            storageDirectory = ServiceCollectionExtensions.GetDefaultStorageDirectory();
+        }
+
+        return storageDirectory;
     }
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)

@@ -25,6 +25,9 @@ public class JsonSettingsStore : ISettingsStore
     /// <inheritdoc />
     public string SettingsFilePath => _settingsFilePath;
 
+    /// <inheritdoc />
+    public bool SettingsFileExists() => File.Exists(_settingsFilePath);
+
     /// <summary>
     /// Creates a new JsonSettingsStore using the platform-specific settings directory.
     /// </summary>

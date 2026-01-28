@@ -25,4 +25,11 @@ public interface ISettingsStore
     /// Gets the path to the settings file.
     /// </summary>
     string SettingsFilePath { get; }
+
+    /// <summary>
+    /// Checks if the settings file exists on disk.
+    /// Used to detect first-run condition.
+    /// </summary>
+    /// <returns>True if the settings file exists; otherwise, false.</returns>
+    bool SettingsFileExists();
 }

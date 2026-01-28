@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Scrapile.Desktop.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        d:DesignWidth="500"
+        d:DesignHeight="300"
+        x:Class="Scrapile.Desktop.Views.WelcomeWindow"
+        x:DataType="vm:WelcomeViewModel"
+        Title="Welcome to Scrapile"
+        Width="500"
+        Height="300"
+        MinWidth="400"
+        MinHeight="250"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        ShowInTaskbar="True">
+
+    <Design.DataContext>
+        <vm:WelcomeViewModel/>
+    </Design.DataContext>
+
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}">
+        <DockPanel Margin="24">
+            <!-- Bottom button -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,24,0,0">
+                <Button Content="Continue"
+                        Command="{Binding ContinueCommand}"
+                        IsDefault="True"
+                        MinWidth="100"/>
+            </StackPanel>
+
+            <!-- Content -->
+            <StackPanel Spacing="16">
+                <!-- Header -->
+                <TextBlock Text="Welcome to Scrapile"
+                           FontSize="24"
+                           FontWeight="SemiBold"/>
+
+                <!-- Description -->
+                <TextBlock TextWrapping="Wrap"
+                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}">
+                    Scrapile is a simple scratchpad for quick notes. Your notes are automatically saved as you type.
+                </TextBlock>
+
+                <!-- Storage Directory Section -->
+                <StackPanel Spacing="8" Margin="0,8,0,0">
+                    <TextBlock Text="Document Storage Location"
+                               FontWeight="SemiBold"/>
+                    <TextBlock Text="Choose where your notes will be stored:"
+                               FontSize="12"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding StorageDirectory}"
+                                 IsReadOnly="True"/>
+                        <Button Grid.Column="1"
+                                Content="Browse..."
+                                Command="{Binding BrowseCommand}"
+                                Margin="8,0,0,0"/>
+                    </Grid>
+                    <TextBlock Text="This folder contains other files. Please choose an empty folder or an existing Scrapile folder."
+                               TextWrapping="Wrap"
+                               Foreground="#E53935"
+                               FontSize="12"
+                               IsVisible="{Binding ShowFolderWarning}"/>
+                </StackPanel>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>
