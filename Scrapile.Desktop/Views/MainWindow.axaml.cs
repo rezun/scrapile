@@ -2,6 +2,7 @@ using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -68,6 +69,7 @@ public partial class MainWindow : Window
         NativeMenuItem? reopenLastClosedItem = null;
         NativeMenuItem? settingsItem = null;
         NativeMenuItem? recentlyClosedItem = null;
+        NativeMenuItem? versionItem = null;
 
         foreach (var topLevelItem in nativeMenu.Items)
         {
@@ -101,6 +103,16 @@ public partial class MainWindow : Window
                         }
                     }
                 }
+                else if (menuItem.Header == "Info" && menuItem.Menu != null)
+                {
+                    foreach (var subItem in menuItem.Menu.Items)
+                    {
+                        if (subItem is NativeMenuItem subMenuItem && subMenuItem.Header == "Version")
+                        {
+                            versionItem = subMenuItem;
+                        }
+                    }
+                }
             }
         }
 
@@ -120,6 +132,14 @@ public partial class MainWindow : Window
             settingsItem.Gesture = OperatingSystem.IsMacOS()
                 ? new KeyGesture(Key.OemComma, KeyModifiers.Meta)
                 : new KeyGesture(Key.OemComma, KeyModifiers.Control);
+        }
+
+        // Set version from assembly
+        if (versionItem != null)
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var versionString = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "Unknown";
+            versionItem.Header = $"Version {versionString}";
         }
 
         // Store reference for dynamic updates

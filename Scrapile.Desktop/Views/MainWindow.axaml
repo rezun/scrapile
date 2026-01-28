@@ -40,6 +40,13 @@
                     </NativeMenu>
                 </NativeMenuItem.Menu>
             </NativeMenuItem>
+            <NativeMenuItem Header="Info">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Version" IsEnabled="False" />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
         </NativeMenu>
     </NativeMenu.Menu>
 
