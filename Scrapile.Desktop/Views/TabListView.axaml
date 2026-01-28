@@ -89,19 +89,22 @@
                                                 Spacing="2"
                                                 VerticalAlignment="Center">
                                         <!-- Title/Preview with dirty indicator -->
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <Grid ColumnDefinitions="Auto,*">
                                             <!-- Dirty indicator dot -->
-                                            <Ellipse Width="6" Height="6"
+                                            <Ellipse Grid.Column="0"
+                                                     Width="6" Height="6"
                                                      Fill="{DynamicResource SystemControlForegroundAccentBrush}"
                                                      VerticalAlignment="Center"
+                                                     Margin="0,0,4,0"
                                                      IsVisible="{Binding IsDirty}"
                                                      ToolTip.Tip="Unsaved changes"/>
-                                            <TextBlock Text="{Binding DisplayName}"
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayName}"
                                                        TextTrimming="CharacterEllipsis"
                                                        MaxLines="1"
                                                        FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
                                                        ToolTip.Tip="{Binding DisplayName}"/>
-                                        </StackPanel>
+                                        </Grid>
 
                                         <!-- Stats subtitle -->
                                         <TextBlock Text="{Binding FormattedWordCount}"
