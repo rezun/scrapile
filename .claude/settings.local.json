@@ -10,7 +10,8 @@
       "WebFetch(domain:docs.avaloniaui.net)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:avaloniaui.net)",
-      "Bash(iconutil:*)"
+      "Bash(iconutil:*)",
+      "Bash(ls:*)"
     ]
   }
 }
