@@ -3,6 +3,7 @@ namespace Scrapile.Desktop.ViewModels;
 using System;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Scrapile.Application.Helpers;
 using Scrapile.Application.Services;
 
 /// <summary>
@@ -39,6 +40,27 @@ public partial class EditorViewModel : ViewModelBase
 
     [ObservableProperty]
     private double _editorFontSize = 14;
+
+    [ObservableProperty]
+    private int _caretIndex;
+
+    [ObservableProperty]
+    private int _selectionStart;
+
+    [ObservableProperty]
+    private int _selectionEnd;
+
+    [ObservableProperty]
+    private string _statusText = string.Empty;
+
+    [ObservableProperty]
+    private string _cursorPositionText = string.Empty;
+
+    [ObservableProperty]
+    private string _selectionText = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasSelection;
 
     /// <summary>
     /// Event raised when content changes for auto-save purposes.
@@ -135,6 +157,10 @@ public partial class EditorViewModel : ViewModelBase
                 Title = string.Empty;
                 HasTab = false;
                 IsDirty = false;
+                CaretIndex = 0;
+                SelectionStart = 0;
+                SelectionEnd = 0;
+                UpdateStatusBarProperties();
                 return;
             }
 
@@ -142,6 +168,12 @@ public partial class EditorViewModel : ViewModelBase
             Content = _currentTab.TabWithStats.Tab.Content;
             Title = _currentTab.TabWithStats.Tab.Document.Title ?? string.Empty;
             IsDirty = _currentTab.TabWithStats.Tab.IsDirty;
+
+            // Reset caret and selection for new tab
+            CaretIndex = 0;
+            SelectionStart = 0;
+            SelectionEnd = 0;
+            UpdateStatusBarProperties();
         }
         finally
         {
@@ -155,6 +187,9 @@ public partial class EditorViewModel : ViewModelBase
     /// </summary>
     partial void OnContentChanged(string value)
     {
+        // Always update status bar when content changes
+        UpdateStatusBarProperties();
+
         if (_isUpdatingFromTab || _currentTab == null) return;
 
         // Update the tab's content
@@ -194,6 +229,95 @@ public partial class EditorViewModel : ViewModelBase
     public void SetDirty(bool isDirty)
     {
         IsDirty = isDirty;
+    }
+
+    /// <summary>
+    /// Updates all status bar properties based on current content and cursor position.
+    /// </summary>
+    private void UpdateStatusBarProperties()
+    {
+        if (!HasTab)
+        {
+            StatusText = string.Empty;
+            CursorPositionText = string.Empty;
+            SelectionText = string.Empty;
+            HasSelection = false;
+            return;
+        }
+
+        // Calculate content stats
+        var words = ContentHelper.CountWords(Content);
+        var chars = ContentHelper.CountCharacters(Content);
+        var lines = ContentHelper.CountLines(Content);
+        StatusText = $"{ContentHelper.FormatCount(words)} words  {ContentHelper.FormatCount(chars)} chars  {ContentHelper.FormatCount(lines)} lines";
+
+        // Calculate cursor position (1-based)
+        var (line, col) = CalculateCursorPosition(Content, CaretIndex);
+        CursorPositionText = $"Ln {line}, Col {col}";
+
+        // Calculate selection stats if any
+        var selLength = Math.Abs(SelectionEnd - SelectionStart);
+        HasSelection = selLength > 0;
+        if (HasSelection)
+        {
+            var selStart = Math.Min(SelectionStart, SelectionEnd);
+            var safeSelLength = Math.Min(selLength, Content.Length - selStart);
+            if (selStart >= 0 && selStart < Content.Length && safeSelLength > 0)
+            {
+                var selectedText = Content.Substring(selStart, safeSelLength);
+                var selWords = ContentHelper.CountWords(selectedText);
+                var selChars = ContentHelper.CountCharacters(selectedText);
+                SelectionText = $"Sel: {ContentHelper.FormatCount(selWords)} words, {ContentHelper.FormatCount(selChars)} chars";
+            }
+            else
+            {
+                SelectionText = string.Empty;
+                HasSelection = false;
+            }
+        }
+        else
+        {
+            SelectionText = string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Calculates the line and column position from a caret index.
+    /// </summary>
+    private static (int line, int column) CalculateCursorPosition(string content, int caretIndex)
+    {
+        if (string.IsNullOrEmpty(content) || caretIndex <= 0)
+            return (1, 1);
+
+        int line = 1, col = 1;
+        for (int i = 0; i < Math.Min(caretIndex, content.Length); i++)
+        {
+            if (content[i] == '\n')
+            {
+                line++;
+                col = 1;
+            }
+            else
+            {
+                col++;
+            }
+        }
+        return (line, col);
+    }
+
+    partial void OnCaretIndexChanged(int value)
+    {
+        UpdateStatusBarProperties();
+    }
+
+    partial void OnSelectionStartChanged(int value)
+    {
+        UpdateStatusBarProperties();
+    }
+
+    partial void OnSelectionEndChanged(int value)
+    {
+        UpdateStatusBarProperties();
     }
 }
 

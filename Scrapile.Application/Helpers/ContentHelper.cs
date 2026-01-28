@@ -53,6 +53,25 @@ public static partial class ContentHelper
     }
 
     /// <summary>
+    /// Counts the number of lines in the content.
+    /// </summary>
+    /// <param name="content">The content to count lines in.</param>
+    /// <returns>The line count (1 for single line, 0 for null/empty).</returns>
+    public static int CountLines(string? content)
+    {
+        if (string.IsNullOrEmpty(content))
+            return 0;
+
+        int count = 1;
+        foreach (char c in content)
+        {
+            if (c == '\n')
+                count++;
+        }
+        return count;
+    }
+
+    /// <summary>
     /// Formats a count for display, abbreviating large numbers.
     /// </summary>
     /// <param name="count">The count to format.</param>

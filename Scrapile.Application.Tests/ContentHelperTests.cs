@@ -295,4 +295,66 @@ public class ContentHelperTests
     }
 
     #endregion
+
+    #region CountLines Tests
+
+    [Fact]
+    public void CountLines_NullContent_ReturnsZero()
+    {
+        var result = ContentHelper.CountLines(null);
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void CountLines_EmptyString_ReturnsZero()
+    {
+        var result = ContentHelper.CountLines("");
+        Assert.Equal(0, result);
+    }
+
+    [Fact]
+    public void CountLines_SingleLine_ReturnsOne()
+    {
+        var result = ContentHelper.CountLines("Hello World");
+        Assert.Equal(1, result);
+    }
+
+    [Fact]
+    public void CountLines_MultipleLines_ReturnsCorrectCount()
+    {
+        var result = ContentHelper.CountLines("Line 1\nLine 2\nLine 3");
+        Assert.Equal(3, result);
+    }
+
+    [Fact]
+    public void CountLines_TrailingNewline_CountsExtraLine()
+    {
+        var result = ContentHelper.CountLines("Line 1\nLine 2\n");
+        Assert.Equal(3, result);
+    }
+
+    [Fact]
+    public void CountLines_WindowsLineEndings_CountsCorrectly()
+    {
+        // \r\n should count as one line break (the \n part)
+        var result = ContentHelper.CountLines("Line 1\r\nLine 2\r\nLine 3");
+        Assert.Equal(3, result);
+    }
+
+    [Fact]
+    public void CountLines_OnlyNewlines_CountsCorrectly()
+    {
+        var result = ContentHelper.CountLines("\n\n\n");
+        Assert.Equal(4, result);
+    }
+
+    [Fact]
+    public void CountLines_MixedLineEndings_CountsCorrectly()
+    {
+        var result = ContentHelper.CountLines("Line 1\nLine 2\r\nLine 3\rLine 4");
+        // Only \n counts as line break, \r alone doesn't
+        Assert.Equal(3, result);
+    }
+
+    #endregion
 }

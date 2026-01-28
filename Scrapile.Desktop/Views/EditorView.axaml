@@ -61,6 +61,8 @@
                     <RowDefinition Height="Auto"/>
                     <!-- Editor area -->
                     <RowDefinition Height="*"/>
+                    <!-- Status bar -->
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Title edit area -->
@@ -100,6 +102,26 @@
                          FontSize="{Binding EditorFontSize}"
                          Watermark="Start typing..."
                          VerticalContentAlignment="Top"/>
+
+                <!-- Status bar -->
+                <Border Grid.Row="2"
+                        Padding="12,6"
+                        BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                        BorderThickness="0,1,0,0">
+                    <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding StatusText}"
+                                   FontSize="12" Opacity="0.7"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding SelectionText}"
+                                   FontSize="12" Opacity="0.7"
+                                   Margin="16,0,0,0"
+                                   IsVisible="{Binding HasSelection}"/>
+                        <TextBlock Grid.Column="3"
+                                   Text="{Binding CursorPositionText}"
+                                   FontSize="12" Opacity="0.7"/>
+                    </Grid>
+                </Border>
             </Grid>
 
             <!-- Empty state (shown when no tab is selected) -->

@@ -11,6 +11,9 @@ namespace Scrapile.Desktop.Views;
 public partial class EditorView : UserControl
 {
     private string? _titleBeforeEdit;
+    private IDisposable? _caretSubscription;
+    private IDisposable? _selectionStartSubscription;
+    private IDisposable? _selectionEndSubscription;
 
     public EditorView()
     {
@@ -30,6 +33,26 @@ public partial class EditorView : UserControl
 
         // Store the title value when the title TextBox gains focus (for Escape to restore)
         TitleTextBox.GotFocus += OnTitleGotFocus;
+
+        // Subscribe to caret and selection changes to update ViewModel
+        _caretSubscription = ContentTextBox.GetObservable(TextBox.CaretIndexProperty)
+            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.CaretIndex = index; }));
+        _selectionStartSubscription = ContentTextBox.GetObservable(TextBox.SelectionStartProperty)
+            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionStart = index; }));
+        _selectionEndSubscription = ContentTextBox.GetObservable(TextBox.SelectionEndProperty)
+            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionEnd = index; }));
+    }
+
+    /// <summary>
+    /// Simple observer that calls an action on each value.
+    /// </summary>
+    private class ActionObserver<T> : IObserver<T>
+    {
+        private readonly Action<T> _action;
+        public ActionObserver(Action<T> action) => _action = action;
+        public void OnCompleted() { }
+        public void OnError(Exception error) { }
+        public void OnNext(T value) => _action(value);
     }
 
     private void OnTitleGotFocus(object? sender, GotFocusEventArgs e)
@@ -153,5 +176,13 @@ public partial class EditorView : UserControl
     {
         TitleTextBox.Focus();
         TitleTextBox.SelectAll();
+    }
+
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        base.OnUnloaded(e);
+        _caretSubscription?.Dispose();
+        _selectionStartSubscription?.Dispose();
+        _selectionEndSubscription?.Dispose();
     }
 }
