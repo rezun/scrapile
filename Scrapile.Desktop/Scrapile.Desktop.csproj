@@ -6,11 +6,24 @@
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\Scrapile.ico</ApplicationIcon>
+    <RuntimeIdentifiers>osx-arm64;osx-x64;win-x64;linux-x64</RuntimeIdentifiers>
+
+    <!-- macOS Bundle Configuration -->
+    <CFBundleName>Scrapile</CFBundleName>
+    <CFBundleDisplayName>Scrapile</CFBundleDisplayName>
+    <CFBundleIdentifier>com.scrapile.app</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
+    <CFBundleIconFile>Scrapile.icns</CFBundleIconFile>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
     <AvaloniaResource Include="Assets\**" />
+    <!-- Copy icns to output root for macOS bundling -->
+    <Content Include="Assets\Scrapile.icns" CopyToOutputDirectory="PreserveNewest" Link="Scrapile.icns" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +38,7 @@
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Dotnet.Bundle" Version="*" />
   </ItemGroup>
 
   <ItemGroup>

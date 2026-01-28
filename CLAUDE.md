@@ -16,6 +16,18 @@ dotnet test Scrapile.Application.Tests/Scrapile.Application.Tests.csproj
 
 # Run desktop app
 dotnet run --project Scrapile.Desktop/Scrapile.Desktop.csproj
+
+# Publish all platforms (self-contained, single-file)
+./publish.sh
+
+# Publish macOS only
+dotnet msbuild Scrapile.Desktop/Scrapile.Desktop.csproj -t:BundleApp -p:RuntimeIdentifier=osx-arm64 -p:Configuration=Release -p:UseAppHost=true -p:SelfContained=true
+
+# Publish Windows only
+dotnet publish Scrapile.Desktop/Scrapile.Desktop.csproj -r win-x64 -c Release -p:SelfContained=true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+
+# Publish Linux only
+dotnet publish Scrapile.Desktop/Scrapile.Desktop.csproj -r linux-x64 -c Release -p:SelfContained=true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 ## Architecture
@@ -60,12 +72,31 @@ Infrastructure (File System & JSON Storage)
 - Keyboard shortcuts are platform-aware: code checks `OperatingSystem.IsMacOS()` for Cmd vs Ctrl
 - Settings paths handled by JsonSettingsStore for each platform
 
+## Publishing & Icons
+
+**Icons** (in `Scrapile.Desktop/Assets/`):
+- `app-icon.png` - Window icon (512x512, used by Avalonia at runtime)
+- `Scrapile.ico` - Windows executable icon (multi-size: 16-256px, embedded via `<ApplicationIcon>`)
+- `Scrapile.icns` - macOS app bundle icon (multi-size, referenced by `CFBundleIconFile`)
+
+**macOS Bundling** uses `Dotnet.Bundle` NuGet package:
+- Bundle properties configured in `Scrapile.Desktop.csproj` (`CFBundleName`, `CFBundleIdentifier`, etc.)
+- Creates `.app` bundle with proper `Info.plist` and icon in `Contents/Resources/`
+- Note: App is not code-signed; users may need to right-click → Open on first launch
+
+**Publish Script** (`publish.sh`):
+- Builds all three platforms with self-contained, single-file output
+- Output goes to `pub/macos/`, `pub/windows/`, `pub/linux/`
+- Windows/Linux produce single executables (~90MB each with bundled runtime)
+- macOS produces `.app` bundle (~110MB)
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `ProjectPlan.md` | Master specification - full requirements and design rationale |
 | `ImplementationPlan.md` | Task-based roadmap with progress tracking |
+| `publish.sh` | Cross-platform publish script (macOS, Windows, Linux) |
 | `Scrapile.Application/Services/TabManager.cs` | Tab lifecycle management |
 | `Scrapile.Application/Services/AutoSaveService.cs` | Debounced save logic |
 | `Scrapile.Desktop/ViewModels/MainWindowViewModel.cs` | Main coordinator ViewModel |

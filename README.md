@@ -64,6 +64,21 @@ dotnet run --project Scrapile.Desktop/Scrapile.Desktop.csproj
 dotnet build Scrapile.slnx
 ```
 
+### Publish
+
+Build self-contained executables for all platforms:
+
+```bash
+./publish.sh
+```
+
+Output in `pub/`:
+- `pub/macos/Scrapile.app` - macOS application bundle (Apple Silicon)
+- `pub/windows/Scrapile.Desktop.exe` - Windows single-file executable
+- `pub/linux/Scrapile.Desktop` - Linux single-file executable
+
+All builds are self-contained (no .NET runtime required on target machine).
+
 ## Data Storage
 
 Documents are stored as plain text files in a configurable directory (default: `~/Documents/Scrapile/`).
