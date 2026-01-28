@@ -47,46 +47,57 @@ public partial class App : Avalonia.Application
 
     private async Task InitializeApplicationAsync(IClassicDesktopStyleApplicationLifetime desktop)
     {
-        var settingsStore = new JsonSettingsStore();
-        string storageDirectory;
-
-        if (!settingsStore.SettingsFileExists())
+        try
         {
-            // Prevent app from shutting down when welcome window closes
-            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            var settingsStore = new JsonSettingsStore();
+            string storageDirectory;
 
-            // First run - show welcome window to let user choose storage directory
-            storageDirectory = await ShowWelcomeWindowAsync();
+            if (!settingsStore.SettingsFileExists())
+            {
+                // Prevent app from shutting down when welcome window closes
+                desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            // Save initial settings with selected directory
-            var settings = AppSettings.CreateDefault();
-            settings.StorageDirectory = storageDirectory;
-            await settingsStore.SaveAsync(settings);
+                // First run - show welcome window to let user choose storage directory
+                storageDirectory = await ShowWelcomeWindowAsync();
 
-            // Restore normal shutdown behavior
-            desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
+                // Save initial settings with selected directory
+                var settings = AppSettings.CreateDefault();
+                settings.StorageDirectory = storageDirectory;
+                await settingsStore.SaveAsync(settings);
+
+                // Restore normal shutdown behavior
+                desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
+            }
+            else
+            {
+                // Existing user - load configured directory
+                storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
+            }
+
+            // Configure dependency injection
+            var services = new ServiceCollection();
+            services.AddScrapileServices(storageDirectory);
+            Services = services.BuildServiceProvider();
+
+            // Create main window with DI-resolved view model
+            var viewModel = Services.GetRequiredService<MainWindowViewModel>();
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = viewModel,
+            };
+            desktop.MainWindow.Show();
+
+            // Handle application shutdown
+            desktop.ShutdownRequested += OnShutdownRequested;
         }
-        else
+        catch (Exception ex)
         {
-            // Existing user - load configured directory
-            storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
+            // Log to stderr so the error is visible when running from terminal
+            Console.Error.WriteLine($"Fatal error during application startup: {ex}");
+
+            // Exit the application with error code
+            desktop.Shutdown(1);
         }
-
-        // Configure dependency injection
-        var services = new ServiceCollection();
-        services.AddScrapileServices(storageDirectory);
-        Services = services.BuildServiceProvider();
-
-        // Create main window with DI-resolved view model
-        var viewModel = Services.GetRequiredService<MainWindowViewModel>();
-        desktop.MainWindow = new MainWindow
-        {
-            DataContext = viewModel,
-        };
-        desktop.MainWindow.Show();
-
-        // Handle application shutdown
-        desktop.ShutdownRequested += OnShutdownRequested;
     }
 
     private async Task<string> ShowWelcomeWindowAsync()
