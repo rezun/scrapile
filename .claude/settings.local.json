@@ -4,7 +4,13 @@
       "Bash(dotnet:*)",
       "Bash(git:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.avaloniaui.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:avaloniaui.net)",
+      "Bash(iconutil:*)"
     ]
   }
 }

@@ -79,34 +79,36 @@ cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB
 # Linux (x64)
 # =============================================================================
 
-# Linux - Self-contained
-echo "Building Linux (x64) - self-contained..."
-dotnet publish "$PROJECT" \
-    -r linux-x64 \
-    -c Release \
-    -p:UseAppHost=true \
-    -p:SelfContained=true \
-    -p:PublishSingleFile=true \
-    -p:IncludeNativeLibrariesForSelfExtract=true \
-    --verbosity quiet
+# Linux builds are not needed at this time, so they are commented out.
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux/"
-# Native libs that can't be bundled
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux/" 2>/dev/null || true
+# # Linux - Self-contained
+# echo "Building Linux (x64) - self-contained..."
+# dotnet publish "$PROJECT" \
+#     -r linux-x64 \
+#     -c Release \
+#     -p:UseAppHost=true \
+#     -p:SelfContained=true \
+#     -p:PublishSingleFile=true \
+#     -p:IncludeNativeLibrariesForSelfExtract=true \
+#     --verbosity quiet
 
-# Linux - Framework-dependent (slim)
-echo "Building Linux (x64) - slim..."
-dotnet publish "$PROJECT" \
-    -r linux-x64 \
-    -c Release \
-    -p:UseAppHost=true \
-    -p:SelfContained=false \
-    -p:PublishSingleFile=true \
-    --verbosity quiet
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux/"
+# # Native libs that can't be bundled
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux/" 2>/dev/null || true
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux-slim/"
-# Native libs that can't be bundled
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux-slim/" 2>/dev/null || true
+# # Linux - Framework-dependent (slim)
+# echo "Building Linux (x64) - slim..."
+# dotnet publish "$PROJECT" \
+#     -r linux-x64 \
+#     -c Release \
+#     -p:UseAppHost=true \
+#     -p:SelfContained=false \
+#     -p:PublishSingleFile=true \
+#     --verbosity quiet
+
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile.Desktop" "$PUB_DIR/linux-slim/"
+# # Native libs that can't be bundled
+# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux-slim/" 2>/dev/null || true
 
 # =============================================================================
 # Summary
