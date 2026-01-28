@@ -65,6 +65,11 @@ public partial class TabListViewModel : ViewModelBase
     public event EventHandler<TabItemViewModel>? SaveAsRequested;
 
     /// <summary>
+    /// Event raised when the recently closed list changes (tab closed or reopened).
+    /// </summary>
+    public event EventHandler? RecentlyClosedChanged;
+
+    /// <summary>
     /// Creates a new TabListViewModel.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -211,6 +216,9 @@ public partial class TabListViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(HasTabs));
         TabsChanged?.Invoke(this, EventArgs.Empty);
+
+        // Notify that recently closed list has changed
+        RecentlyClosedChanged?.Invoke(this, EventArgs.Empty);
 
         // Refresh recently closed list if expanded
         if (IsRecentlyClosedExpanded)
