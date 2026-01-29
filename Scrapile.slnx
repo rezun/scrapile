@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="Scrapile.Application.Tests/Scrapile.Application.Tests.csproj" />
   <Project Path="Scrapile.Application/Scrapile.Application.csproj" />
+  <Project Path="Scrapile.Desktop.Tests/Scrapile.Desktop.Tests.csproj" />
   <Project Path="Scrapile.Desktop/Scrapile.Desktop.csproj" />
   <Project Path="Scrapile.Domain/Scrapile.Domain.csproj" />
   <Project Path="Scrapile.Infrastructure.Tests/Scrapile.Infrastructure.Tests.csproj" />
