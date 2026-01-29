@@ -113,7 +113,7 @@ public int AutoSaveDelayMs { get; set; } = 500;  // User-configurable
 
 ### 5. Async Void Event Handlers Without Exception Handling
 
-- [ ] **Add try-catch blocks to all `async void` event handlers in `MainWindowViewModel`**
+- [x] **Add try-catch blocks to all `async void` event handlers in `MainWindowViewModel`**
 
 **File:** `Scrapile.Desktop/ViewModels/MainWindowViewModel.cs`
 
@@ -430,7 +430,7 @@ These are suggestions for future development, not issues requiring fixes:
 
 ### Should Fix (High Priority)
 - [x] Apply `AutoSaveDelayMs` setting to `AutoSaveService` (#4)
-- [ ] Add try-catch to all `async void` event handlers (#5)
+- [x] Add try-catch to all `async void` event handlers (#5)
 - [ ] Add warning/migration for storage directory changes (#6)
 
 ### Recommended (Medium Priority)

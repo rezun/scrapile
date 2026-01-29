@@ -213,26 +213,33 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <param name="documentId">The document ID to reopen.</param>
     private async void ReopenFromMenu(Guid documentId)
     {
-        var reopenedTab = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(documentId);
-
-        if (reopenedTab == null)
+        try
         {
-            // Document not found or deleted, just refresh the menu
+            var reopenedTab = await _tabManager.ReopenDocumentFromRecentlyClosedAsync(documentId);
+
+            if (reopenedTab == null)
+            {
+                // Document not found or deleted, just refresh the menu
+                await RefreshRecentlyClosedMenuAsync();
+                return;
+            }
+
+            // Refresh the tab list
+            await TabListViewModel.LoadTabsAsync();
+
+            // Refresh the recently closed menu
             await RefreshRecentlyClosedMenuAsync();
-            return;
+
+            // Select the reopened tab
+            var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == documentId);
+            if (tabToSelect != null)
+            {
+                TabListViewModel.SelectTab(tabToSelect);
+            }
         }
-
-        // Refresh the tab list
-        await TabListViewModel.LoadTabsAsync();
-
-        // Refresh the recently closed menu
-        await RefreshRecentlyClosedMenuAsync();
-
-        // Select the reopened tab
-        var tabToSelect = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == documentId);
-        if (tabToSelect != null)
+        catch (Exception ex)
         {
-            TabListViewModel.SelectTab(tabToSelect);
+            Console.Error.WriteLine($"Error in ReopenFromMenu: {ex}");
         }
     }
 
@@ -242,12 +249,19 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnTabSelected(object? sender, TabItemViewModel? tabViewModel)
     {
-        SelectedTab = tabViewModel;
-        EditorViewModel.CurrentTab = tabViewModel;
+        try
+        {
+            SelectedTab = tabViewModel;
+            EditorViewModel.CurrentTab = tabViewModel;
 
-        // Persist the active tab selection for session restore
-        var documentId = tabViewModel?.DocumentId;
-        await _tabManager.SetActiveTabDocumentIdAsync(documentId);
+            // Persist the active tab selection for session restore
+            var documentId = tabViewModel?.DocumentId;
+            await _tabManager.SetActiveTabDocumentIdAsync(documentId);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnTabSelected: {ex}");
+        }
     }
 
     /// <summary>
@@ -263,7 +277,14 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnRecentlyClosedChanged(object? sender, EventArgs e)
     {
-        await RefreshRecentlyClosedMenuAsync();
+        try
+        {
+            await RefreshRecentlyClosedMenuAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnRecentlyClosedChanged: {ex}");
+        }
     }
 
     /// <summary>
@@ -272,17 +293,24 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnEditorContentChanged(object? sender, ContentChangedEventArgs e)
     {
-        // Show save status indicator
-        EditorViewModel.SaveStatus = "Saving...";
-
-        // Schedule debounced auto-save
-        // The AutoSaveService handles the debouncing and saving to disk
-        await _autoSaveService.ScheduleSaveAsync(e.DocumentId, e.Content);
-
-        // Refresh the tab stats in the list to show updated word count
-        if (SelectedTab != null)
+        try
         {
-            TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+            // Show save status indicator
+            EditorViewModel.SaveStatus = "Saving...";
+
+            // Schedule debounced auto-save
+            // The AutoSaveService handles the debouncing and saving to disk
+            await _autoSaveService.ScheduleSaveAsync(e.DocumentId, e.Content);
+
+            // Refresh the tab stats in the list to show updated word count
+            if (SelectedTab != null)
+            {
+                TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnEditorContentChanged: {ex}");
         }
     }
 
@@ -292,16 +320,23 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnEditorTitleChanged(object? sender, TitleChangedEventArgs e)
     {
-        // Update the in-memory title first so RefreshTabStats sees the new value
-        _tabManager.UpdateDocumentTitle(e.DocumentId, e.Title);
-
-        // Persist the title to the metadata store
-        await _documentService.UpdateTitleAsync(e.DocumentId, e.Title);
-
-        // Refresh the tab in the list to update the display name
-        if (SelectedTab != null)
+        try
         {
-            TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+            // Update the in-memory title first so RefreshTabStats sees the new value
+            _tabManager.UpdateDocumentTitle(e.DocumentId, e.Title);
+
+            // Persist the title to the metadata store
+            await _documentService.UpdateTitleAsync(e.DocumentId, e.Title);
+
+            // Refresh the tab in the list to update the display name
+            if (SelectedTab != null)
+            {
+                TabListViewModel.RefreshTabStats(SelectedTab.TabId);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnEditorTitleChanged: {ex}");
         }
     }
 
@@ -311,28 +346,35 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnAutoSaveCompleted(object? sender, SaveCompletedEventArgs e)
     {
-        // Mark the tab as no longer dirty in the TabManager
-        _tabManager.MarkTabSaved(e.DocumentId);
-
-        // Update the editor's dirty state and save status if this is the current tab
-        if (SelectedTab?.DocumentId == e.DocumentId)
+        try
         {
-            EditorViewModel.SetDirty(false);
-            EditorViewModel.SaveStatus = "Saved";
+            // Mark the tab as no longer dirty in the TabManager
+            _tabManager.MarkTabSaved(e.DocumentId);
 
-            // Clear the save status after a short delay
-            await Task.Delay(1500);
-            if (EditorViewModel.SaveStatus == "Saved")
+            // Update the editor's dirty state and save status if this is the current tab
+            if (SelectedTab?.DocumentId == e.DocumentId)
             {
-                EditorViewModel.SaveStatus = string.Empty;
+                EditorViewModel.SetDirty(false);
+                EditorViewModel.SaveStatus = "Saved";
+
+                // Clear the save status after a short delay
+                await Task.Delay(1500);
+                if (EditorViewModel.SaveStatus == "Saved")
+                {
+                    EditorViewModel.SaveStatus = string.Empty;
+                }
+            }
+
+            // Refresh the tab to update the dirty indicator
+            var tabWithStats = _tabManager.GetOpenTabs().FirstOrDefault(t => t.Tab.Document.Id == e.DocumentId);
+            if (tabWithStats != null)
+            {
+                TabListViewModel.RefreshTabStats(tabWithStats.Tab.TabId);
             }
         }
-
-        // Refresh the tab to update the dirty indicator
-        var tabWithStats = _tabManager.GetOpenTabs().FirstOrDefault(t => t.Tab.Document.Id == e.DocumentId);
-        if (tabWithStats != null)
+        catch (Exception ex)
         {
-            TabListViewModel.RefreshTabStats(tabWithStats.Tab.TabId);
+            Console.Error.WriteLine($"Error in OnAutoSaveCompleted: {ex}");
         }
     }
 
@@ -494,30 +536,37 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private async void OnSearchResultSelected(object? sender, SearchResultItemViewModel result)
     {
-        // Close the search overlay
-        HideSearch();
-
-        // Check if the document is already open in a tab
-        var existingTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
-        if (existingTab != null)
+        try
         {
-            // Select the existing tab
-            TabListViewModel.SelectTab(existingTab);
-        }
-        else
-        {
-            // Open the document in a new tab
-            await _tabManager.OpenDocumentInTabAsync(result.DocumentId);
+            // Close the search overlay
+            HideSearch();
 
-            // Refresh the tab list
-            await TabListViewModel.LoadTabsAsync();
-
-            // Select the newly opened tab
-            var newTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
-            if (newTab != null)
+            // Check if the document is already open in a tab
+            var existingTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
+            if (existingTab != null)
             {
-                TabListViewModel.SelectTab(newTab);
+                // Select the existing tab
+                TabListViewModel.SelectTab(existingTab);
             }
+            else
+            {
+                // Open the document in a new tab
+                await _tabManager.OpenDocumentInTabAsync(result.DocumentId);
+
+                // Refresh the tab list
+                await TabListViewModel.LoadTabsAsync();
+
+                // Select the newly opened tab
+                var newTab = TabListViewModel.Tabs.FirstOrDefault(t => t.DocumentId == result.DocumentId);
+                if (newTab != null)
+                {
+                    TabListViewModel.SelectTab(newTab);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnSearchResultSelected: {ex}");
         }
     }
 
