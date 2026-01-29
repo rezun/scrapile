@@ -1,9 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using Scrapile.Desktop.ViewModels;
+
+using AvaloniaKey = Avalonia.Input.Key;
+using AvaloniaKeyModifiers = Avalonia.Input.KeyModifiers;
 
 namespace Scrapile.Desktop.Views;
 
@@ -23,6 +28,11 @@ public partial class WelcomeWindow : Window
     /// Gets whether autorun at startup was selected.
     /// </summary>
     public bool AutorunAtStartup { get; private set; }
+
+    /// <summary>
+    /// Gets the configured global shortcut.
+    /// </summary>
+    public string? GlobalShortcut { get; private set; }
 
     public WelcomeWindow()
     {
@@ -56,6 +66,7 @@ public partial class WelcomeWindow : Window
         };
 
         Show();
+        Activate();
 
         return _completionSource.Task;
     }
@@ -102,6 +113,148 @@ public partial class WelcomeWindow : Window
         var viewModel = DataContext as WelcomeViewModel;
         SelectedStorageDirectory = viewModel?.StorageDirectory;
         AutorunAtStartup = viewModel?.AutorunAtStartup ?? false;
+        GlobalShortcut = viewModel?.GlobalShortcut;
         Close();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        var viewModel = DataContext as WelcomeViewModel;
+
+        // Handle shortcut recording
+        if (viewModel?.IsRecordingShortcut == true)
+        {
+            e.Handled = true;
+
+            // Cancel on Escape
+            if (e.Key == AvaloniaKey.Escape)
+            {
+                viewModel.CancelRecording();
+                return;
+            }
+
+            // Ignore modifier-only presses
+            if (IsModifierKey(e.Key))
+            {
+                return;
+            }
+
+            // Need at least one modifier
+            var mods = e.KeyModifiers & (AvaloniaKeyModifiers.Control | AvaloniaKeyModifiers.Alt |
+                                         AvaloniaKeyModifiers.Shift | AvaloniaKeyModifiers.Meta);
+            if (mods == AvaloniaKeyModifiers.None)
+            {
+                return;
+            }
+
+            // Format the shortcut
+            var shortcut = FormatShortcut(mods, e.Key);
+            viewModel.StopRecording(shortcut);
+        }
+    }
+
+    private static bool IsModifierKey(AvaloniaKey key)
+    {
+        return key == AvaloniaKey.LeftCtrl || key == AvaloniaKey.RightCtrl ||
+               key == AvaloniaKey.LeftAlt || key == AvaloniaKey.RightAlt ||
+               key == AvaloniaKey.LeftShift || key == AvaloniaKey.RightShift ||
+               key == AvaloniaKey.LWin || key == AvaloniaKey.RWin;
+    }
+
+    private static string FormatShortcut(AvaloniaKeyModifiers modifiers, AvaloniaKey key)
+    {
+        var parts = new List<string>();
+        var isMac = OperatingSystem.IsMacOS();
+
+        if (modifiers.HasFlag(AvaloniaKeyModifiers.Control))
+        {
+            parts.Add("Ctrl");
+        }
+
+        if (modifiers.HasFlag(AvaloniaKeyModifiers.Alt))
+        {
+            parts.Add(isMac ? "Option" : "Alt");
+        }
+
+        if (modifiers.HasFlag(AvaloniaKeyModifiers.Shift))
+        {
+            parts.Add("Shift");
+        }
+
+        if (modifiers.HasFlag(AvaloniaKeyModifiers.Meta))
+        {
+            parts.Add(isMac ? "Cmd" : "Win");
+        }
+
+        // Get key name
+        var keyName = key switch
+        {
+            AvaloniaKey.Space => "Space",
+            AvaloniaKey.Enter => "Enter",
+            AvaloniaKey.Tab => "Tab",
+            AvaloniaKey.Escape => "Escape",
+            AvaloniaKey.Back => "Backspace",
+            AvaloniaKey.Delete => "Delete",
+            AvaloniaKey.Home => "Home",
+            AvaloniaKey.End => "End",
+            AvaloniaKey.PageUp => "PageUp",
+            AvaloniaKey.PageDown => "PageDown",
+            AvaloniaKey.Up => "Up",
+            AvaloniaKey.Down => "Down",
+            AvaloniaKey.Left => "Left",
+            AvaloniaKey.Right => "Right",
+            AvaloniaKey.F1 => "F1",
+            AvaloniaKey.F2 => "F2",
+            AvaloniaKey.F3 => "F3",
+            AvaloniaKey.F4 => "F4",
+            AvaloniaKey.F5 => "F5",
+            AvaloniaKey.F6 => "F6",
+            AvaloniaKey.F7 => "F7",
+            AvaloniaKey.F8 => "F8",
+            AvaloniaKey.F9 => "F9",
+            AvaloniaKey.F10 => "F10",
+            AvaloniaKey.F11 => "F11",
+            AvaloniaKey.F12 => "F12",
+            AvaloniaKey.OemTilde => "`",
+            AvaloniaKey.OemMinus => "-",
+            AvaloniaKey.OemPlus => "=",
+            AvaloniaKey.OemOpenBrackets => "[",
+            AvaloniaKey.OemCloseBrackets => "]",
+            AvaloniaKey.OemPipe => "\\",
+            AvaloniaKey.OemSemicolon => ";",
+            AvaloniaKey.OemQuotes => "'",
+            AvaloniaKey.OemComma => ",",
+            AvaloniaKey.OemPeriod => ".",
+            AvaloniaKey.OemQuestion => "/",
+            _ => GetKeyName(key)
+        };
+
+        parts.Add(keyName);
+        return string.Join("+", parts);
+    }
+
+    private static string GetKeyName(AvaloniaKey key)
+    {
+        // Handle letter keys
+        if (key >= AvaloniaKey.A && key <= AvaloniaKey.Z)
+        {
+            return ((char)('A' + (key - AvaloniaKey.A))).ToString();
+        }
+
+        // Handle number keys
+        if (key >= AvaloniaKey.D0 && key <= AvaloniaKey.D9)
+        {
+            return ((char)('0' + (key - AvaloniaKey.D0))).ToString();
+        }
+
+        // Handle numpad
+        if (key >= AvaloniaKey.NumPad0 && key <= AvaloniaKey.NumPad9)
+        {
+            return "Num" + ((char)('0' + (key - AvaloniaKey.NumPad0)));
+        }
+
+        return key.ToString();
     }
 }

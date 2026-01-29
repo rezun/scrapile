@@ -10,7 +10,7 @@
         x:DataType="vm:SettingsViewModel"
         Title="Settings"
         Width="500"
-        Height="450"
+        Height="580"
         MinWidth="400"
         MinHeight="350"
         MaxHeight="700"
@@ -143,6 +143,98 @@
                                FontSize="16"/>
                     <CheckBox Content="Start Scrapile when you log in"
                               IsChecked="{Binding AutorunAtStartup}"/>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- System Tray Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="System Tray"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <CheckBox Content="Minimize to tray when closing window"
+                              IsChecked="{Binding MinimizeToTray}"/>
+                    <TextBlock Text="When enabled, closing the window hides Scrapile to the system tray instead of quitting."
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <Separator/>
+
+                <!-- Global Shortcut Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Global Shortcut"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <TextBlock Text="Show/hide Scrapile from anywhere using a keyboard shortcut."
+                               FontSize="12"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap"/>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox x:Name="ShortcutTextBox"
+                                 Grid.Column="0"
+                                 Text="{Binding GlobalShortcut}"
+                                 Watermark="No shortcut configured"
+                                 IsReadOnly="True"
+                                 IsVisible="{Binding !IsRecordingShortcut}"/>
+                        <TextBox Grid.Column="0"
+                                 Watermark="Press keys..."
+                                 IsReadOnly="True"
+                                 IsVisible="{Binding IsRecordingShortcut}"/>
+                        <Button x:Name="RecordShortcutButton"
+                                Grid.Column="1"
+                                Content="Record"
+                                Command="{Binding RecordShortcutCommand}"
+                                IsEnabled="{Binding !IsRecordingShortcut}"
+                                Margin="8,0,0,0"
+                                MinWidth="100"/>
+                        <Button Grid.Column="2"
+                                Content="Clear"
+                                Command="{Binding ClearShortcutCommand}"
+                                IsEnabled="{Binding GlobalShortcut, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                Margin="4,0,0,0"/>
+                    </Grid>
+
+                    <!-- Conflict warning -->
+                    <TextBlock Text="{Binding ShortcutConflictMessage}"
+                               IsVisible="{Binding ShortcutConflictMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                               Foreground="#E57D00"
+                               FontSize="11"
+                               TextWrapping="Wrap"/>
+
+                    <!-- macOS Accessibility permission warning -->
+                    <Border IsVisible="{Binding NeedsAccessibilityPermission}"
+                            Background="#44E53935"
+                            CornerRadius="4"
+                            Padding="12,8">
+                        <StackPanel Spacing="8">
+                            <TextBlock FontSize="12"
+                                       Foreground="#E53935"
+                                       TextWrapping="Wrap"
+                                       Text="Accessibility permission required. Global shortcuts won't work until you grant permission."/>
+                            <Button Content="Open System Settings"
+                                    Command="{Binding OpenAccessibilitySettingsCommand}"
+                                    HorizontalAlignment="Left"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- macOS Accessibility note (when permission is granted) -->
+                    <TextBlock IsVisible="{Binding HasAccessibilityPermission}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               TextWrapping="Wrap">
+                        <Run Text="Accessibility permission granted. You may need to restart the app after granting permission."/>
+                    </TextBlock>
+
+                    <!-- Wayland warning -->
+                    <TextBlock IsVisible="{Binding IsWayland}"
+                               FontSize="11"
+                               Foreground="#E53935"
+                               TextWrapping="Wrap">
+                        <Run Text="Warning: Global shortcuts are not supported on Wayland. Consider using X11 for this feature."/>
+                    </TextBlock>
                 </StackPanel>
 
                 <Separator/>

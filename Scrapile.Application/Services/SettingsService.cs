@@ -250,6 +250,51 @@ public class SettingsService
     }
 
     /// <summary>
+    /// Gets the global shortcut setting.
+    /// </summary>
+    public string? GetGlobalShortcut()
+    {
+        return _currentSettings.GlobalShortcut;
+    }
+
+    /// <summary>
+    /// Sets the global keyboard shortcut for showing/hiding the window.
+    /// </summary>
+    public async Task SetGlobalShortcutAsync(string? shortcut)
+    {
+        var normalized = string.IsNullOrWhiteSpace(shortcut) ? null : shortcut.Trim();
+        if (_currentSettings.GlobalShortcut == normalized)
+        {
+            return;
+        }
+
+        _currentSettings.GlobalShortcut = normalized;
+        await SaveAndNotifyAsync("GlobalShortcut");
+    }
+
+    /// <summary>
+    /// Gets the minimize to tray setting.
+    /// </summary>
+    public bool GetMinimizeToTray()
+    {
+        return _currentSettings.MinimizeToTray;
+    }
+
+    /// <summary>
+    /// Sets whether closing minimizes to tray.
+    /// </summary>
+    public async Task SetMinimizeToTrayAsync(bool enabled)
+    {
+        if (_currentSettings.MinimizeToTray == enabled)
+        {
+            return;
+        }
+
+        _currentSettings.MinimizeToTray = enabled;
+        await SaveAndNotifyAsync("MinimizeToTray");
+    }
+
+    /// <summary>
     /// Saves all current settings.
     /// </summary>
     public async Task SaveAsync()

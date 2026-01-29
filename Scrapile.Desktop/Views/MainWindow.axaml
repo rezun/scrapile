@@ -20,6 +20,18 @@
 
     <NativeMenu.Menu>
         <NativeMenu>
+            <!-- Application menu (becomes "Scrapile" menu on macOS) -->
+            <NativeMenuItem Header="Scrapile">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="About Scrapile" IsEnabled="False" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Settings..." />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Quit Scrapile" />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
             <NativeMenuItem Header="Tab">
                 <NativeMenuItem.Menu>
                     <NativeMenu>

@@ -23,6 +23,64 @@ public partial class WelcomeViewModel : ViewModelBase
     [ObservableProperty]
     private bool _autorunAtStartup = false;
 
+    [ObservableProperty]
+    private string? _globalShortcut;
+
+    [ObservableProperty]
+    private bool _isRecordingShortcut;
+
+    [ObservableProperty]
+    private string? _shortcutConflictMessage;
+
+    /// <summary>
+    /// Whether the current platform is macOS (for showing Accessibility permission note).
+    /// </summary>
+    public bool IsMacOS => OperatingSystem.IsMacOS();
+
+    /// <summary>
+    /// Whether macOS Accessibility permission is NOT granted (for showing warning).
+    /// </summary>
+    public bool NeedsAccessibilityPermission => OperatingSystem.IsMacOS() && !Services.GlobalHotkeyService.HasAccessibilityPermission();
+
+    /// <summary>
+    /// Whether running on Wayland (global hotkeys don't work).
+    /// </summary>
+    public bool IsWayland => Services.GlobalHotkeyService.IsWayland();
+
+    /// <summary>
+    /// Opens macOS System Settings to the Accessibility section.
+    /// </summary>
+    [RelayCommand]
+    private void OpenAccessibilitySettings()
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "open",
+                    Arguments = "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+                    UseShellExecute = false
+                });
+            }
+            catch
+            {
+                // Fallback to general Security & Privacy
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "open",
+                        Arguments = "/System/Library/PreferencePanes/Security.prefPane",
+                        UseShellExecute = false
+                    });
+                }
+                catch { }
+            }
+        }
+    }
+
     /// <summary>
     /// Event raised when the folder browser should be shown.
     /// </summary>
@@ -66,5 +124,52 @@ public partial class WelcomeViewModel : ViewModelBase
     private void Continue()
     {
         ContinueRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Sets the global shortcut from an external source (e.g., shortcut recorder).
+    /// </summary>
+    public void SetGlobalShortcut(string? shortcut)
+    {
+        GlobalShortcut = shortcut;
+        ShortcutConflictMessage = Services.GlobalHotkeyService.CheckForConflicts(shortcut);
+    }
+
+    /// <summary>
+    /// Starts recording a keyboard shortcut.
+    /// </summary>
+    [RelayCommand]
+    private void RecordShortcut()
+    {
+        IsRecordingShortcut = true;
+    }
+
+    /// <summary>
+    /// Stops recording and applies the shortcut.
+    /// </summary>
+    public void StopRecording(string? shortcut)
+    {
+        IsRecordingShortcut = false;
+        if (!string.IsNullOrEmpty(shortcut))
+        {
+            SetGlobalShortcut(shortcut);
+        }
+    }
+
+    /// <summary>
+    /// Cancels shortcut recording without applying.
+    /// </summary>
+    public void CancelRecording()
+    {
+        IsRecordingShortcut = false;
+    }
+
+    /// <summary>
+    /// Clears the global shortcut.
+    /// </summary>
+    [RelayCommand]
+    private void ClearShortcut()
+    {
+        SetGlobalShortcut(null);
     }
 }

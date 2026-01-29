@@ -58,6 +58,18 @@ public class AppSettings
     public bool AutorunAtStartup { get; set; } = false;
 
     /// <summary>
+    /// Global keyboard shortcut to show/hide the window.
+    /// Format: "Ctrl+Alt+S" or "Cmd+Shift+Space" etc.
+    /// Null means no shortcut is configured.
+    /// </summary>
+    public string? GlobalShortcut { get; set; }
+
+    /// <summary>
+    /// Whether closing the window minimizes to system tray instead of quitting.
+    /// </summary>
+    public bool MinimizeToTray { get; set; } = true;
+
+    /// <summary>
     /// Creates a default settings object with sensible defaults.
     /// </summary>
     public static AppSettings CreateDefault()
@@ -72,7 +84,9 @@ public class AppSettings
             WordWrap = "Wrap",
             Theme = "System",
             AutoSaveDelayMs = 500,
-            AutorunAtStartup = false
+            AutorunAtStartup = false,
+            GlobalShortcut = null,
+            MinimizeToTray = true
         };
     }
 

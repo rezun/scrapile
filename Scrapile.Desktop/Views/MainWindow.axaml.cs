@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -27,6 +28,44 @@ public partial class MainWindow : Window
         // Handle keyboard shortcuts using tunneling
         // EditorView has its own handlers for when focus is in TextBoxes
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+
+        // Handle window closing for minimize-to-tray
+        Closing += OnWindowClosing;
+    }
+
+    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        // If the app is already quitting, allow the close to proceed
+        if (Avalonia.Application.Current is App { IsQuitting: true })
+        {
+            return;
+        }
+
+        // Check if minimize to tray is enabled
+        if (DataContext is MainWindowViewModel viewModel)
+        {
+            var minimizeToTray = viewModel.SettingsService.GetMinimizeToTray();
+
+            if (minimizeToTray)
+            {
+                // Cancel the close and hide to tray instead
+                e.Cancel = true;
+
+                // Get the App instance and hide the window
+                if (Avalonia.Application.Current is App app)
+                {
+                    app.HideWindow();
+                }
+            }
+            else
+            {
+                // User disabled minimize to tray, so actually quit
+                if (Avalonia.Application.Current is App app)
+                {
+                    app.QuitApplication();
+                }
+            }
+        }
     }
 
     private async void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -71,12 +110,31 @@ public partial class MainWindow : Window
         NativeMenuItem? settingsItem = null;
         NativeMenuItem? recentlyClosedItem = null;
         NativeMenuItem? versionItem = null;
+        NativeMenuItem? quitItem = null;
+        NativeMenuItem? appMenuSettingsItem = null;
 
         foreach (var topLevelItem in nativeMenu.Items)
         {
             if (topLevelItem is NativeMenuItem menuItem)
             {
-                if (menuItem.Header == "Tab" && menuItem.Menu != null)
+                if (menuItem.Header == "Scrapile" && menuItem.Menu != null)
+                {
+                    foreach (var subItem in menuItem.Menu.Items)
+                    {
+                        if (subItem is NativeMenuItem subMenuItem)
+                        {
+                            if (subMenuItem.Header == "Quit Scrapile")
+                            {
+                                quitItem = subMenuItem;
+                            }
+                            else if (subMenuItem.Header == "Settings...")
+                            {
+                                appMenuSettingsItem = subMenuItem;
+                            }
+                        }
+                    }
+                }
+                else if (menuItem.Header == "Tab" && menuItem.Menu != null)
                 {
                     foreach (var subItem in menuItem.Menu.Items)
                     {
@@ -125,6 +183,28 @@ public partial class MainWindow : Window
         }
 
         // Wire up commands
+        if (quitItem != null)
+        {
+            quitItem.Click += (_, _) =>
+            {
+                if (Avalonia.Application.Current is App app)
+                {
+                    app.QuitApplication();
+                }
+            };
+            quitItem.Gesture = OperatingSystem.IsMacOS()
+                ? new KeyGesture(Key.Q, KeyModifiers.Meta)
+                : new KeyGesture(Key.Q, KeyModifiers.Control);
+        }
+
+        if (appMenuSettingsItem != null)
+        {
+            appMenuSettingsItem.Command = viewModel.OpenSettingsCommand;
+            appMenuSettingsItem.Gesture = OperatingSystem.IsMacOS()
+                ? new KeyGesture(Key.OemComma, KeyModifiers.Meta)
+                : new KeyGesture(Key.OemComma, KeyModifiers.Control);
+        }
+
         if (reopenLastClosedItem != null)
         {
             reopenLastClosedItem.Command = viewModel.ReopenLastClosedCommand;
@@ -416,9 +496,18 @@ public partial class MainWindow : Window
                 break;
 
             case Key.W:
-                // Ctrl/Cmd+W: Close current tab
-                if (!shiftPressed)
+                if (shiftPressed)
                 {
+                    // Ctrl/Cmd+Shift+W: Hide window to tray
+                    e.Handled = true;
+                    if (Avalonia.Application.Current is App app)
+                    {
+                        app.HideWindow();
+                    }
+                }
+                else
+                {
+                    // Ctrl/Cmd+W: Close current tab
                     // Mark as handled BEFORE await to prevent duplicate handling
                     e.Handled = true;
                     await viewModel.CloseCurrentTabAsync();
@@ -481,6 +570,18 @@ public partial class MainWindow : Window
                 {
                     e.Handled = true;
                     viewModel.OpenSettingsCommand.Execute(null);
+                }
+                break;
+
+            case Key.Q:
+                // Cmd+Q on macOS: Always quit (bypass minimize-to-tray)
+                if (OperatingSystem.IsMacOS() && !shiftPressed)
+                {
+                    e.Handled = true;
+                    if (Avalonia.Application.Current is App app)
+                    {
+                        app.QuitApplication();
+                    }
                 }
                 break;
         }

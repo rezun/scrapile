@@ -43,6 +43,8 @@ public static class ServiceCollectionExtensions
         // Desktop Services - Singletons for shared state
         services.AddSingleton<ThemeService>();
         services.AddSingleton<AutorunService>();
+        services.AddSingleton<TrayIconService>();
+        services.AddSingleton<GlobalHotkeyService>();
 
         // ViewModels - Transient for fresh instances
         services.AddTransient<MainWindowViewModel>();
