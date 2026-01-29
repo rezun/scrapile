@@ -80,27 +80,23 @@ public class TabManager
 
         var document = await _documentRepository.CreateAsync(string.Empty, null);
 
+        Tab tab;
         int order;
         lock (_lock)
         {
             order = _tabs.Count;
+            tab = new Tab
+            {
+                TabId = Guid.NewGuid(),
+                Document = document,
+                Content = document.Content,
+                Order = order,
+                IsDirty = false
+            };
+            _tabs.Add(tab);
         }
 
         await _metadataStore.AddOpenTabAsync(document.Id, order);
-
-        var tab = new Tab
-        {
-            TabId = Guid.NewGuid(),
-            Document = document,
-            Content = document.Content,
-            Order = order,
-            IsDirty = false
-        };
-
-        lock (_lock)
-        {
-            _tabs.Add(tab);
-        }
 
         return EnrichWithStats(tab);
     }
@@ -133,30 +129,26 @@ public class TabManager
             return null;
         }
 
+        Tab tab;
         int order;
         lock (_lock)
         {
             order = _tabs.Count;
+            tab = new Tab
+            {
+                TabId = Guid.NewGuid(),
+                Document = document,
+                Content = document.Content,
+                Order = order,
+                IsDirty = false
+            };
+            _tabs.Add(tab);
         }
 
         await _metadataStore.AddOpenTabAsync(document.Id, order);
 
         // Remove from recently closed if present
         await _metadataStore.RemoveRecentlyClosedAsync(documentId);
-
-        var tab = new Tab
-        {
-            TabId = Guid.NewGuid(),
-            Document = document,
-            Content = document.Content,
-            Order = order,
-            IsDirty = false
-        };
-
-        lock (_lock)
-        {
-            _tabs.Add(tab);
-        }
 
         return EnrichWithStats(tab);
     }

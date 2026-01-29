@@ -14,7 +14,7 @@ The codebase follows good architectural patterns with clear layered separation (
 
 ### 1. Potential Race Condition in TabManager
 
-- [ ] **Fix race condition in `CreateTabAsync`**
+- [x] **Fix race condition in `CreateTabAsync`**
 
 **File:** `Scrapile.Application/Services/TabManager.cs:77-106`
 
@@ -424,7 +424,7 @@ These are suggestions for future development, not issues requiring fixes:
 ## Task Summary
 
 ### Must Fix (Critical)
-- [ ] Fix race condition in `CreateTabAsync` (#1)
+- [x] Fix race condition in `CreateTabAsync` (#1)
 - [ ] Implement `IDisposable` for `JsonMetadataStore` (#2)
 - [ ] Add error handling for fire-and-forget async in `EditorViewModel` (#3)
 
