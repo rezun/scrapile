@@ -62,7 +62,7 @@ private readonly SemaphoreSlim _lock = new(1, 1);
 
 ### 3. Fire-and-Forget Async in EditorViewModel
 
-- [ ] **Add error handling for fire-and-forget async call in `LoadTabContent`**
+- [x] **Add error handling for fire-and-forget async call in `LoadTabContent`**
 
 **File:** `Scrapile.Desktop/ViewModels/EditorViewModel.cs:279`
 
@@ -426,7 +426,7 @@ These are suggestions for future development, not issues requiring fixes:
 ### Must Fix (Critical)
 - [x] Fix race condition in `CreateTabAsync` (#1)
 - [x] Implement `IDisposable` for `JsonMetadataStore` (#2)
-- [ ] Add error handling for fire-and-forget async in `EditorViewModel` (#3)
+- [x] Add error handling for fire-and-forget async in `EditorViewModel` (#3)
 
 ### Should Fix (High Priority)
 - [ ] Apply `AutoSaveDelayMs` setting to `AutoSaveService` (#4)

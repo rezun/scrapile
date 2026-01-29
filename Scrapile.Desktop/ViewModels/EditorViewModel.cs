@@ -276,7 +276,13 @@ public partial class EditorViewModel : ViewModelBase
             UpdateStatusBarProperties();
 
             // Load per-document word wrap setting asynchronously
-            _ = LoadDocumentWordWrapAsync(_currentTab.DocumentId);
+            _ = LoadDocumentWordWrapAsync(_currentTab.DocumentId).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Console.Error.WriteLine($"Failed to load word wrap setting: {t.Exception}");
+                }
+            }, TaskScheduler.Default);
         }
         finally
         {
