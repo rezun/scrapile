@@ -232,9 +232,17 @@ public enum ThemeMode { Light, Dark, System }
 
 ---
 
-### 10. Missing Test Coverage for Desktop Layer
+### 10. ~~Missing Test Coverage for Desktop Layer~~
 
-- [ ] **Add unit tests for ViewModels (MainWindowViewModel, TabListViewModel, EditorViewModel)**
+- [x] **Add unit tests for ViewModels (MainWindowViewModel, TabListViewModel, EditorViewModel)**
+
+**Status:** RESOLVED - Tests added.
+
+**What was implemented:**
+- `Scrapile.Desktop.Tests` project created with 146 unit tests
+- `MainWindowViewModelTests.cs` - Tests for tab lifecycle, navigation, and event coordination
+- `TabListViewModelTests.cs` - Tests for tab selection, ordering, and collection management
+- `EditorViewModelTests.cs` - Tests for content handling, word wrap, and settings integration
 
 **Current Test Files:** Only Application and Infrastructure layers are tested
 
@@ -425,7 +433,7 @@ These are suggestions for future development, not issues requiring fixes:
 - [x] ~~Call `AppSettings.Validate()` after loading~~ (#7) - Already implemented
 - [x] ~~Add cancellation token support to async methods~~ (#8) - Won't fix, by design
 - [x] Extract string constants to dedicated class (#9)
-- [ ] Add ViewModel test coverage (#10)
+- [x] Add ViewModel test coverage (#10) - Already implemented
 - [x] Verify process name in lock service (#11)
 
 ### Nice to Have (Low Priority)
