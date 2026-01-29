@@ -4,14 +4,22 @@ namespace Scrapile.Domain.Entities;
 /// Represents a document stored in the scratchpad.
 /// Titles are optional - untitled documents display a content preview instead.
 /// </summary>
+/// <remarks>
+/// Identity properties (Id, Filename, Created) are immutable after construction.
+/// Content properties (Title, Content, LastModified) remain mutable as they
+/// represent the current state of the document.
+/// </remarks>
 public class Document
 {
-    public Guid Id { get; set; }
+    /// <summary>
+    /// Unique identifier for the document. Immutable after creation.
+    /// </summary>
+    public required Guid Id { get; init; }
 
     /// <summary>
-    /// The filename on disk (e.g., "20250122143022_a3f5b2e1.txt")
+    /// The filename on disk (e.g., "20250122143022_a3f5b2e1.txt"). Immutable after creation.
     /// </summary>
-    public string Filename { get; set; } = string.Empty;
+    public required string Filename { get; init; }
 
     /// <summary>
     /// User-provided title. Null means no title (content preview mode).
@@ -25,9 +33,9 @@ public class Document
     public string Content { get; set; } = string.Empty;
 
     /// <summary>
-    /// File creation timestamp (from file system).
+    /// File creation timestamp (from file system). Immutable after creation.
     /// </summary>
-    public DateTime Created { get; set; }
+    public required DateTime Created { get; init; }
 
     /// <summary>
     /// Last modification timestamp (from file system).

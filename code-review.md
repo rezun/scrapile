@@ -336,31 +336,18 @@ private static bool IsProcessRunning(int pid)
 
 ### 14. Mutable Domain Entity
 
-- [ ] **Consider making `Document` entity immutable or use private setters**
+- [x] **Consider making `Document` entity immutable or use private setters**
 
 **File:** `Scrapile.Domain/Entities/Document.cs`
 
-`Document` is a domain entity but has mutable public setters:
+**Status:** RESOLVED - Partial immutability implemented.
 
-```csharp
-public string? Title { get; set; }
-public string Content { get; set; } = string.Empty;
-```
+**What was implemented:**
+- Identity properties (`Id`, `Filename`, `Created`) now use `required init` setters - immutable after construction
+- Content properties (`Title`, `Content`, `LastModified`) remain mutable as they represent the document's current state
+- Added documentation explaining the design rationale
 
-**Issue:** Domain entities should ideally be immutable or have controlled mutation to prevent accidental state changes.
-
-**Recommendation:** Consider using init-only setters or a record:
-```csharp
-public record Document
-{
-    public required Guid Id { get; init; }
-    public required string Filename { get; init; }
-    public string? Title { get; init; }
-    // etc.
-}
-```
-
-Or use private setters with explicit update methods.
+**Design rationale:** Full immutability would require replacing document references throughout the codebase whenever content changes. The hybrid approach protects identity fields from accidental modification while allowing legitimate content updates through the existing mutation patterns in `TabManager`.
 
 ---
 
@@ -430,7 +417,7 @@ These are suggestions for future development, not issues requiring fixes:
 ### Nice to Have (Low Priority)
 - [x] Extract common tab-finding logic (#12)
 - [x] Extract magic numbers to named constants (#13)
-- [ ] Make domain entities immutable (#14)
+- [x] Make domain entities immutable (#14)
 - [ ] Standardize null/empty string handling (#15)
 
 ---
