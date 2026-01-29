@@ -88,7 +88,7 @@ _ = LoadDocumentWordWrapAsync(_currentTab.DocumentId).ContinueWith(t =>
 
 ### 4. AutoSaveService Debounce Delay Not Configurable at Runtime
 
-- [ ] **Apply user-configured `AutoSaveDelayMs` setting to `AutoSaveService`**
+- [x] **Apply user-configured `AutoSaveDelayMs` setting to `AutoSaveService`**
 
 **Files:** `Scrapile.Desktop/DependencyInjection/ServiceCollectionExtensions.cs`, `Scrapile.Application/Services/AutoSaveService.cs`
 
@@ -429,7 +429,7 @@ These are suggestions for future development, not issues requiring fixes:
 - [x] Add error handling for fire-and-forget async in `EditorViewModel` (#3)
 
 ### Should Fix (High Priority)
-- [ ] Apply `AutoSaveDelayMs` setting to `AutoSaveService` (#4)
+- [x] Apply `AutoSaveDelayMs` setting to `AutoSaveService` (#4)
 - [ ] Add try-catch to all `async void` event handlers (#5)
 - [ ] Add warning/migration for storage directory changes (#6)
 

@@ -37,7 +37,12 @@ public static class ServiceCollectionExtensions
         // Application Services - Singletons for shared state
         services.AddSingleton<SettingsService>();
         services.AddSingleton<DocumentService>();
-        services.AddSingleton<AutoSaveService>();
+        services.AddSingleton<AutoSaveService>(sp =>
+        {
+            var repository = sp.GetRequiredService<IDocumentRepository>();
+            var debounceDelay = TimeSpan.FromMilliseconds(GetAutoSaveDelayMs());
+            return new AutoSaveService(repository, debounceDelay);
+        });
         services.AddSingleton<TabManager>();
 
         // Desktop Services - Singletons for shared state
@@ -103,5 +108,49 @@ public static class ServiceCollectionExtensions
         }
 
         return defaultDirectory;
+    }
+
+    /// <summary>
+    /// Gets the auto-save delay from settings, or the default (500ms) if not configured.
+    /// </summary>
+    /// <returns>The auto-save delay in milliseconds.</returns>
+    public static int GetAutoSaveDelayMs()
+    {
+        const int defaultDelayMs = 500;
+
+        // Try to load the configured auto-save delay from settings
+        var settingsDirectory = JsonSettingsStore.GetPlatformSettingsDirectory();
+        var settingsFilePath = Path.Combine(settingsDirectory, "settings.json");
+
+        if (!File.Exists(settingsFilePath))
+        {
+            return defaultDelayMs;
+        }
+
+        try
+        {
+            var json = File.ReadAllText(settingsFilePath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, options);
+
+            if (settings != null)
+            {
+                // Validate the delay is within acceptable bounds (100-5000ms)
+                var delayMs = settings.AutoSaveDelayMs;
+                if (delayMs >= 100 && delayMs <= 5000)
+                {
+                    return delayMs;
+                }
+            }
+        }
+        catch
+        {
+            // If we can't read settings, use the default
+        }
+
+        return defaultDelayMs;
     }
 }
