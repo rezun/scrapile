@@ -160,13 +160,9 @@ public partial class TabListViewModel : ViewModelBase
         if (tabViewModel == null) return;
 
         // Find the tab in collection by TabId (not by reference, since RefreshTabStats creates new instances)
-        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
-        if (tabInCollection == null)
-        {
-            return;
-        }
+        var (tabInCollection, index) = FindTab(tabViewModel.TabId);
+        if (tabInCollection == null) return;
 
-        var index = Tabs.IndexOf(tabInCollection);
         var wasSelected = tabInCollection.IsSelected;
 
         // Remove from collection first to prevent duplicate close attempts
@@ -226,11 +222,8 @@ public partial class TabListViewModel : ViewModelBase
     {
         if (tabViewModel == null) return;
 
-        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
-        if (tabInCollection == null) return;
-
-        var index = Tabs.IndexOf(tabInCollection);
-        if (index <= 0) return; // No tabs above
+        var (_, index) = FindTab(tabViewModel.TabId);
+        if (index <= 0) return; // No tabs above or tab not found
 
         // Close tabs from just above the target down to index 0
         // Work backwards to avoid index shifting issues
@@ -248,11 +241,8 @@ public partial class TabListViewModel : ViewModelBase
     {
         if (tabViewModel == null) return;
 
-        var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
-        if (tabInCollection == null) return;
-
-        var index = Tabs.IndexOf(tabInCollection);
-        if (index >= Tabs.Count - 1) return; // No tabs below
+        var (_, index) = FindTab(tabViewModel.TabId);
+        if (index < 0 || index >= Tabs.Count - 1) return; // Tab not found or no tabs below
 
         // Close tabs from the end down to just below the target
         while (Tabs.Count > index + 1)
@@ -273,8 +263,8 @@ public partial class TabListViewModel : ViewModelBase
         if (duplicatedTab == null) return;
 
         // Find the insert position (after the original tab)
-        var originalIndex = Tabs.IndexOf(Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId) ?? tabViewModel);
-        var insertIndex = originalIndex + 1;
+        var (_, originalIndex) = FindTab(tabViewModel.TabId);
+        var insertIndex = (originalIndex >= 0 ? originalIndex : Tabs.Count - 1) + 1;
 
         // Create the view model and insert at the correct position
         var newTabViewModel = CreateTabItemViewModel(duplicatedTab);
@@ -414,7 +404,7 @@ public partial class TabListViewModel : ViewModelBase
         var tabWithStats = _tabManager.GetTab(tabId);
         if (tabWithStats == null) return;
 
-        var existingTab = Tabs.FirstOrDefault(t => t.TabId == tabId);
+        var (existingTab, _) = FindTab(tabId);
         if (existingTab == null) return;
 
         // Update in place instead of replacing - preserves UI element attachments
@@ -427,6 +417,17 @@ public partial class TabListViewModel : ViewModelBase
     private TabItemViewModel CreateTabItemViewModel(TabWithStats tabWithStats)
     {
         return new TabItemViewModel(tabWithStats, OnTabCloseRequested);
+    }
+
+    /// <summary>
+    /// Finds a tab by its ID and returns the tab along with its index in the collection.
+    /// </summary>
+    /// <param name="tabId">The tab ID to search for.</param>
+    /// <returns>A tuple containing the tab (or null if not found) and its index (-1 if not found).</returns>
+    private (TabItemViewModel? tab, int index) FindTab(Guid tabId)
+    {
+        var tab = Tabs.FirstOrDefault(t => t.TabId == tabId);
+        return (tab, tab != null ? Tabs.IndexOf(tab) : -1);
     }
 
     /// <summary>

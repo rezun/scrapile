@@ -300,25 +300,16 @@ private static bool IsProcessRunning(int pid)
 
 ### 12. Duplicate Code in Tab Management
 
-- [ ] **Extract common tab-finding logic in `TabListViewModel` into helper methods**
+- [x] **Extract common tab-finding logic in `TabListViewModel` into helper methods**
 
 **File:** `Scrapile.Desktop/ViewModels/TabListViewModel.cs`
 
-Similar patterns for finding and removing tabs appear multiple times:
-```csharp
-var tabInCollection = Tabs.FirstOrDefault(t => t.TabId == tabViewModel.TabId);
-if (tabInCollection == null) return;
-var index = Tabs.IndexOf(tabInCollection);
-```
+**Status:** RESOLVED - Helper method extracted.
 
-**Recommendation:** Extract to helper method:
-```csharp
-private (TabItemViewModel? tab, int index) FindTab(Guid tabId)
-{
-    var tab = Tabs.FirstOrDefault(t => t.TabId == tabId);
-    return (tab, tab != null ? Tabs.IndexOf(tab) : -1);
-}
-```
+**What was implemented:**
+- Added `FindTab(Guid tabId)` helper method that returns `(TabItemViewModel? tab, int index)`
+- Refactored `CloseTabAsync`, `CloseTabsAboveAsync`, `CloseTabsBelowAsync`, `DuplicateTabAsync`, and `RefreshTabStats` to use the helper
+- Reduces code duplication and improves maintainability
 
 ---
 
@@ -437,7 +428,7 @@ These are suggestions for future development, not issues requiring fixes:
 - [x] Verify process name in lock service (#11)
 
 ### Nice to Have (Low Priority)
-- [ ] Extract common tab-finding logic (#12)
+- [x] Extract common tab-finding logic (#12)
 - [ ] Extract magic numbers to named constants (#13)
 - [ ] Make domain entities immutable (#14)
 - [ ] Standardize null/empty string handling (#15)
