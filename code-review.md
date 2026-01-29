@@ -146,29 +146,23 @@ private async void OnTabSelected(object? sender, TabItemViewModel? tabViewModel)
 
 ---
 
-### 6. Missing Validation/Warning for Storage Directory Change
+### 6. ~~Missing Validation/Warning for Storage Directory Change~~
 
-- [ ] **Add migration logic or user warning when changing storage directory**
+- [x] **Add migration logic or user warning when changing storage directory**
 
-**File:** `Scrapile.Application/Services/SettingsService.cs:60-70`
+**Status:** RESOLVED - This finding was incorrect. Migration logic already exists.
 
-When `StorageDirectory` is changed, there's no migration logic:
+**What's actually implemented:**
+- `StorageDirectoryValidator` validates directories and detects existing Scrapile folders
+- `StorageDirectoryValidator.CopyDataAsync()` copies metadata and all `.txt` files to the new location
+- `SettingsWindow.axaml.cs` shows appropriate dialogs:
+  - Existing Scrapile folder: Confirms usage
+  - Empty folder with existing data: Offers "Copy Data" / "Start Fresh" / "Cancel"
+  - Invalid folder (contains non-Scrapile files): Shows error
+- After any change, prompts user to restart with "Restart Now" / "Later" options
+- Implements actual app restart via `RestartApplication()`
 
-```csharp
-public async Task SetStorageDirectoryAsync(string? directory)
-{
-    // Just saves the setting, doesn't migrate documents
-    _currentSettings.StorageDirectory = normalized;
-    await SaveAndNotifyAsync("StorageDirectory");
-}
-```
-
-**Issue:** Changing storage directory requires app restart and leaves orphaned documents in the old location.
-
-**Recommendation:** Either:
-1. Disable runtime changes (require restart with clear messaging)
-2. Implement document migration to new location
-3. Show a confirmation dialog warning users about consequences
+The original review only looked at `SettingsService.SetStorageDirectoryAsync()` without checking the UI layer where the validation and migration logic resides.
 
 ---
 
@@ -431,7 +425,7 @@ These are suggestions for future development, not issues requiring fixes:
 ### Should Fix (High Priority)
 - [x] Apply `AutoSaveDelayMs` setting to `AutoSaveService` (#4)
 - [x] Add try-catch to all `async void` event handlers (#5)
-- [ ] Add warning/migration for storage directory changes (#6)
+- [x] ~~Add warning/migration for storage directory changes~~ (#6) - Already implemented
 
 ### Recommended (Medium Priority)
 - [ ] Call `AppSettings.Validate()` after loading (#7)
