@@ -80,7 +80,7 @@ public partial class SettingsViewModel : ViewModelBase
     private string _selectedTheme = ThemeValues.System;
 
     [ObservableProperty]
-    private int _autoSaveDelayMs = 500;
+    private int _autoSaveDelayMs = AutoSaveDelayLimits.DefaultMs;
 
     [ObservableProperty]
     private string _selectedWordWrap = WordWrapValues.Wrap;
@@ -256,7 +256,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnAutoSaveDelayMsChanged(int value)
     {
         if (_isInitializing) return;
-        if (value >= 100 && value <= 5000)
+        if (AutoSaveDelayLimits.IsValid(value))
         {
             _ = _settingsService.SetAutoSaveDelayMsAsync(value);
         }

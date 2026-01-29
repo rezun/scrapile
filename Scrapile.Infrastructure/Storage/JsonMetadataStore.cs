@@ -2,6 +2,7 @@ namespace Scrapile.Infrastructure.Storage;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
 
@@ -14,7 +15,6 @@ public class JsonMetadataStore : IMetadataStore, IDisposable
     private bool _disposed;
     private const string MetadataFilename = ".ephemeral_metadata.json";
     private const string BackupExtension = ".backup";
-    private const int MaxRecentlyClosedItems = 50;
 
     private readonly string _storageDirectory;
     private readonly string _metadataFilePath;
@@ -261,7 +261,7 @@ public class JsonMetadataStore : IMetadataStore, IDisposable
             });
 
             // Enforce max limit (LRU eviction - remove oldest entries)
-            while (metadata.RecentlyClosed.Count > MaxRecentlyClosedItems)
+            while (metadata.RecentlyClosed.Count > MetadataLimits.MaxRecentlyClosedItems)
             {
                 metadata.RecentlyClosed.RemoveAt(metadata.RecentlyClosed.Count - 1);
             }

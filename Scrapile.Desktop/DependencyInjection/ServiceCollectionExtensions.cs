@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Scrapile.Application.Services;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
 using Scrapile.Infrastructure.Repositories;
@@ -116,15 +117,13 @@ public static class ServiceCollectionExtensions
     /// <returns>The auto-save delay in milliseconds.</returns>
     public static int GetAutoSaveDelayMs()
     {
-        const int defaultDelayMs = 500;
-
         // Try to load the configured auto-save delay from settings
         var settingsDirectory = JsonSettingsStore.GetPlatformSettingsDirectory();
         var settingsFilePath = Path.Combine(settingsDirectory, "settings.json");
 
         if (!File.Exists(settingsFilePath))
         {
-            return defaultDelayMs;
+            return AutoSaveDelayLimits.DefaultMs;
         }
 
         try
@@ -138,9 +137,8 @@ public static class ServiceCollectionExtensions
 
             if (settings != null)
             {
-                // Validate the delay is within acceptable bounds (100-5000ms)
                 var delayMs = settings.AutoSaveDelayMs;
-                if (delayMs >= 100 && delayMs <= 5000)
+                if (AutoSaveDelayLimits.IsValid(delayMs))
                 {
                     return delayMs;
                 }
@@ -151,6 +149,6 @@ public static class ServiceCollectionExtensions
             // If we can't read settings, use the default
         }
 
-        return defaultDelayMs;
+        return AutoSaveDelayLimits.DefaultMs;
     }
 }

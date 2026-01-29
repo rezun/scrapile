@@ -133,9 +133,9 @@ public class SettingsService
     /// </summary>
     public async Task SetFontSizeAsync(int fontSize)
     {
-        if (fontSize < 8 || fontSize > 72)
+        if (!FontSizeLimits.IsValid(fontSize))
         {
-            throw new ArgumentOutOfRangeException(nameof(fontSize), "Font size must be between 8 and 72.");
+            throw new ArgumentOutOfRangeException(nameof(fontSize), $"Font size must be between {FontSizeLimits.Min} and {FontSizeLimits.Max}.");
         }
 
         if (_currentSettings.FontSize == fontSize)
@@ -214,9 +214,9 @@ public class SettingsService
     /// </summary>
     public async Task SetAutoSaveDelayMsAsync(int delayMs)
     {
-        if (delayMs < 100 || delayMs > 5000)
+        if (!AutoSaveDelayLimits.IsValid(delayMs))
         {
-            throw new ArgumentOutOfRangeException(nameof(delayMs), "Auto-save delay must be between 100 and 5000 ms.");
+            throw new ArgumentOutOfRangeException(nameof(delayMs), $"Auto-save delay must be between {AutoSaveDelayLimits.MinMs} and {AutoSaveDelayLimits.MaxMs} ms.");
         }
 
         if (_currentSettings.AutoSaveDelayMs == delayMs)

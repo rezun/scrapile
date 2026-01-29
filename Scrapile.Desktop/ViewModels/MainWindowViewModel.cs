@@ -359,7 +359,7 @@ public partial class MainWindowViewModel : ViewModelBase
                 EditorViewModel.SaveStatus = "Saved";
 
                 // Clear the save status after a short delay
-                await Task.Delay(1500);
+                await Task.Delay(UiTimingConstants.SaveStatusDisplayDurationMs);
                 if (EditorViewModel.SaveStatus == "Saved")
                 {
                     EditorViewModel.SaveStatus = string.Empty;

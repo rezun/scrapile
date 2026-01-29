@@ -315,22 +315,22 @@ private static bool IsProcessRunning(int pid)
 
 ### 13. Magic Numbers Without Context
 
-- [ ] **Extract magic numbers to named constants with explanatory comments**
+- [x] **Extract magic numbers to named constants with explanatory comments**
 
-**Files:** Multiple
+**Status:** RESOLVED - Constants extracted to shared classes.
 
-```csharp
-const int MaxRecentlyClosedItems = 50;  // Good example, but others are inline:
-await Task.Delay(1500);  // What does 1500ms represent?
-if (fontSize < 8 || fontSize > 72)  // Why 8 and 72?
-```
-
-**Recommendation:**
-```csharp
-private const int SaveStatusDisplayDurationMs = 1500;  // How long "Saved" status shows
-private const int MinFontSize = 8;   // Minimum readable font size
-private const int MaxFontSize = 72;  // Maximum practical font size
-```
+**What was implemented:**
+- Added `FontSizeLimits` class with `Min`, `Max`, and `IsValid()` helper
+- Added `AutoSaveDelayLimits` class with `MinMs`, `MaxMs`, `DefaultMs`, and `IsValid()` helper
+- Added `UiTimingConstants` class with `SaveStatusDisplayDurationMs`
+- Added `MetadataLimits` class with `MaxRecentlyClosedItems`
+- Updated all usages across the codebase:
+  - `SettingsService.cs` - font size and auto-save delay validation
+  - `AppSettings.cs` - default values and validation
+  - `MainWindowViewModel.cs` - save status display duration
+  - `JsonMetadataStore.cs` - max recently closed items
+  - `ServiceCollectionExtensions.cs` - auto-save delay validation
+  - `SettingsViewModel.cs` - default values and validation
 
 ---
 
@@ -429,7 +429,7 @@ These are suggestions for future development, not issues requiring fixes:
 
 ### Nice to Have (Low Priority)
 - [x] Extract common tab-finding logic (#12)
-- [ ] Extract magic numbers to named constants (#13)
+- [x] Extract magic numbers to named constants (#13)
 - [ ] Make domain entities immutable (#14)
 - [ ] Standardize null/empty string handling (#15)
 

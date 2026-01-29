@@ -52,7 +52,7 @@ public class AppSettings
     /// Auto-save delay in milliseconds.
     /// Content is saved after this delay following the last keystroke.
     /// </summary>
-    public int AutoSaveDelayMs { get; set; } = 500;
+    public int AutoSaveDelayMs { get; set; } = AutoSaveDelayLimits.DefaultMs;
 
     /// <summary>
     /// Whether to start the application automatically when the user logs in.
@@ -85,7 +85,7 @@ public class AppSettings
             FontSize = 14,
             WordWrap = WordWrapValues.Wrap,
             Theme = ThemeValues.System,
-            AutoSaveDelayMs = 500,
+            AutoSaveDelayMs = AutoSaveDelayLimits.DefaultMs,
             AutorunAtStartup = false,
             GlobalShortcut = null,
             MinimizeToTray = true
@@ -103,14 +103,14 @@ public class AppSettings
             TabPosition = TabPositionValues.Left;
         }
 
-        // Validate FontSize (reasonable range: 8-72)
-        if (FontSize < 8)
+        // Validate FontSize
+        if (FontSize < FontSizeLimits.Min)
         {
-            FontSize = 8;
+            FontSize = FontSizeLimits.Min;
         }
-        else if (FontSize > 72)
+        else if (FontSize > FontSizeLimits.Max)
         {
-            FontSize = 72;
+            FontSize = FontSizeLimits.Max;
         }
 
         // Validate Theme
@@ -125,14 +125,14 @@ public class AppSettings
             WordWrap = WordWrapValues.Wrap;
         }
 
-        // Validate AutoSaveDelayMs (reasonable range: 100-5000)
-        if (AutoSaveDelayMs < 100)
+        // Validate AutoSaveDelayMs
+        if (AutoSaveDelayMs < AutoSaveDelayLimits.MinMs)
         {
-            AutoSaveDelayMs = 100;
+            AutoSaveDelayMs = AutoSaveDelayLimits.MinMs;
         }
-        else if (AutoSaveDelayMs > 5000)
+        else if (AutoSaveDelayMs > AutoSaveDelayLimits.MaxMs)
         {
-            AutoSaveDelayMs = 5000;
+            AutoSaveDelayMs = AutoSaveDelayLimits.MaxMs;
         }
     }
 }
