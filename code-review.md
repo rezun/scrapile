@@ -183,25 +183,21 @@ The original review finding was incorrect - validation was already being perform
 
 ---
 
-### 8. No Cancellation Token Support in Async Methods
+### 8. ~~No Cancellation Token Support in Async Methods~~
 
-- [ ] **Add `CancellationToken` parameters to async methods in services**
+- [x] **Add `CancellationToken` parameters to async methods in services**
 
-**Files:** `TabManager.cs`, `DocumentService.cs`, `AutoSaveService.cs`
+**Status:** WON'T FIX - By design.
 
-Most async methods don't accept `CancellationToken`:
+**Rationale:** After analysis, adding CancellationToken support throughout the services is not warranted:
 
-```csharp
-public async Task<TabWithStats> CreateTabAsync()  // No CancellationToken
-public async Task<DocumentWithStats?> GetByIdAsync(Guid id)  // No CancellationToken
-```
+1. **Write operations should not be cancellable** - Cancelling state-changing operations (create, save, delete) can leave data in inconsistent/intermediate states. For example, `CreateTabAsync` performs multiple sequential operations (create file, update metadata, update tab list); cancelling mid-sequence would orphan data.
 
-**Issue:** Operations cannot be cancelled during app shutdown or when switching contexts quickly.
+2. **Read operations are fast** - All I/O is local file system operations that complete in milliseconds. The complexity cost of threading cancellation tokens through the codebase outweighs the benefit.
 
-**Recommendation:** Add `CancellationToken` parameters to async methods:
-```csharp
-public async Task<TabWithStats> CreateTabAsync(CancellationToken cancellationToken = default)
-```
+3. **Graceful shutdown is already handled** - The app's shutdown sequence allows in-flight operations to complete naturally rather than requiring cancellation.
+
+For desktop apps with fast local I/O, cancellation tokens add complexity without meaningful benefit. This could be reconsidered if the app ever adds network-based storage or operations that take significant time.
 
 ---
 
@@ -427,7 +423,7 @@ These are suggestions for future development, not issues requiring fixes:
 
 ### Recommended (Medium Priority)
 - [x] ~~Call `AppSettings.Validate()` after loading~~ (#7) - Already implemented
-- [ ] Add cancellation token support to async methods (#8)
+- [x] ~~Add cancellation token support to async methods~~ (#8) - Won't fix, by design
 - [ ] Extract string constants to dedicated class (#9)
 - [ ] Add ViewModel test coverage (#10)
 - [ ] Verify process name in lock service (#11)
