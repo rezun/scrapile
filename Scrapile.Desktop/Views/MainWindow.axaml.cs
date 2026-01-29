@@ -261,7 +261,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var settingsViewModel = new SettingsViewModel(viewModel.SettingsService, viewModel.ThemeService);
+        var settingsViewModel = new SettingsViewModel(viewModel.SettingsService, viewModel.ThemeService, viewModel.AutorunService);
         var settingsWindow = new SettingsWindow
         {
             DataContext = settingsViewModel

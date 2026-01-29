@@ -20,6 +20,9 @@ public partial class WelcomeViewModel : ViewModelBase
     [ObservableProperty]
     private bool _showFolderWarning;
 
+    [ObservableProperty]
+    private bool _autorunAtStartup = false;
+
     /// <summary>
     /// Event raised when the folder browser should be shown.
     /// </summary>

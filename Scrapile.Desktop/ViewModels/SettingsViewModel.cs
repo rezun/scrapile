@@ -16,6 +16,7 @@ public partial class SettingsViewModel : ViewModelBase
 {
     private readonly SettingsService _settingsService;
     private readonly ThemeService _themeService;
+    private readonly AutorunService _autorunService;
     private readonly StorageDirectoryValidator _storageDirectoryValidator;
     private bool _isInitializing;
 
@@ -86,6 +87,9 @@ public partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private string _settingsFilePath = string.Empty;
 
+    [ObservableProperty]
+    private bool _autorunAtStartup;
+
     /// <summary>
     /// Event raised when the dialog should close.
     /// </summary>
@@ -106,15 +110,16 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public event EventHandler<ResetConfirmationEventArgs>? ResetConfirmationRequested;
 
-    public SettingsViewModel(SettingsService settingsService, ThemeService themeService)
-        : this(settingsService, themeService, new StorageDirectoryValidator())
+    public SettingsViewModel(SettingsService settingsService, ThemeService themeService, AutorunService autorunService)
+        : this(settingsService, themeService, autorunService, new StorageDirectoryValidator())
     {
     }
 
-    public SettingsViewModel(SettingsService settingsService, ThemeService themeService, StorageDirectoryValidator storageDirectoryValidator)
+    public SettingsViewModel(SettingsService settingsService, ThemeService themeService, AutorunService autorunService, StorageDirectoryValidator storageDirectoryValidator)
     {
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
+        _autorunService = autorunService ?? throw new ArgumentNullException(nameof(autorunService));
         _storageDirectoryValidator = storageDirectoryValidator ?? throw new ArgumentNullException(nameof(storageDirectoryValidator));
     }
 
@@ -134,6 +139,7 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedWordWrap = settings.WordWrap == "NoWrap" ? "No Wrap" : "Wrap";
             SelectedTheme = settings.Theme;
             AutoSaveDelayMs = settings.AutoSaveDelayMs;
+            AutorunAtStartup = settings.AutorunAtStartup;
             SettingsFilePath = _settingsService.SettingsFilePath;
         }
         finally
@@ -184,6 +190,13 @@ public partial class SettingsViewModel : ViewModelBase
         {
             _ = _settingsService.SetAutoSaveDelayMsAsync(value);
         }
+    }
+
+    partial void OnAutorunAtStartupChanged(bool value)
+    {
+        if (_isInitializing) return;
+        _autorunService.SetAutorunEnabled(value);
+        _ = _settingsService.SetAutorunAtStartupAsync(value);
     }
 
     private async Task ApplyThemeAsync(string theme)

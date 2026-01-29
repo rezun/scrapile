@@ -136,6 +136,17 @@
 
                 <Separator/>
 
+                <!-- Startup Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Startup"
+                               FontWeight="SemiBold"
+                               FontSize="16"/>
+                    <CheckBox Content="Start Scrapile when you log in"
+                              IsChecked="{Binding AutorunAtStartup}"/>
+                </StackPanel>
+
+                <Separator/>
+
                 <!-- Storage Section -->
                 <StackPanel Spacing="12">
                     <TextBlock Text="Storage"

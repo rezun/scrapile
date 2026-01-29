@@ -20,6 +20,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly AutoSaveService _autoSaveService;
     private readonly ThemeService _themeService;
     private readonly SettingsService _settingsService;
+    private readonly AutorunService _autorunService;
     private readonly IMetadataStore _metadataStore;
 
     [ObservableProperty]
@@ -90,6 +91,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <param name="autoSaveService">The auto-save service.</param>
     /// <param name="themeService">The theme service.</param>
     /// <param name="settingsService">The settings service.</param>
+    /// <param name="autorunService">The autorun service.</param>
     /// <param name="metadataStore">The metadata store for per-document settings.</param>
     public MainWindowViewModel(
         TabManager tabManager,
@@ -97,6 +99,7 @@ public partial class MainWindowViewModel : ViewModelBase
         AutoSaveService autoSaveService,
         ThemeService themeService,
         SettingsService settingsService,
+        AutorunService autorunService,
         IMetadataStore metadataStore)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
@@ -104,6 +107,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _autoSaveService = autoSaveService ?? throw new ArgumentNullException(nameof(autoSaveService));
         _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+        _autorunService = autorunService ?? throw new ArgumentNullException(nameof(autorunService));
         _metadataStore = metadataStore ?? throw new ArgumentNullException(nameof(metadataStore));
 
         // Create the tab list view model
@@ -420,6 +424,11 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Gets the theme service for the settings window.
     /// </summary>
     public ThemeService ThemeService => _themeService;
+
+    /// <summary>
+    /// Gets the autorun service for the settings window.
+    /// </summary>
+    public AutorunService AutorunService => _autorunService;
 
     /// <summary>
     /// Saves all pending changes for dirty tabs.

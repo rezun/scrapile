@@ -69,6 +69,11 @@
                                FontSize="12"
                                IsVisible="{Binding ShowFolderWarning}"/>
                 </StackPanel>
+
+                <!-- Autorun option -->
+                <CheckBox Content="Start Scrapile when you log in"
+                          IsChecked="{Binding AutorunAtStartup}"
+                          Margin="0,8,0,0"/>
             </StackPanel>
         </DockPanel>
     </Border>

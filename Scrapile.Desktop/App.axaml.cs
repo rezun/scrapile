@@ -14,6 +14,7 @@ using Scrapile.Desktop.DependencyInjection;
 using Scrapile.Desktop.ViewModels;
 using Scrapile.Desktop.Views;
 using Scrapile.Domain.Entities;
+using Scrapile.Desktop.Services;
 using Scrapile.Infrastructure.Storage;
 
 namespace Scrapile.Desktop;
@@ -58,12 +59,21 @@ public partial class App : Avalonia.Application
                 desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
                 // First run - show welcome window to let user choose storage directory
-                storageDirectory = await ShowWelcomeWindowAsync();
+                var (selectedDirectory, autorunAtStartup) = await ShowWelcomeWindowAsync();
+                storageDirectory = selectedDirectory;
 
-                // Save initial settings with selected directory
+                // Save initial settings with selected directory and autorun preference
                 var settings = AppSettings.CreateDefault();
                 settings.StorageDirectory = storageDirectory;
+                settings.AutorunAtStartup = autorunAtStartup;
                 await settingsStore.SaveAsync(settings);
+
+                // Register autorun if enabled
+                if (autorunAtStartup)
+                {
+                    var autorunService = new AutorunService();
+                    autorunService.SetAutorunEnabled(true);
+                }
 
                 // Restore normal shutdown behavior
                 desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
@@ -100,7 +110,7 @@ public partial class App : Avalonia.Application
         }
     }
 
-    private async Task<string> ShowWelcomeWindowAsync()
+    private async Task<(string storageDirectory, bool autorunAtStartup)> ShowWelcomeWindowAsync()
     {
         var viewModel = new WelcomeViewModel();
         var welcomeWindow = new WelcomeWindow { DataContext = viewModel };
@@ -113,7 +123,7 @@ public partial class App : Avalonia.Application
             storageDirectory = ServiceCollectionExtensions.GetDefaultStorageDirectory();
         }
 
-        return storageDirectory;
+        return (storageDirectory, welcomeWindow.AutorunAtStartup);
     }
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)

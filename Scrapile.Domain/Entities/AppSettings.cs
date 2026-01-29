@@ -53,6 +53,11 @@ public class AppSettings
     public int AutoSaveDelayMs { get; set; } = 500;
 
     /// <summary>
+    /// Whether to start the application automatically when the user logs in.
+    /// </summary>
+    public bool AutorunAtStartup { get; set; } = false;
+
+    /// <summary>
     /// Creates a default settings object with sensible defaults.
     /// </summary>
     public static AppSettings CreateDefault()
@@ -66,7 +71,8 @@ public class AppSettings
             FontSize = 14,
             WordWrap = "Wrap",
             Theme = "System",
-            AutoSaveDelayMs = 500
+            AutoSaveDelayMs = 500,
+            AutorunAtStartup = false
         };
     }
 

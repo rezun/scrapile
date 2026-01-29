@@ -228,6 +228,28 @@ public class SettingsService
     }
 
     /// <summary>
+    /// Gets the autorun at startup setting.
+    /// </summary>
+    public bool GetAutorunAtStartup()
+    {
+        return _currentSettings.AutorunAtStartup;
+    }
+
+    /// <summary>
+    /// Sets whether to automatically run at startup.
+    /// </summary>
+    public async Task SetAutorunAtStartupAsync(bool enabled)
+    {
+        if (_currentSettings.AutorunAtStartup == enabled)
+        {
+            return;
+        }
+
+        _currentSettings.AutorunAtStartup = enabled;
+        await SaveAndNotifyAsync("AutorunAtStartup");
+    }
+
+    /// <summary>
     /// Saves all current settings.
     /// </summary>
     public async Task SaveAsync()

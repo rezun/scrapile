@@ -19,6 +19,11 @@ public partial class WelcomeWindow : Window
     /// </summary>
     public string? SelectedStorageDirectory { get; private set; }
 
+    /// <summary>
+    /// Gets whether autorun at startup was selected.
+    /// </summary>
+    public bool AutorunAtStartup { get; private set; }
+
     public WelcomeWindow()
     {
         InitializeComponent();
@@ -96,6 +101,7 @@ public partial class WelcomeWindow : Window
     {
         var viewModel = DataContext as WelcomeViewModel;
         SelectedStorageDirectory = viewModel?.StorageDirectory;
+        AutorunAtStartup = viewModel?.AutorunAtStartup ?? false;
         Close();
     }
 }
