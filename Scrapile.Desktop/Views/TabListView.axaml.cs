@@ -1,3 +1,5 @@
+using System;
+using System.ComponentModel;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -5,11 +7,76 @@ using Scrapile.Desktop.ViewModels;
 
 namespace Scrapile.Desktop.Views;
 
-public partial class TabListView : UserControl
+public partial class TabListView : UserControl, INotifyPropertyChanged
 {
+    private bool _isScrollable;
+
+    public new event PropertyChangedEventHandler? PropertyChanged;
+
+    public bool IsScrollable
+    {
+        get => _isScrollable;
+        private set
+        {
+            if (_isScrollable != value)
+            {
+                _isScrollable = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsScrollable)));
+            }
+        }
+    }
+
     public TabListView()
     {
         InitializeComponent();
+
+        // Set shortcut hint based on platform
+        var shortcut = OperatingSystem.IsMacOS() ? "⌘T" : "Ctrl+T";
+        if (this.FindControl<TextBlock>("InlineShortcutHint") is { } hint)
+            hint.Text = shortcut;
+        if (this.FindControl<TextBlock>("FixedShortcutHint") is { } fixedHint)
+            fixedHint.Text = shortcut;
+    }
+
+    /// <summary>
+    /// Handles scroll changes to detect when tabs overflow and scrolling is needed.
+    /// </summary>
+    private void OnTabScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        if (sender is ScrollViewer scrollViewer)
+        {
+            IsScrollable = scrollViewer.Extent.Height > scrollViewer.Viewport.Height;
+        }
+    }
+
+    /// <summary>
+    /// Handles double-tap on the tab area to create a new tab.
+    /// </summary>
+    private void OnTabAreaDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        // Only create tab if double-click was on empty space (not on a tab item)
+        if (DataContext is TabListViewModel vm)
+        {
+            var source = e.Source as Control;
+            while (source != null && source != this)
+            {
+                if (source.DataContext is TabItemViewModel)
+                    return; // Clicked on a tab, don't create new
+                source = source.Parent as Control;
+            }
+            vm.CreateNewTabCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Handles click on the new tab button (both inline and fixed).
+    /// </summary>
+    private void OnNewTabButtonPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is TabListViewModel vm)
+        {
+            vm.CreateNewTabCommand.Execute(null);
+        }
     }
 
     /// <summary>
