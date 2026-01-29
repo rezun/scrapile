@@ -59,6 +59,11 @@ public partial class TabListViewModel : ViewModelBase
     public event EventHandler? RecentlyClosedChanged;
 
     /// <summary>
+    /// Event raised when a tab deletion is requested (needs confirmation).
+    /// </summary>
+    public event EventHandler<TabItemViewModel>? DeleteRequested;
+
+    /// <summary>
     /// Creates a new TabListViewModel.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -319,6 +324,58 @@ public partial class TabListViewModel : ViewModelBase
         {
             SaveAsRequested?.Invoke(this, tabViewModel);
         }
+    }
+
+    /// <summary>
+    /// Requests deletion of a tab (raises event for confirmation).
+    /// </summary>
+    /// <param name="tabViewModel">The tab to delete.</param>
+    public void RequestDelete(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel != null)
+        {
+            DeleteRequested?.Invoke(this, tabViewModel);
+        }
+    }
+
+    /// <summary>
+    /// Permanently deletes a tab and its document.
+    /// This bypasses the "recently closed" list - the document is deleted from disk.
+    /// </summary>
+    /// <param name="tabViewModel">The tab to delete.</param>
+    public async Task PermanentlyDeleteTabAsync(TabItemViewModel tabViewModel)
+    {
+        if (tabViewModel == null) return;
+
+        // Find the tab in collection by TabId
+        var (tabInCollection, index) = FindTab(tabViewModel.TabId);
+        if (tabInCollection == null) return;
+
+        var wasSelected = tabInCollection.IsSelected;
+
+        // Remove from collection first
+        Tabs.Remove(tabInCollection);
+
+        // Permanently delete via TabManager (deletes file, does NOT add to recently closed)
+        await _tabManager.PermanentlyDeleteTabAsync(tabViewModel.TabId);
+
+        // Select another tab if the deleted one was selected
+        if (wasSelected && Tabs.Count > 0)
+        {
+            var newIndex = Math.Min(index, Tabs.Count - 1);
+            if (newIndex >= 0 && newIndex < Tabs.Count)
+            {
+                SelectTab(Tabs[newIndex]);
+            }
+        }
+        else if (Tabs.Count == 0)
+        {
+            SelectedTab = null;
+            TabSelected?.Invoke(this, null);
+        }
+
+        OnPropertyChanged(nameof(HasTabs));
+        TabsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

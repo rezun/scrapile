@@ -85,6 +85,11 @@ public partial class MainWindowViewModel : ViewModelBase
     public event EventHandler? OpenSettingsRequested;
 
     /// <summary>
+    /// Event raised when delete confirmation is needed for a tab.
+    /// </summary>
+    public event EventHandler<DeleteConfirmationRequestEventArgs>? DeleteConfirmationRequested;
+
+    /// <summary>
     /// Creates a new MainWindowViewModel with injected services.
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
@@ -120,6 +125,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _tabListViewModel.CopyToClipboardRequested += OnCopyToClipboardRequested;
         _tabListViewModel.SaveAsRequested += OnSaveAsRequested;
         _tabListViewModel.RecentlyClosedChanged += OnRecentlyClosedChanged;
+        _tabListViewModel.DeleteRequested += OnDeleteRequested;
 
         // Create the editor view model
         _editorViewModel = new EditorViewModel(_tabManager, _documentService, _autoSaveService, _settingsService, _metadataStore);
@@ -625,6 +631,25 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Handles delete requests from the context menu.
+    /// Raises the DeleteConfirmationRequested event for the view to show a confirmation dialog.
+    /// </summary>
+    private void OnDeleteRequested(object? sender, TabItemViewModel tabViewModel)
+    {
+        var displayTitle = tabViewModel.HasTitle ? tabViewModel.DisplayName : string.Empty;
+        DeleteConfirmationRequested?.Invoke(this, new DeleteConfirmationRequestEventArgs(tabViewModel, displayTitle));
+    }
+
+    /// <summary>
+    /// Confirms deletion of a tab after user confirms in the dialog.
+    /// </summary>
+    /// <param name="tabViewModel">The tab to delete.</param>
+    public async Task ConfirmDeleteAsync(TabItemViewModel tabViewModel)
+    {
+        await TabListViewModel.PermanentlyDeleteTabAsync(tabViewModel);
+    }
+
+    /// <summary>
     /// Duplicates the currently selected tab.
     /// </summary>
     public async Task DuplicateCurrentTabAsync()
@@ -735,5 +760,20 @@ public class SaveAsRequestEventArgs : EventArgs
     {
         Content = content;
         SuggestedFileName = suggestedFileName;
+    }
+}
+
+/// <summary>
+/// Event arguments for delete confirmation requests.
+/// </summary>
+public class DeleteConfirmationRequestEventArgs : EventArgs
+{
+    public TabItemViewModel Tab { get; }
+    public string DisplayTitle { get; }
+
+    public DeleteConfirmationRequestEventArgs(TabItemViewModel tab, string displayTitle)
+    {
+        Tab = tab;
+        DisplayTitle = displayTitle;
     }
 }

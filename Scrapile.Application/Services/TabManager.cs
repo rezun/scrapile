@@ -219,6 +219,41 @@ public class TabManager
     }
 
     /// <summary>
+    /// Permanently deletes a tab and its associated document.
+    /// Unlike CloseTabAsync, this does NOT add the document to recently closed.
+    /// </summary>
+    /// <param name="tabId">The ID of the tab to delete.</param>
+    /// <returns>True if the tab was deleted, false if not found.</returns>
+    public async Task<bool> PermanentlyDeleteTabAsync(Guid tabId)
+    {
+        EnsureInitialized();
+
+        Tab? tabToDelete;
+        lock (_lock)
+        {
+            tabToDelete = _tabs.FirstOrDefault(t => t.TabId == tabId);
+            if (tabToDelete == null)
+            {
+                return false;
+            }
+
+            _tabs.Remove(tabToDelete);
+            ReorderTabsInternal();
+        }
+
+        // Remove from open tabs in metadata
+        await _metadataStore.RemoveOpenTabAsync(tabToDelete.Document.Id);
+
+        // Delete the document file
+        await _documentRepository.DeleteAsync(tabToDelete.Document.Id);
+
+        // Persist the new tab order
+        await PersistTabOrderAsync();
+
+        return true;
+    }
+
+    /// <summary>
     /// Closes a tab and adds the document to recently closed list.
     /// Empty or whitespace-only documents are deleted instead of being added to recently closed.
     /// </summary>

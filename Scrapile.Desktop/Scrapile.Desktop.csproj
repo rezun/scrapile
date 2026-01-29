@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <AssemblyName>Scrapile</AssemblyName>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,8 +15,8 @@
     <CFBundleName>Scrapile</CFBundleName>
     <CFBundleDisplayName>Scrapile</CFBundleDisplayName>
     <CFBundleIdentifier>com.scrapile.app</CFBundleIdentifier>
-    <CFBundleVersion>1.3.0</CFBundleVersion>
-    <CFBundleShortVersionString>1.3.0</CFBundleShortVersionString>
+    <CFBundleVersion>1.4.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.4.0</CFBundleShortVersionString>
     <CFBundleIconFile>Scrapile.icns</CFBundleIconFile>
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>

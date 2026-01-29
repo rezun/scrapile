@@ -64,6 +64,9 @@
                                                   Click="OnContextMenuCopyToClipboard"/>
                                         <MenuItem Header="Save As..."
                                                   Click="OnContextMenuSaveAs"/>
+                                        <Separator/>
+                                        <MenuItem Header="Delete"
+                                                  Click="OnContextMenuDelete"/>
                                     </MenuFlyout>
                                 </Border.ContextFlyout>
 

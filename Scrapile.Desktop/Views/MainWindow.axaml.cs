@@ -82,6 +82,9 @@ public partial class MainWindow : Window
             // Subscribe to settings window request
             viewModel.OpenSettingsRequested += OnOpenSettingsRequested;
 
+            // Subscribe to delete confirmation request
+            viewModel.DeleteConfirmationRequested += OnDeleteConfirmationRequested;
+
             // Subscribe to property changes to update layout when tab position changes
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -348,6 +351,43 @@ public partial class MainWindow : Window
         };
 
         await settingsWindow.ShowDialog(this);
+    }
+
+    /// <summary>
+    /// Handles delete confirmation requests from the view model.
+    /// Shows a confirmation dialog and deletes the tab if confirmed.
+    /// </summary>
+    private async void OnDeleteConfirmationRequested(object? sender, DeleteConfirmationRequestEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        // Build the confirmation message based on whether the document has a title
+        var message = string.IsNullOrEmpty(e.DisplayTitle)
+            ? "Are you sure you want to permanently delete this document?\n\nThis cannot be undone."
+            : $"Are you sure you want to permanently delete \"{e.DisplayTitle}\"?\n\nThis cannot be undone.";
+
+        var dialogViewModel = new MessageDialogViewModel
+        {
+            Title = "Delete Document",
+            Message = message,
+            PrimaryButtonText = "Delete",
+            SecondaryButtonText = "Cancel"
+        };
+
+        var dialog = new MessageDialog
+        {
+            DataContext = dialogViewModel
+        };
+
+        await dialog.ShowDialog(this);
+
+        if (dialog.Result == MessageDialogResult.Primary)
+        {
+            await viewModel.ConfirmDeleteAsync(e.Tab);
+        }
     }
 
     /// <summary>

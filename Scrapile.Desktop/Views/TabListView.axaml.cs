@@ -202,4 +202,16 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
             listViewModel.RequestSaveAs(tabViewModel);
         }
     }
+
+    /// <summary>
+    /// Handles the "Delete" context menu item click.
+    /// </summary>
+    private void OnContextMenuDelete(object? sender, RoutedEventArgs e)
+    {
+        var tabViewModel = GetTabFromContextMenu(sender);
+        if (tabViewModel != null && DataContext is TabListViewModel listViewModel)
+        {
+            listViewModel.RequestDelete(tabViewModel);
+        }
+    }
 }
