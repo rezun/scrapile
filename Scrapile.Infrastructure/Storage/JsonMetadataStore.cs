@@ -9,8 +9,9 @@ using Scrapile.Domain.Interfaces;
 /// JSON file-based implementation of IMetadataStore.
 /// Metadata is stored in .ephemeral_metadata.json in the storage directory.
 /// </summary>
-public class JsonMetadataStore : IMetadataStore
+public class JsonMetadataStore : IMetadataStore, IDisposable
 {
+    private bool _disposed;
     private const string MetadataFilename = ".ephemeral_metadata.json";
     private const string BackupExtension = ".backup";
     private const int MaxRecentlyClosedItems = 50;
@@ -553,5 +554,33 @@ public class JsonMetadataStore : IMetadataStore
             RecentlyClosed = new List<RecentlyClosedInfo>(),
             Documents = new Dictionary<Guid, DocumentMetadata>()
         };
+    }
+
+    /// <summary>
+    /// Disposes resources used by the metadata store.
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// Disposes managed and unmanaged resources.
+    /// </summary>
+    /// <param name="disposing">True if called from Dispose(), false if called from finalizer.</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (disposing)
+        {
+            _lock.Dispose();
+        }
+
+        _disposed = true;
     }
 }

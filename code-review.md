@@ -45,7 +45,7 @@ lock (_lock)
 
 ### 2. Missing Disposal Pattern for JsonMetadataStore
 
-- [ ] **Implement `IDisposable` for `JsonMetadataStore` to dispose `SemaphoreSlim`**
+- [x] **Implement `IDisposable` for `JsonMetadataStore` to dispose `SemaphoreSlim`**
 
 **File:** `Scrapile.Infrastructure/Storage/JsonMetadataStore.cs`
 
@@ -425,7 +425,7 @@ These are suggestions for future development, not issues requiring fixes:
 
 ### Must Fix (Critical)
 - [x] Fix race condition in `CreateTabAsync` (#1)
-- [ ] Implement `IDisposable` for `JsonMetadataStore` (#2)
+- [x] Implement `IDisposable` for `JsonMetadataStore` (#2)
 - [ ] Add error handling for fire-and-forget async in `EditorViewModel` (#3)
 
 ### Should Fix (High Priority)
