@@ -171,7 +171,8 @@ public class StorageLockService : IStorageLockService
     }
 
     /// <summary>
-    /// Checks if a process with the given PID is still running.
+    /// Checks if a process with the given PID is still running and is a Scrapile instance.
+    /// Also verifies the process name to prevent PID reuse issues on Unix systems.
     /// </summary>
     private static bool IsProcessRunning(int pid)
     {
@@ -184,7 +185,25 @@ public class StorageLockService : IStorageLockService
         {
             var process = Process.GetProcessById(pid);
             // Process exists - check if it hasn't exited
-            return !process.HasExited;
+            if (process.HasExited)
+            {
+                return false;
+            }
+
+            // Verify it's actually Scrapile to prevent PID reuse issues
+            // On Unix systems, PIDs can be reused quickly after a process exits
+            try
+            {
+                var processName = process.ProcessName;
+                return processName.Contains("Scrapile", StringComparison.OrdinalIgnoreCase) ||
+                       processName.Contains("dotnet", StringComparison.OrdinalIgnoreCase);
+            }
+            catch
+            {
+                // Can't read process name (permissions, platform limitations)
+                // Fall back to assuming it's running to be safe
+                return true;
+            }
         }
         catch (ArgumentException)
         {

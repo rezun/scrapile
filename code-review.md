@@ -250,7 +250,7 @@ The Desktop layer (ViewModels, Services) has no unit tests. Given the complexity
 
 ### 11. StorageLockService PID Reuse Vulnerability
 
-- [ ] **Verify process name in `StorageLockService.IsProcessRunning()` to prevent PID reuse issues**
+- [x] **Verify process name in `StorageLockService.IsProcessRunning()` to prevent PID reuse issues**
 
 **File:** `Scrapile.Infrastructure/Services/StorageLockService.cs:176-198`
 
@@ -426,7 +426,7 @@ These are suggestions for future development, not issues requiring fixes:
 - [x] ~~Add cancellation token support to async methods~~ (#8) - Won't fix, by design
 - [x] Extract string constants to dedicated class (#9)
 - [ ] Add ViewModel test coverage (#10)
-- [ ] Verify process name in lock service (#11)
+- [x] Verify process name in lock service (#11)
 
 ### Nice to Have (Low Priority)
 - [ ] Extract common tab-finding logic (#12)
