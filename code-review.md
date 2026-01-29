@@ -168,20 +168,18 @@ The original review only looked at `SettingsService.SetStorageDirectoryAsync()` 
 
 ## Medium Priority Issues
 
-### 7. AppSettings.Validate() Not Called After Loading
+### 7. ~~AppSettings.Validate() Not Called After Loading~~
 
-- [ ] **Call `AppSettings.Validate()` after deserializing settings in `JsonSettingsStore`**
+- [x] **Call `AppSettings.Validate()` after deserializing settings in `JsonSettingsStore`**
 
-**File:** `Scrapile.Infrastructure/Storage/JsonSettingsStore.cs`
+**Status:** RESOLVED - Already implemented.
 
-The `AppSettings.Validate()` method exists but isn't called after deserializing settings. A user with a corrupted settings file could have invalid values.
+**What's actually implemented:**
+- `JsonSettingsStore.LoadFromFileAsync()` calls `settings.Validate()` after deserializing (line 146)
+- Backup file restoration also calls `backupSettings.Validate()` (line 164)
+- `SaveAsync()` validates before saving (line 113)
 
-**Recommendation:** Call `Validate()` after loading settings:
-```csharp
-var settings = JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions);
-settings?.Validate();
-return settings ?? AppSettings.CreateDefault();
-```
+The original review finding was incorrect - validation was already being performed.
 
 ---
 
@@ -428,7 +426,7 @@ These are suggestions for future development, not issues requiring fixes:
 - [x] ~~Add warning/migration for storage directory changes~~ (#6) - Already implemented
 
 ### Recommended (Medium Priority)
-- [ ] Call `AppSettings.Validate()` after loading (#7)
+- [x] ~~Call `AppSettings.Validate()` after loading~~ (#7) - Already implemented
 - [ ] Add cancellation token support to async methods (#8)
 - [ ] Extract string constants to dedicated class (#9)
 - [ ] Add ViewModel test coverage (#10)
