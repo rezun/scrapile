@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Styling;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Interfaces;
 
 /// <summary>
@@ -16,7 +17,7 @@ public class ThemeService
     /// <summary>
     /// Gets the current theme setting.
     /// </summary>
-    public string CurrentTheme { get; private set; } = "System";
+    public string CurrentTheme { get; private set; } = ThemeValues.System;
 
     public ThemeService(IMetadataStore metadataStore)
     {
@@ -29,7 +30,7 @@ public class ThemeService
     public async Task InitializeAsync()
     {
         var metadata = await _metadataStore.LoadAsync();
-        CurrentTheme = metadata.Theme ?? "System";
+        CurrentTheme = metadata.Theme ?? ThemeValues.System;
         ApplyTheme();
     }
 
@@ -39,9 +40,9 @@ public class ThemeService
     /// <param name="theme">The theme to set: "Light", "Dark", or "System".</param>
     public async Task SetThemeAsync(string theme)
     {
-        if (theme != "Light" && theme != "Dark" && theme != "System")
+        if (!ThemeValues.IsValid(theme))
         {
-            throw new ArgumentException("Invalid theme. Must be Light, Dark, or System.", nameof(theme));
+            throw new ArgumentException($"Invalid theme. Must be {ThemeValues.Light}, {ThemeValues.Dark}, or {ThemeValues.System}.", nameof(theme));
         }
 
         CurrentTheme = theme;
@@ -56,8 +57,8 @@ public class ThemeService
     {
         return CurrentTheme switch
         {
-            "Light" => ThemeVariant.Light,
-            "Dark" => ThemeVariant.Dark,
+            ThemeValues.Light => ThemeVariant.Light,
+            ThemeValues.Dark => ThemeVariant.Dark,
             _ => ThemeVariant.Default  // "System" follows OS preference
         };
     }

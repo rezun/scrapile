@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Scrapile.Application.Services;
 using Scrapile.Desktop.Services;
+using Scrapile.Domain.Constants;
 
 /// <summary>
 /// ViewModel for the settings dialog.
@@ -40,9 +41,9 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<string> Themes { get; } = new()
     {
-        "System",
-        "Light",
-        "Dark"
+        ThemeValues.System,
+        ThemeValues.Light,
+        ThemeValues.Dark
     };
 
     /// <summary>
@@ -50,8 +51,8 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<string> TabPositions { get; } = new()
     {
-        "Left",
-        "Right"
+        TabPositionValues.Left,
+        TabPositionValues.Right
     };
 
     /// <summary>
@@ -59,15 +60,15 @@ public partial class SettingsViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<string> WordWrapOptions { get; } = new()
     {
-        "Wrap",
-        "No Wrap"
+        WordWrapValues.Wrap,
+        "No Wrap"  // Display label for WordWrapValues.NoWrap
     };
 
     [ObservableProperty]
     private string? _storageDirectory;
 
     [ObservableProperty]
-    private string _selectedTabPosition = "Left";
+    private string _selectedTabPosition = TabPositionValues.Left;
 
     [ObservableProperty]
     private string _selectedFontFamily = "Default";
@@ -76,13 +77,13 @@ public partial class SettingsViewModel : ViewModelBase
     private int _fontSize = 14;
 
     [ObservableProperty]
-    private string _selectedTheme = "System";
+    private string _selectedTheme = ThemeValues.System;
 
     [ObservableProperty]
     private int _autoSaveDelayMs = 500;
 
     [ObservableProperty]
-    private string _selectedWordWrap = "Wrap";
+    private string _selectedWordWrap = WordWrapValues.Wrap;
 
     [ObservableProperty]
     private string _settingsFilePath = string.Empty;
@@ -202,7 +203,7 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedTabPosition = settings.TabPosition;
             SelectedFontFamily = settings.FontFamily ?? "Default";
             FontSize = settings.FontSize;
-            SelectedWordWrap = settings.WordWrap == "NoWrap" ? "No Wrap" : "Wrap";
+            SelectedWordWrap = settings.WordWrap == WordWrapValues.NoWrap ? "No Wrap" : WordWrapValues.Wrap;
             SelectedTheme = settings.Theme;
             AutoSaveDelayMs = settings.AutoSaveDelayMs;
             AutorunAtStartup = settings.AutorunAtStartup;
@@ -242,7 +243,7 @@ public partial class SettingsViewModel : ViewModelBase
     partial void OnSelectedWordWrapChanged(string value)
     {
         if (_isInitializing) return;
-        var wordWrap = value == "No Wrap" ? "NoWrap" : "Wrap";
+        var wordWrap = value == "No Wrap" ? WordWrapValues.NoWrap : WordWrapValues.Wrap;
         _ = _settingsService.SetWordWrapAsync(wordWrap);
     }
 
@@ -395,7 +396,7 @@ public partial class SettingsViewModel : ViewModelBase
     public async Task ConfirmResetToDefaultsAsync()
     {
         await _settingsService.ResetToDefaultsAsync();
-        await _themeService.SetThemeAsync("System");
+        await _themeService.SetThemeAsync(ThemeValues.System);
         Initialize();
     }
 

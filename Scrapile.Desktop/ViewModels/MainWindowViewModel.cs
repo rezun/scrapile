@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Scrapile.Application.Services;
 using Scrapile.Desktop.Services;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Interfaces;
 
 namespace Scrapile.Desktop.ViewModels;
@@ -142,7 +143,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
     {
-        if (e.SettingName == "TabPosition" || e.SettingName == "All")
+        if (e.SettingName == SettingNames.TabPosition || e.SettingName == SettingNames.All)
         {
             ApplyTabPositionSetting();
         }
@@ -153,7 +154,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     private void ApplyTabPositionSetting()
     {
-        IsTabListOnLeft = _settingsService.GetTabPosition() == "Left";
+        IsTabListOnLeft = _settingsService.GetTabPosition() == TabPositionValues.Left;
     }
 
     /// <summary>

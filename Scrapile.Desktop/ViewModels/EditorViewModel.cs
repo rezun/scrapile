@@ -6,6 +6,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Scrapile.Application.Helpers;
 using Scrapile.Application.Services;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Interfaces;
 
 /// <summary>
@@ -121,12 +122,12 @@ public partial class EditorViewModel : ViewModelBase
     /// </summary>
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
     {
-        if (e.SettingName == "FontFamily" || e.SettingName == "FontSize" || e.SettingName == "All")
+        if (e.SettingName == SettingNames.FontFamily || e.SettingName == SettingNames.FontSize || e.SettingName == SettingNames.All)
         {
             ApplyFontSettings();
         }
 
-        if (e.SettingName == "WordWrap" || e.SettingName == "All")
+        if (e.SettingName == SettingNames.WordWrap || e.SettingName == SettingNames.All)
         {
             ApplyWordWrapSetting();
         }

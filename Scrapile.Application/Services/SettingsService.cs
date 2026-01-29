@@ -1,5 +1,6 @@
 namespace Scrapile.Application.Services;
 
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
 
@@ -41,7 +42,7 @@ public class SettingsService
         _currentSettings = await _settingsStore.LoadAsync();
 
         // Notify listeners that settings have been loaded
-        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs("All"));
+        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.All));
     }
 
     /// <summary>
@@ -66,7 +67,7 @@ public class SettingsService
         }
 
         _currentSettings.StorageDirectory = normalized;
-        await SaveAndNotifyAsync("StorageDirectory");
+        await SaveAndNotifyAsync(SettingNames.StorageDirectory);
     }
 
     /// <summary>
@@ -82,9 +83,9 @@ public class SettingsService
     /// </summary>
     public async Task SetTabPositionAsync(string position)
     {
-        if (position != "Left" && position != "Right")
+        if (!TabPositionValues.IsValid(position))
         {
-            throw new ArgumentException("Tab position must be 'Left' or 'Right'.", nameof(position));
+            throw new ArgumentException($"Tab position must be '{TabPositionValues.Left}' or '{TabPositionValues.Right}'.", nameof(position));
         }
 
         if (_currentSettings.TabPosition == position)
@@ -93,7 +94,7 @@ public class SettingsService
         }
 
         _currentSettings.TabPosition = position;
-        await SaveAndNotifyAsync("TabPosition");
+        await SaveAndNotifyAsync(SettingNames.TabPosition);
     }
 
     /// <summary>
@@ -116,7 +117,7 @@ public class SettingsService
         }
 
         _currentSettings.FontFamily = normalized;
-        await SaveAndNotifyAsync("FontFamily");
+        await SaveAndNotifyAsync(SettingNames.FontFamily);
     }
 
     /// <summary>
@@ -143,7 +144,7 @@ public class SettingsService
         }
 
         _currentSettings.FontSize = fontSize;
-        await SaveAndNotifyAsync("FontSize");
+        await SaveAndNotifyAsync(SettingNames.FontSize);
     }
 
     /// <summary>
@@ -159,9 +160,9 @@ public class SettingsService
     /// </summary>
     public async Task SetThemeAsync(string theme)
     {
-        if (theme != "Light" && theme != "Dark" && theme != "System")
+        if (!ThemeValues.IsValid(theme))
         {
-            throw new ArgumentException("Theme must be 'Light', 'Dark', or 'System'.", nameof(theme));
+            throw new ArgumentException($"Theme must be '{ThemeValues.Light}', '{ThemeValues.Dark}', or '{ThemeValues.System}'.", nameof(theme));
         }
 
         if (_currentSettings.Theme == theme)
@@ -170,7 +171,7 @@ public class SettingsService
         }
 
         _currentSettings.Theme = theme;
-        await SaveAndNotifyAsync("Theme");
+        await SaveAndNotifyAsync(SettingNames.Theme);
     }
 
     /// <summary>
@@ -186,9 +187,9 @@ public class SettingsService
     /// </summary>
     public async Task SetWordWrapAsync(string wordWrap)
     {
-        if (wordWrap != "Wrap" && wordWrap != "NoWrap")
+        if (!WordWrapValues.IsValid(wordWrap))
         {
-            throw new ArgumentException("Word wrap must be 'Wrap' or 'NoWrap'.", nameof(wordWrap));
+            throw new ArgumentException($"Word wrap must be '{WordWrapValues.Wrap}' or '{WordWrapValues.NoWrap}'.", nameof(wordWrap));
         }
 
         if (_currentSettings.WordWrap == wordWrap)
@@ -197,7 +198,7 @@ public class SettingsService
         }
 
         _currentSettings.WordWrap = wordWrap;
-        await SaveAndNotifyAsync("WordWrap");
+        await SaveAndNotifyAsync(SettingNames.WordWrap);
     }
 
     /// <summary>
@@ -224,7 +225,7 @@ public class SettingsService
         }
 
         _currentSettings.AutoSaveDelayMs = delayMs;
-        await SaveAndNotifyAsync("AutoSaveDelayMs");
+        await SaveAndNotifyAsync(SettingNames.AutoSaveDelayMs);
     }
 
     /// <summary>
@@ -246,7 +247,7 @@ public class SettingsService
         }
 
         _currentSettings.AutorunAtStartup = enabled;
-        await SaveAndNotifyAsync("AutorunAtStartup");
+        await SaveAndNotifyAsync(SettingNames.AutorunAtStartup);
     }
 
     /// <summary>
@@ -269,7 +270,7 @@ public class SettingsService
         }
 
         _currentSettings.GlobalShortcut = normalized;
-        await SaveAndNotifyAsync("GlobalShortcut");
+        await SaveAndNotifyAsync(SettingNames.GlobalShortcut);
     }
 
     /// <summary>
@@ -291,7 +292,7 @@ public class SettingsService
         }
 
         _currentSettings.MinimizeToTray = enabled;
-        await SaveAndNotifyAsync("MinimizeToTray");
+        await SaveAndNotifyAsync(SettingNames.MinimizeToTray);
     }
 
     /// <summary>
@@ -309,7 +310,7 @@ public class SettingsService
     {
         _currentSettings = AppSettings.CreateDefault();
         await _settingsStore.SaveAsync(_currentSettings);
-        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs("All"));
+        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.All));
     }
 
     /// <summary>

@@ -201,9 +201,9 @@ For desktop apps with fast local I/O, cancellation tokens add complexity without
 
 ---
 
-### 9. Hardcoded String Constants Throughout Codebase
+### 9. ~~Hardcoded String Constants Throughout Codebase~~
 
-- [ ] **Extract setting names and valid values to a constants class or enums**
+- [x] **Extract setting names and valid values to a constants class or enums**
 
 **Files:** Multiple
 
@@ -424,7 +424,7 @@ These are suggestions for future development, not issues requiring fixes:
 ### Recommended (Medium Priority)
 - [x] ~~Call `AppSettings.Validate()` after loading~~ (#7) - Already implemented
 - [x] ~~Add cancellation token support to async methods~~ (#8) - Won't fix, by design
-- [ ] Extract string constants to dedicated class (#9)
+- [x] Extract string constants to dedicated class (#9)
 - [ ] Add ViewModel test coverage (#10)
 - [ ] Verify process name in lock service (#11)
 

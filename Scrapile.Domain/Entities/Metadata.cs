@@ -1,5 +1,7 @@
 namespace Scrapile.Domain.Entities;
 
+using Scrapile.Domain.Constants;
+
 /// <summary>
 /// Root metadata object stored in .ephemeral_metadata.json.
 /// Contains only data that cannot be derived from the file system.
@@ -32,7 +34,7 @@ public class Metadata
     /// User's preferred theme setting.
     /// Valid values: "Light", "Dark", "System".
     /// </summary>
-    public string Theme { get; set; } = "System";
+    public string Theme { get; set; } = ThemeValues.System;
 
     /// <summary>
     /// The document ID of the last active (selected) tab.

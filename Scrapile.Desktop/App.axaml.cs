@@ -14,6 +14,7 @@ using Scrapile.Application.Services;
 using Scrapile.Desktop.DependencyInjection;
 using Scrapile.Desktop.ViewModels;
 using Scrapile.Desktop.Views;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Entities;
 using Scrapile.Desktop.Services;
 using Scrapile.Domain.Interfaces;
@@ -253,7 +254,7 @@ public partial class App : Avalonia.Application
 
     private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
     {
-        if (e.SettingName == "GlobalShortcut" || e.SettingName == "All")
+        if (e.SettingName == SettingNames.GlobalShortcut || e.SettingName == SettingNames.All)
         {
             // Re-register hotkey with new setting
             if (Services != null && GlobalHotkeyService != null)

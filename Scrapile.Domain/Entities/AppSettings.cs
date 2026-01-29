@@ -1,5 +1,7 @@
 namespace Scrapile.Domain.Entities;
 
+using Scrapile.Domain.Constants;
+
 /// <summary>
 /// Application settings that persist across sessions.
 /// Contains user preferences that rarely change.
@@ -21,7 +23,7 @@ public class AppSettings
     /// Position of the tab list panel.
     /// Valid values: "Left" or "Right".
     /// </summary>
-    public string TabPosition { get; set; } = "Left";
+    public string TabPosition { get; set; } = TabPositionValues.Left;
 
     /// <summary>
     /// Font family for the editor.
@@ -38,13 +40,13 @@ public class AppSettings
     /// Word wrap setting for the editor.
     /// Valid values: "Wrap", "NoWrap".
     /// </summary>
-    public string WordWrap { get; set; } = "Wrap";
+    public string WordWrap { get; set; } = WordWrapValues.Wrap;
 
     /// <summary>
     /// Theme preference.
     /// Valid values: "Light", "Dark", "System".
     /// </summary>
-    public string Theme { get; set; } = "System";
+    public string Theme { get; set; } = ThemeValues.System;
 
     /// <summary>
     /// Auto-save delay in milliseconds.
@@ -78,11 +80,11 @@ public class AppSettings
         {
             Version = "1.0",
             StorageDirectory = null,
-            TabPosition = "Left",
+            TabPosition = TabPositionValues.Left,
             FontFamily = null,
             FontSize = 14,
-            WordWrap = "Wrap",
-            Theme = "System",
+            WordWrap = WordWrapValues.Wrap,
+            Theme = ThemeValues.System,
             AutoSaveDelayMs = 500,
             AutorunAtStartup = false,
             GlobalShortcut = null,
@@ -96,9 +98,9 @@ public class AppSettings
     public void Validate()
     {
         // Validate TabPosition
-        if (TabPosition != "Left" && TabPosition != "Right")
+        if (!TabPositionValues.IsValid(TabPosition))
         {
-            TabPosition = "Left";
+            TabPosition = TabPositionValues.Left;
         }
 
         // Validate FontSize (reasonable range: 8-72)
@@ -112,15 +114,15 @@ public class AppSettings
         }
 
         // Validate Theme
-        if (Theme != "Light" && Theme != "Dark" && Theme != "System")
+        if (!ThemeValues.IsValid(Theme))
         {
-            Theme = "System";
+            Theme = ThemeValues.System;
         }
 
         // Validate WordWrap
-        if (WordWrap != "Wrap" && WordWrap != "NoWrap")
+        if (!WordWrapValues.IsValid(WordWrap))
         {
-            WordWrap = "Wrap";
+            WordWrap = WordWrapValues.Wrap;
         }
 
         // Validate AutoSaveDelayMs (reasonable range: 100-5000)
