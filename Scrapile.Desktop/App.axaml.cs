@@ -16,6 +16,8 @@ using Scrapile.Desktop.ViewModels;
 using Scrapile.Desktop.Views;
 using Scrapile.Domain.Entities;
 using Scrapile.Desktop.Services;
+using Scrapile.Domain.Interfaces;
+using Scrapile.Infrastructure.Services;
 using Scrapile.Infrastructure.Storage;
 
 namespace Scrapile.Desktop;
@@ -36,6 +38,11 @@ public partial class App : Avalonia.Application
     /// Gets the global hotkey service.
     /// </summary>
     public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
+
+    /// <summary>
+    /// Gets the storage lock service that prevents multiple instances.
+    /// </summary>
+    private IStorageLockService? _storageLockService;
 
     /// <summary>
     /// Gets the main window reference.
@@ -109,6 +116,16 @@ public partial class App : Avalonia.Application
                 globalShortcut = existingSettings.GlobalShortcut;
             }
 
+            // Try to acquire exclusive lock on the storage directory
+            _storageLockService = new StorageLockService();
+            if (!_storageLockService.TryAcquireLock(storageDirectory))
+            {
+                var lockInfo = _storageLockService.GetExistingLockInfo(storageDirectory);
+                await ShowStorageLockErrorAsync(storageDirectory, lockInfo);
+                desktop.Shutdown(1);
+                return;
+            }
+
             // Configure dependency injection
             var services = new ServiceCollection();
             services.AddScrapileServices(storageDirectory);
@@ -170,6 +187,37 @@ public partial class App : Avalonia.Application
         }
 
         return (storageDirectory, welcomeWindow.AutorunAtStartup, welcomeWindow.GlobalShortcut);
+    }
+
+    private async Task ShowStorageLockErrorAsync(string storageDirectory, LockInfo? lockInfo)
+    {
+        var message = $"Another instance of Scrapile is already using this storage folder:\n\n{storageDirectory}";
+
+        if (lockInfo != null)
+        {
+            message += $"\n\nProcess ID: {lockInfo.Pid}";
+            if (!string.IsNullOrEmpty(lockInfo.MachineName))
+            {
+                message += $"\nMachine: {lockInfo.MachineName}";
+            }
+        }
+
+        message += "\n\nPlease close the other instance or choose a different storage folder.";
+
+        var viewModel = new MessageDialogViewModel
+        {
+            Title = "Scrapile Already Running",
+            Message = message,
+            PrimaryButtonText = "OK"
+        };
+
+        var dialog = new MessageDialog { DataContext = viewModel };
+
+        // Use Show() since there's no owner window yet, then wait for close
+        var tcs = new TaskCompletionSource<bool>();
+        dialog.Closed += (_, _) => tcs.TrySetResult(true);
+        dialog.Show();
+        await tcs.Task;
     }
 
     private void OnTrayShowHideRequested(object? sender, EventArgs e)
@@ -317,6 +365,9 @@ public partial class App : Avalonia.Application
 
         // Dispose global hotkey service (may already be disposed by QuitApplication)
         GlobalHotkeyService?.Dispose();
+
+        // Release storage lock
+        _storageLockService?.ReleaseLock();
 
         // Dispose of services that implement IDisposable
         if (Services is IDisposable disposable)
