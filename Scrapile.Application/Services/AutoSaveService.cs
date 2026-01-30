@@ -21,6 +21,11 @@ public class AutoSaveService : IDisposable
     public event EventHandler<SaveCompletedEventArgs>? SaveCompleted;
 
     /// <summary>
+    /// Event raised when a save operation fails.
+    /// </summary>
+    public event EventHandler<SaveFailedEventArgs>? SaveFailed;
+
+    /// <summary>
     /// Creates a new AutoSaveService with the default debounce delay (500ms).
     /// </summary>
     /// <param name="repository">The document repository for storage operations.</param>
@@ -179,7 +184,26 @@ public class AutoSaveService : IDisposable
             cancellationToken.ThrowIfCancellationRequested();
 
             // Perform the save
-            await _repository.UpdateContentAsync(documentId, content);
+            try
+            {
+                await _repository.UpdateContentAsync(documentId, content);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Clean up the pending save entry on failure
+                lock (_lock)
+                {
+                    if (_pendingSaves.TryGetValue(documentId, out var currentCts) &&
+                        currentCts.Token == cancellationToken)
+                    {
+                        _pendingSaves.Remove(documentId);
+                    }
+                }
+
+                // Raise event to notify that save failed
+                SaveFailed?.Invoke(this, new SaveFailedEventArgs(documentId, ex));
+                return;
+            }
 
             // Clean up the pending save entry
             lock (_lock)
@@ -246,5 +270,32 @@ public class SaveCompletedEventArgs : EventArgs
     public SaveCompletedEventArgs(Guid documentId)
     {
         DocumentId = documentId;
+    }
+}
+
+/// <summary>
+/// Event args for save failed events.
+/// </summary>
+public class SaveFailedEventArgs : EventArgs
+{
+    /// <summary>
+    /// The ID of the document that failed to save.
+    /// </summary>
+    public Guid DocumentId { get; }
+
+    /// <summary>
+    /// The exception that caused the save to fail.
+    /// </summary>
+    public Exception Exception { get; }
+
+    /// <summary>
+    /// Creates a new SaveFailedEventArgs.
+    /// </summary>
+    /// <param name="documentId">The ID of the document that failed to save.</param>
+    /// <param name="exception">The exception that caused the failure.</param>
+    public SaveFailedEventArgs(Guid documentId, Exception exception)
+    {
+        DocumentId = documentId;
+        Exception = exception;
     }
 }

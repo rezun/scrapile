@@ -137,8 +137,9 @@ public partial class MainWindowViewModel : ViewModelBase
         _searchViewModel.ResultSelected += OnSearchResultSelected;
         _searchViewModel.CloseRequested += OnSearchCloseRequested;
 
-        // Subscribe to auto-save completion to update dirty state
+        // Subscribe to auto-save events
         _autoSaveService.SaveCompleted += OnAutoSaveCompleted;
+        _autoSaveService.SaveFailed += OnAutoSaveFailed;
 
         // Subscribe to settings changes for tab position
         _settingsService.SettingsChanged += OnSettingsChanged;
@@ -302,9 +303,6 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            // Show save status indicator
-            EditorViewModel.SaveStatus = "Saving...";
-
             // Schedule debounced auto-save
             // The AutoSaveService handles the debouncing and saving to disk
             await _autoSaveService.ScheduleSaveAsync(e.DocumentId, e.Content);
@@ -351,25 +349,17 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Handles auto-save completion events.
     /// Resets the dirty state for the document that was saved.
     /// </summary>
-    private async void OnAutoSaveCompleted(object? sender, SaveCompletedEventArgs e)
+    private void OnAutoSaveCompleted(object? sender, SaveCompletedEventArgs e)
     {
         try
         {
             // Mark the tab as no longer dirty in the TabManager
             _tabManager.MarkTabSaved(e.DocumentId);
 
-            // Update the editor's dirty state and save status if this is the current tab
+            // Update the editor's dirty state if this is the current tab
             if (SelectedTab?.DocumentId == e.DocumentId)
             {
                 EditorViewModel.SetDirty(false);
-                EditorViewModel.SaveStatus = "Saved";
-
-                // Clear the save status after a short delay
-                await Task.Delay(UiTimingConstants.SaveStatusDisplayDurationMs);
-                if (EditorViewModel.SaveStatus == "Saved")
-                {
-                    EditorViewModel.SaveStatus = string.Empty;
-                }
             }
 
             // Refresh the tab to update the dirty indicator
@@ -382,6 +372,35 @@ public partial class MainWindowViewModel : ViewModelBase
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error in OnAutoSaveCompleted: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// Handles auto-save failure events.
+    /// Displays an error status to alert the user.
+    /// </summary>
+    private async void OnAutoSaveFailed(object? sender, SaveFailedEventArgs e)
+    {
+        try
+        {
+            Console.Error.WriteLine($"Auto-save failed for document {e.DocumentId}: {e.Exception}");
+
+            // Show error status if this is the current tab
+            if (SelectedTab?.DocumentId == e.DocumentId)
+            {
+                EditorViewModel.SaveStatus = "Save failed";
+
+                // Clear the save status after a delay
+                await Task.Delay(UiTimingConstants.SaveStatusDisplayDurationMs);
+                if (EditorViewModel.SaveStatus == "Save failed")
+                {
+                    EditorViewModel.SaveStatus = string.Empty;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error in OnAutoSaveFailed: {ex}");
         }
     }
 
