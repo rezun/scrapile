@@ -713,6 +713,17 @@ public class EditorViewModelTests
             _documentWordWrap[documentId] = wordWrap;
             return Task.CompletedTask;
         }
+
+        private readonly Dictionary<Guid, string?> _documentSyntaxLanguage = new();
+
+        public Task<string?> GetDocumentSyntaxLanguageAsync(Guid documentId) =>
+            Task.FromResult(_documentSyntaxLanguage.TryGetValue(documentId, out var language) ? language : null);
+
+        public Task UpdateDocumentSyntaxLanguageAsync(Guid documentId, string? syntaxLanguage)
+        {
+            _documentSyntaxLanguage[documentId] = syntaxLanguage;
+            return Task.CompletedTask;
+        }
     }
 
     private class MockSettingsStore : ISettingsStore

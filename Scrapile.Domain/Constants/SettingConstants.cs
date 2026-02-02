@@ -16,6 +16,7 @@ public static class SettingNames
     public const string AutorunAtStartup = "AutorunAtStartup";
     public const string GlobalShortcut = "GlobalShortcut";
     public const string MinimizeToTray = "MinimizeToTray";
+    public const string AlwaysShowLineNumbers = "AlwaysShowLineNumbers";
 }
 
 /// <summary>

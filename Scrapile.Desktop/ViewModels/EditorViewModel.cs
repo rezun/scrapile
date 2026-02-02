@@ -1,6 +1,8 @@
 namespace Scrapile.Desktop.ViewModels;
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -77,6 +79,15 @@ public partial class EditorViewModel : ViewModelBase
     private string _wordWrapDisplayText = "Wrap: Default";
 
     [ObservableProperty]
+    private string _selectedSyntaxLanguage = "PlainText";
+
+    [ObservableProperty]
+    private string _syntaxLanguageDisplayText = "Plain Text";
+
+    [ObservableProperty]
+    private bool _showLineNumbers;
+
+    [ObservableProperty]
     private bool _isFindBarVisible;
 
     private FindViewModel? _findViewModel;
@@ -100,6 +111,36 @@ public partial class EditorViewModel : ViewModelBase
     /// Event raised when the find bar requests focus.
     /// </summary>
     public event EventHandler? FocusFindBarRequested;
+
+    /// <summary>
+    /// Event raised when the syntax language changes (for TextMate update).
+    /// </summary>
+    public event EventHandler<string>? SyntaxLanguageChanged;
+
+    /// <summary>
+    /// Available syntax languages for the dropdown.
+    /// Key = display name, Value = language ID.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> AvailableSyntaxLanguages { get; } = new Dictionary<string, string>
+    {
+        { "Plain Text", "PlainText" },
+        { "C#", "csharp" },
+        { "SQL", "sql" },
+        { "JavaScript", "javascript" },
+        { "TypeScript", "typescript" },
+        { "Python", "python" },
+        { "JSON", "json" },
+        { "XML", "xml" },
+        { "HTML", "html" },
+        { "CSS", "css" },
+        { "Markdown", "markdown" },
+        { "Bash", "shellscript" },
+        { "PowerShell", "powershell" },
+        { "Go", "go" },
+        { "Rust", "rust" },
+        { "Java", "java" },
+        { "YAML", "yaml" }
+    };
 
     /// <summary>
     /// Creates a new EditorViewModel.
@@ -145,6 +186,11 @@ public partial class EditorViewModel : ViewModelBase
         if (e.SettingName == SettingNames.WordWrap || e.SettingName == SettingNames.All)
         {
             ApplyWordWrapSetting();
+        }
+
+        if (e.SettingName == SettingNames.AlwaysShowLineNumbers || e.SettingName == SettingNames.All)
+        {
+            UpdateShowLineNumbers();
         }
     }
 
@@ -236,6 +282,14 @@ public partial class EditorViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Updates ShowLineNumbers based on current syntax language and settings.
+    /// </summary>
+    private void UpdateShowLineNumbers()
+    {
+        ShowLineNumbers = SelectedSyntaxLanguage != "PlainText" || _settingsService.GetAlwaysShowLineNumbers();
+    }
+
+    /// <summary>
     /// Applies the word wrap setting, taking into account per-document override.
     /// </summary>
     private void ApplyWordWrapSetting()
@@ -308,6 +362,43 @@ public partial class EditorViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Sets the syntax language for the current document.
+    /// </summary>
+    /// <param name="displayName">The display name of the language (e.g., "C#", "SQL").</param>
+    public async Task SetSyntaxLanguageAsync(string displayName)
+    {
+        if (_currentTab == null) return;
+
+        var languageId = AvailableSyntaxLanguages.TryGetValue(displayName, out var id)
+            ? id
+            : "PlainText";
+
+        SelectedSyntaxLanguage = languageId;
+        SyntaxLanguageDisplayText = displayName;
+        UpdateShowLineNumbers();
+
+        await _metadataStore.UpdateDocumentSyntaxLanguageAsync(_currentTab.DocumentId, languageId);
+        SyntaxLanguageChanged?.Invoke(this, languageId);
+    }
+
+    /// <summary>
+    /// Loads the syntax language setting for a document.
+    /// </summary>
+    private async Task LoadDocumentSyntaxLanguageAsync(Guid documentId)
+    {
+        var language = await _metadataStore.GetDocumentSyntaxLanguageAsync(documentId);
+        SelectedSyntaxLanguage = language ?? "PlainText";
+
+        // Find display name
+        SyntaxLanguageDisplayText = AvailableSyntaxLanguages
+            .FirstOrDefault(kvp => kvp.Value == SelectedSyntaxLanguage).Key
+            ?? "Plain Text";
+
+        UpdateShowLineNumbers();
+        SyntaxLanguageChanged?.Invoke(this, SelectedSyntaxLanguage);
+    }
+
+    /// <summary>
     /// The current tab being edited, or null if no tab is selected.
     /// </summary>
     public TabItemViewModel? CurrentTab
@@ -344,6 +435,9 @@ public partial class EditorViewModel : ViewModelBase
                 SelectedWordWrap = "Default";
                 UpdateWordWrapDisplayText();
                 ApplyWordWrapSetting();
+                SelectedSyntaxLanguage = "PlainText";
+                SyntaxLanguageDisplayText = "Plain Text";
+                UpdateShowLineNumbers();
                 UpdateStatusBarProperties();
                 return;
             }
@@ -359,12 +453,20 @@ public partial class EditorViewModel : ViewModelBase
             SelectionEnd = 0;
             UpdateStatusBarProperties();
 
-            // Load per-document word wrap setting asynchronously
+            // Load per-document settings asynchronously
             _ = LoadDocumentWordWrapAsync(_currentTab.DocumentId).ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
                     Console.Error.WriteLine($"Failed to load word wrap setting: {t.Exception}");
+                }
+            }, TaskScheduler.Default);
+
+            _ = LoadDocumentSyntaxLanguageAsync(_currentTab.DocumentId).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Console.Error.WriteLine($"Failed to load syntax language setting: {t.Exception}");
                 }
             }, TaskScheduler.Default);
         }

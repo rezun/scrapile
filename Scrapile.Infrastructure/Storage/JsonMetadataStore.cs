@@ -427,6 +427,53 @@ public class JsonMetadataStore : IMetadataStore, IDisposable
         }
     }
 
+    /// <inheritdoc />
+    public async Task<string?> GetDocumentSyntaxLanguageAsync(Guid documentId)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+
+            if (metadata.Documents.TryGetValue(documentId, out var docMeta))
+            {
+                return docMeta.SyntaxLanguage;
+            }
+
+            return null;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateDocumentSyntaxLanguageAsync(Guid documentId, string? syntaxLanguage)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var metadata = await LoadFromFileOrCacheAsync();
+
+            if (!metadata.Documents.TryGetValue(documentId, out var docMeta))
+            {
+                docMeta = new DocumentMetadata();
+                metadata.Documents[documentId] = docMeta;
+            }
+
+            // Normalize "PlainText" to null
+            docMeta.SyntaxLanguage = (string.IsNullOrWhiteSpace(syntaxLanguage) || syntaxLanguage == "PlainText") ? null : syntaxLanguage;
+
+            await SaveToFileAsync(metadata);
+            _cachedMetadata = metadata;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
     /// <summary>
     /// Loads metadata from cache if available, otherwise from file.
     /// Must be called within the lock.

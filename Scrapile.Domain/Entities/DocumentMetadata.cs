@@ -17,4 +17,11 @@ public class DocumentMetadata
     /// "Wrap" or "NoWrap" overrides the global setting.
     /// </summary>
     public string? WordWrap { get; set; }
+
+    /// <summary>
+    /// Per-document syntax language for highlighting.
+    /// Null or "PlainText" means no syntax highlighting.
+    /// Values match TextMate language IDs (e.g., "csharp", "sql", "javascript").
+    /// </summary>
+    public string? SyntaxLanguage { get; set; }
 }

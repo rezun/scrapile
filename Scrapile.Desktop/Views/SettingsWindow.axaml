@@ -107,6 +107,10 @@
                                   SelectedItem="{Binding SelectedWordWrap}"
                                   HorizontalAlignment="Stretch"/>
                     </Grid>
+
+                    <!-- Always Show Line Numbers -->
+                    <CheckBox Content="Always show line numbers"
+                              IsChecked="{Binding AlwaysShowLineNumbers}"/>
                 </StackPanel>
 
                 <Separator/>

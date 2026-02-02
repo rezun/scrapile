@@ -121,4 +121,18 @@ public interface IMetadataStore
     /// </summary>
     /// <param name="documentId">The active tab's document ID, or null to clear.</param>
     Task SetActiveTabDocumentIdAsync(Guid? documentId);
+
+    /// <summary>
+    /// Gets the syntax language for a specific document.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <returns>The syntax language ID, or null if using plain text.</returns>
+    Task<string?> GetDocumentSyntaxLanguageAsync(Guid documentId);
+
+    /// <summary>
+    /// Updates the syntax language for a document.
+    /// </summary>
+    /// <param name="documentId">The document ID.</param>
+    /// <param name="syntaxLanguage">The syntax language ID, or null for plain text.</param>
+    Task UpdateDocumentSyntaxLanguageAsync(Guid documentId, string? syntaxLanguage);
 }

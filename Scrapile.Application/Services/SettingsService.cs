@@ -296,6 +296,28 @@ public class SettingsService
     }
 
     /// <summary>
+    /// Gets the always show line numbers setting.
+    /// </summary>
+    public bool GetAlwaysShowLineNumbers()
+    {
+        return _currentSettings.AlwaysShowLineNumbers;
+    }
+
+    /// <summary>
+    /// Sets whether to always show line numbers.
+    /// </summary>
+    public async Task SetAlwaysShowLineNumbersAsync(bool enabled)
+    {
+        if (_currentSettings.AlwaysShowLineNumbers == enabled)
+        {
+            return;
+        }
+
+        _currentSettings.AlwaysShowLineNumbers = enabled;
+        await SaveAndNotifyAsync(SettingNames.AlwaysShowLineNumbers);
+    }
+
+    /// <summary>
     /// Saves all current settings.
     /// </summary>
     public async Task SaveAsync()

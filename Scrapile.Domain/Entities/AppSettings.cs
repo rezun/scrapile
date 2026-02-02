@@ -72,6 +72,12 @@ public class AppSettings
     public bool MinimizeToTray { get; set; } = true;
 
     /// <summary>
+    /// Whether to always show line numbers in the editor.
+    /// When false, line numbers are only shown when syntax highlighting is enabled.
+    /// </summary>
+    public bool AlwaysShowLineNumbers { get; set; } = false;
+
+    /// <summary>
     /// Creates a default settings object with sensible defaults.
     /// </summary>
     public static AppSettings CreateDefault()
@@ -88,7 +94,8 @@ public class AppSettings
             AutoSaveDelayMs = AutoSaveDelayLimits.DefaultMs,
             AutorunAtStartup = false,
             GlobalShortcut = null,
-            MinimizeToTray = true
+            MinimizeToTray = true,
+            AlwaysShowLineNumbers = false
         };
     }
 

@@ -95,6 +95,9 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _minimizeToTray = true;
 
     [ObservableProperty]
+    private bool _alwaysShowLineNumbers;
+
+    [ObservableProperty]
     private string? _globalShortcut;
 
     [ObservableProperty]
@@ -208,6 +211,7 @@ public partial class SettingsViewModel : ViewModelBase
             AutoSaveDelayMs = settings.AutoSaveDelayMs;
             AutorunAtStartup = settings.AutorunAtStartup;
             MinimizeToTray = settings.MinimizeToTray;
+            AlwaysShowLineNumbers = settings.AlwaysShowLineNumbers;
             GlobalShortcut = settings.GlobalShortcut;
             ShortcutConflictMessage = Services.GlobalHotkeyService.CheckForConflicts(GlobalShortcut);
             SettingsFilePath = _settingsService.SettingsFilePath;
@@ -273,6 +277,12 @@ public partial class SettingsViewModel : ViewModelBase
     {
         if (_isInitializing) return;
         _ = _settingsService.SetMinimizeToTrayAsync(value);
+    }
+
+    partial void OnAlwaysShowLineNumbersChanged(bool value)
+    {
+        if (_isInitializing) return;
+        _ = _settingsService.SetAlwaysShowLineNumbersAsync(value);
     }
 
     partial void OnGlobalShortcutChanged(string? value)

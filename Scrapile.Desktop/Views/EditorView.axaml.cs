@@ -1,21 +1,28 @@
 using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using AvaloniaEdit;
+using AvaloniaEdit.TextMate;
+using TextMateSharp.Grammars;
 using Scrapile.Desktop.ViewModels;
+using Scrapile.Desktop.Services;
+using Scrapile.Domain.Constants;
 
 namespace Scrapile.Desktop.Views;
 
 public partial class EditorView : UserControl
 {
     private string? _titleBeforeEdit;
-    private IDisposable? _caretSubscription;
-    private IDisposable? _selectionStartSubscription;
-    private IDisposable? _selectionEndSubscription;
     private EditorViewModel? _currentViewModel;
+
+    // TextMate for syntax highlighting
+    private TextMate.Installation? _textMateInstallation;
+    private RegistryOptions? _registryOptions;
 
     public EditorView()
     {
@@ -27,28 +34,156 @@ public partial class EditorView : UserControl
 
     private void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        // Handle keyboard shortcuts at the TextBox level using tunneling
-        // This intercepts shortcuts before the native text system can consume them
-        // Use both Tunnel and Bubble to catch at every stage
-        ContentTextBox.AddHandler(KeyDownEvent, OnTextBoxKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
+        // Initialize TextMate for syntax highlighting
+        InitializeTextMate();
+
+        // Add padding after line numbers
+        ConfigureLineNumberMargin();
+
+        // Handle keyboard shortcuts at the TextEditor level using tunneling
+        ContentEditor.AddHandler(KeyDownEvent, OnEditorKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         TitleTextBox.AddHandler(KeyDownEvent, OnTitleKeyDown, RoutingStrategies.Tunnel, handledEventsToo: true);
 
         // Store the title value when the title TextBox gains focus (for Escape to restore)
         TitleTextBox.GotFocus += OnTitleGotFocus;
 
-        // Subscribe to caret and selection changes to update ViewModel
-        _caretSubscription = ContentTextBox.GetObservable(TextBox.CaretIndexProperty)
-            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.CaretIndex = index; }));
-        _selectionStartSubscription = ContentTextBox.GetObservable(TextBox.SelectionStartProperty)
-            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionStart = index; }));
-        _selectionEndSubscription = ContentTextBox.GetObservable(TextBox.SelectionEndProperty)
-            .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionEnd = index; }));
+        // Subscribe to caret and selection changes from AvaloniaEdit
+        ContentEditor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
+        ContentEditor.TextArea.SelectionChanged += OnSelectionChanged;
 
-        // Subscribe to selection and focus events from ViewModel
+        // Subscribe to ViewModel events
         if (DataContext is EditorViewModel viewModel)
         {
             SubscribeToViewModel(viewModel);
         }
+    }
+
+    private void InitializeTextMate()
+    {
+        // Get current theme from ThemeService
+        var themeName = GetTextMateTheme();
+        _registryOptions = new RegistryOptions(themeName);
+        _textMateInstallation = ContentEditor.InstallTextMate(_registryOptions);
+    }
+
+    private void ConfigureLineNumberMargin()
+    {
+        // Add left padding to text content for visual separation from line numbers.
+        // The negative top margin (-2) compensates for a vertical offset in AvaloniaEdit
+        // where line numbers render slightly higher than the corresponding text.
+        // This is a known issue - see: https://github.com/AvaloniaUI/AvaloniaEdit/issues/434
+        ContentEditor.TextArea.TextView.Margin = new Thickness(6, -1, 0, 0);
+    }
+
+    private ThemeName GetTextMateTheme()
+    {
+        // Try to get the theme service from the app
+        if (App.Current is App app)
+        {
+            var themeService = app.Services?.GetService(typeof(ThemeService)) as ThemeService;
+            if (themeService != null)
+            {
+                return themeService.CurrentTheme switch
+                {
+                    ThemeValues.Light => ThemeName.LightPlus,
+                    ThemeValues.Dark => ThemeName.DarkPlus,
+                    _ => ThemeName.DarkPlus // Default to dark
+                };
+            }
+        }
+        return ThemeName.DarkPlus;
+    }
+
+    private void SetTextMateLanguage(string languageId)
+    {
+        if (_textMateInstallation == null || _registryOptions == null)
+            return;
+
+        if (string.IsNullOrEmpty(languageId) || languageId == "PlainText")
+        {
+            _textMateInstallation.SetGrammar(null);
+            return;
+        }
+
+        try
+        {
+            var extension = GetExtensionForLanguage(languageId);
+            var language = _registryOptions.GetLanguageByExtension(extension);
+            if (language != null)
+            {
+                var scope = _registryOptions.GetScopeByLanguageId(language.Id);
+                _textMateInstallation.SetGrammar(scope);
+            }
+        }
+        catch
+        {
+            // If language not found, fall back to plain text
+            _textMateInstallation.SetGrammar(null);
+        }
+    }
+
+    private static string GetExtensionForLanguage(string languageId)
+    {
+        return languageId switch
+        {
+            "csharp" => ".cs",
+            "javascript" => ".js",
+            "typescript" => ".ts",
+            "python" => ".py",
+            "sql" => ".sql",
+            "json" => ".json",
+            "xml" => ".xml",
+            "html" => ".html",
+            "css" => ".css",
+            "markdown" => ".md",
+            "shellscript" => ".sh",
+            "powershell" => ".ps1",
+            "go" => ".go",
+            "rust" => ".rs",
+            "java" => ".java",
+            "ruby" => ".rb",
+            "php" => ".php",
+            "yaml" => ".yaml",
+            _ => ".txt"
+        };
+    }
+
+    private void OnCaretPositionChanged(object? sender, EventArgs e)
+    {
+        if (DataContext is EditorViewModel vm)
+        {
+            vm.CaretIndex = ContentEditor.CaretOffset;
+        }
+    }
+
+    private void OnSelectionChanged(object? sender, EventArgs e)
+    {
+        if (DataContext is EditorViewModel vm)
+        {
+            var selection = ContentEditor.TextArea.Selection;
+            if (selection.IsEmpty)
+            {
+                vm.SelectionStart = ContentEditor.CaretOffset;
+                vm.SelectionEnd = ContentEditor.CaretOffset;
+            }
+            else
+            {
+                // Get the selection range
+                var segments = selection.Segments;
+                if (segments.Any())
+                {
+                    var firstSegment = segments.First();
+                    var lastSegment = segments.Last();
+                    vm.SelectionStart = firstSegment.StartOffset;
+                    vm.SelectionEnd = lastSegment.EndOffset;
+                }
+            }
+        }
+    }
+
+    private void OnSyntaxLanguageChanged(object? sender, string languageId)
+    {
+        SetTextMateLanguage(languageId);
     }
 
     /// <inheritdoc/>
@@ -61,6 +196,7 @@ public partial class EditorView : UserControl
         {
             _currentViewModel.SelectionRequested -= OnSelectionRequested;
             _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
+            _currentViewModel.SyntaxLanguageChanged -= OnSyntaxLanguageChanged;
         }
 
         // Subscribe to new view model
@@ -81,16 +217,20 @@ public partial class EditorView : UserControl
         _currentViewModel = viewModel;
         viewModel.SelectionRequested += OnSelectionRequested;
         viewModel.FocusFindBarRequested += OnFocusFindBarRequested;
+        viewModel.SyntaxLanguageChanged += OnSyntaxLanguageChanged;
+
+        // Apply current language setting
+        SetTextMateLanguage(viewModel.SelectedSyntaxLanguage);
     }
 
     private void OnSelectionRequested(object? sender, SelectionRequestedEventArgs e)
     {
-        // Clear selection first by setting both to the same value
-        ContentTextBox.SelectionStart = e.StartPosition;
-        ContentTextBox.SelectionEnd = e.StartPosition;
+        // Set selection in AvaloniaEdit
+        ContentEditor.Select(e.StartPosition, e.Length);
 
-        // Now set the actual selection end
-        ContentTextBox.SelectionEnd = e.StartPosition + e.Length;
+        // Scroll to make the selection visible
+        var line = ContentEditor.Document.GetLineByOffset(e.StartPosition);
+        ContentEditor.ScrollToLine(line.LineNumber);
     }
 
     private void OnFocusFindBarRequested(object? sender, EventArgs e)
@@ -110,16 +250,12 @@ public partial class EditorView : UserControl
         }
     }
 
-    /// <summary>
-    /// Simple observer that calls an action on each value.
-    /// </summary>
-    private class ActionObserver<T> : IObserver<T>
+    private async void OnLanguageSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        private readonly Action<T> _action;
-        public ActionObserver(Action<T> action) => _action = action;
-        public void OnCompleted() { }
-        public void OnError(Exception error) { }
-        public void OnNext(T value) => _action(value);
+        if (DataContext is EditorViewModel vm && LanguageComboBox.SelectedItem is string selectedLanguage)
+        {
+            await vm.SetSyntaxLanguageAsync(selectedLanguage);
+        }
     }
 
     private void OnTitleGotFocus(object? sender, GotFocusEventArgs e)
@@ -157,16 +293,17 @@ public partial class EditorView : UserControl
         // If not Enter or Escape, check for global shortcuts
         if (!e.Handled)
         {
-            OnTextBoxKeyDown(sender, e);
+            OnEditorKeyDown(sender, e);
         }
     }
 
     /// <summary>
-    /// Intercepts keyboard shortcuts in TextBoxes before native text handling.
+    /// Intercepts keyboard shortcuts in the editor.
+    /// Handles Tab/Shift+Tab for indent/unindent and global shortcuts.
     /// </summary>
-    private async void OnTextBoxKeyDown(object? sender, KeyEventArgs e)
+    private async void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {
-        // Skip if already handled by MainWindow
+        // Skip if already handled
         if (e.Handled)
         {
             return;
@@ -185,6 +322,28 @@ public partial class EditorView : UserControl
                               !e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         }
 
+        var shiftPressed = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+
+        // Handle Tab/Shift+Tab for indent/unindent (no modifier required)
+        if (e.Key == Key.Tab && !modifierPressed)
+        {
+            if (HasMultiLineSelection())
+            {
+                e.Handled = true;
+                if (shiftPressed)
+                {
+                    UnindentSelectedLines();
+                }
+                else
+                {
+                    IndentSelectedLines();
+                }
+                return;
+            }
+            // Single line or no selection: let AvaloniaEdit handle it naturally
+            return;
+        }
+
         if (!modifierPressed)
         {
             return;
@@ -198,9 +357,7 @@ public partial class EditorView : UserControl
             return;
         }
 
-        var shiftPressed = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
-
-        // Handle shortcuts - process even if already handled since we want to override
+        // Handle shortcuts
         switch (e.Key)
         {
             case Key.W when !shiftPressed:
@@ -228,12 +385,119 @@ public partial class EditorView : UserControl
         }
     }
 
+    private bool HasMultiLineSelection()
+    {
+        var selection = ContentEditor.TextArea.Selection;
+        if (selection.IsEmpty) return false;
+
+        var segments = selection.Segments;
+        if (!segments.Any()) return false;
+
+        var firstSegment = segments.First();
+        var lastSegment = segments.Last();
+
+        var startLine = ContentEditor.Document.GetLineByOffset(firstSegment.StartOffset);
+        var endLine = ContentEditor.Document.GetLineByOffset(lastSegment.EndOffset);
+
+        return startLine.LineNumber != endLine.LineNumber;
+    }
+
+    private void IndentSelectedLines()
+    {
+        var selection = ContentEditor.TextArea.Selection;
+        var segments = selection.Segments.ToList();
+        if (!segments.Any()) return;
+
+        var firstSegment = segments.First();
+        var lastSegment = segments.Last();
+
+        var startLine = ContentEditor.Document.GetLineByOffset(firstSegment.StartOffset).LineNumber;
+        var endLine = ContentEditor.Document.GetLineByOffset(lastSegment.EndOffset).LineNumber;
+
+        // If selection ends at the start of a line, don't include that line
+        var endOffset = lastSegment.EndOffset;
+        var endLineObj = ContentEditor.Document.GetLineByOffset(endOffset);
+        if (endOffset == endLineObj.Offset && endLine > startLine)
+        {
+            endLine--;
+        }
+
+        ContentEditor.Document.BeginUpdate();
+        try
+        {
+            for (int i = startLine; i <= endLine; i++)
+            {
+                var line = ContentEditor.Document.GetLineByNumber(i);
+                ContentEditor.Document.Insert(line.Offset, "\t");
+            }
+        }
+        finally
+        {
+            ContentEditor.Document.EndUpdate();
+        }
+    }
+
+    private void UnindentSelectedLines()
+    {
+        var selection = ContentEditor.TextArea.Selection;
+        var segments = selection.Segments.ToList();
+        if (!segments.Any()) return;
+
+        var firstSegment = segments.First();
+        var lastSegment = segments.Last();
+
+        var startLine = ContentEditor.Document.GetLineByOffset(firstSegment.StartOffset).LineNumber;
+        var endLine = ContentEditor.Document.GetLineByOffset(lastSegment.EndOffset).LineNumber;
+
+        // If selection ends at the start of a line, don't include that line
+        var endOffset = lastSegment.EndOffset;
+        var endLineObj = ContentEditor.Document.GetLineByOffset(endOffset);
+        if (endOffset == endLineObj.Offset && endLine > startLine)
+        {
+            endLine--;
+        }
+
+        ContentEditor.Document.BeginUpdate();
+        try
+        {
+            for (int i = startLine; i <= endLine; i++)
+            {
+                var line = ContentEditor.Document.GetLineByNumber(i);
+                if (line.Length == 0) continue;
+
+                var firstChar = ContentEditor.Document.GetCharAt(line.Offset);
+                if (firstChar == '\t')
+                {
+                    ContentEditor.Document.Remove(line.Offset, 1);
+                }
+                else if (firstChar == ' ')
+                {
+                    // Remove up to 4 spaces
+                    int spacesToRemove = 0;
+                    for (int j = 0; j < Math.Min(4, line.Length); j++)
+                    {
+                        if (ContentEditor.Document.GetCharAt(line.Offset + j) == ' ')
+                            spacesToRemove++;
+                        else
+                            break;
+                    }
+                    if (spacesToRemove > 0)
+                        ContentEditor.Document.Remove(line.Offset, spacesToRemove);
+                }
+            }
+        }
+        finally
+        {
+            ContentEditor.Document.EndUpdate();
+        }
+    }
+
     /// <summary>
     /// Focuses the content editor.
     /// </summary>
     public void FocusContent()
     {
-        ContentTextBox.Focus();
+        ContentEditor.Focus();
     }
 
     /// <summary>
@@ -248,15 +512,23 @@ public partial class EditorView : UserControl
     protected override void OnUnloaded(RoutedEventArgs e)
     {
         base.OnUnloaded(e);
-        _caretSubscription?.Dispose();
-        _selectionStartSubscription?.Dispose();
-        _selectionEndSubscription?.Dispose();
+
+        // Dispose TextMate installation
+        _textMateInstallation?.Dispose();
+
+        // Unsubscribe from caret/selection events
+        if (ContentEditor != null)
+        {
+            ContentEditor.TextArea.Caret.PositionChanged -= OnCaretPositionChanged;
+            ContentEditor.TextArea.SelectionChanged -= OnSelectionChanged;
+        }
 
         // Unsubscribe from view model events
         if (_currentViewModel != null)
         {
             _currentViewModel.SelectionRequested -= OnSelectionRequested;
             _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
+            _currentViewModel.SyntaxLanguageChanged -= OnSyntaxLanguageChanged;
             _currentViewModel = null;
         }
     }

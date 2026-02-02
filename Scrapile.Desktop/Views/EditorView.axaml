@@ -4,6 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Scrapile.Desktop.ViewModels"
              xmlns:views="using:Scrapile.Desktop.Views"
+             xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             xmlns:aeEditing="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
+             xmlns:i="using:Avalonia.Xaml.Interactivity"
+             xmlns:behaviors="using:Scrapile.Desktop.Behaviors"
+             xmlns:converters="using:Scrapile.Desktop.Converters"
              mc:Ignorable="d"
              d:DesignWidth="600"
              d:DesignHeight="500"
@@ -13,6 +18,10 @@
     <Design.DataContext>
         <vm:EditorViewModel/>
     </Design.DataContext>
+
+    <UserControl.Resources>
+        <converters:TextWrappingToBoolConverter x:Key="TextWrappingToBoolConverter"/>
+    </UserControl.Resources>
 
     <UserControl.Styles>
         <!-- Remove focus border and set consistent background for editor TextBoxes -->
@@ -50,6 +59,36 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
+        </Style>
+        <!-- AvaloniaEdit TextEditor styling -->
+        <Style Selector="ae|TextEditor">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
+        </Style>
+        <!-- Subtle status bar ComboBox styling -->
+        <Style Selector="ComboBox.statusbar-combo">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="MinHeight" Value="0"/>
+            <Setter Property="Opacity" Value="0.7"/>
+        </Style>
+        <Style Selector="ComboBox.statusbar-combo:pointerover">
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="ComboBox.statusbar-combo /template/ Border#Background">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="ComboBox.statusbar-combo:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ComboBox.statusbar-combo:pressed /template/ Border#Background">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ComboBox.statusbar-combo /template/ PathIcon#DropDownGlyph">
+            <Setter Property="Width" Value="10"/>
+            <Setter Property="Height" Value="10"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
         </Style>
     </UserControl.Styles>
 
@@ -98,26 +137,27 @@
                     </Grid>
                 </Border>
 
-                <!-- Main text editor area -->
-                <TextBox x:Name="ContentTextBox"
-                         Classes="editor-textbox"
-                         Grid.Row="2"
-                         Text="{Binding Content, Mode=TwoWay}"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
-                         TextWrapping="{Binding TextWrapping}"
-                         Padding="16"
-                         FontFamily="{Binding EditorFontFamily}"
-                         FontSize="{Binding EditorFontSize}"
-                         Watermark="Start typing..."
-                         VerticalContentAlignment="Top"/>
+                <!-- Main text editor area (AvaloniaEdit) -->
+                <ae:TextEditor x:Name="ContentEditor"
+                               Grid.Row="2"
+                               WordWrap="{Binding TextWrapping, Converter={StaticResource TextWrappingToBoolConverter}}"
+                               FontFamily="{Binding EditorFontFamily}"
+                               FontSize="{Binding EditorFontSize}"
+                               Padding="16"
+                               ShowLineNumbers="{Binding ShowLineNumbers}"
+                               HorizontalScrollBarVisibility="Auto"
+                               VerticalScrollBarVisibility="Auto">
+                    <i:Interaction.Behaviors>
+                        <behaviors:DocumentTextBindingBehavior Text="{Binding Content, Mode=TwoWay}"/>
+                    </i:Interaction.Behaviors>
+                </ae:TextEditor>
 
                 <!-- Status bar -->
                 <Border Grid.Row="3"
                         Padding="12,6"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,1,0,0">
-                    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
                         <TextBlock Grid.Column="0"
                                    Text="{Binding StatusText}"
                                    FontSize="12" Opacity="0.7"/>
@@ -134,7 +174,18 @@
                                    Margin="16,0,0,0"
                                    Cursor="Hand"
                                    PointerPressed="OnWordWrapTextPressed"/>
-                        <TextBlock Grid.Column="4"
+                        <!-- Language selector -->
+                        <ComboBox x:Name="LanguageComboBox"
+                                  Grid.Column="3"
+                                  Classes="statusbar-combo"
+                                  ItemsSource="{Binding AvailableSyntaxLanguages.Keys}"
+                                  SelectedItem="{Binding SyntaxLanguageDisplayText}"
+                                  FontSize="12"
+                                  Margin="16,0,0,0"
+                                  VerticalAlignment="Center"
+                                  Cursor="Hand"
+                                  SelectionChanged="OnLanguageSelectionChanged"/>
+                        <TextBlock Grid.Column="5"
                                    Text="{Binding CursorPositionText}"
                                    FontSize="12" Opacity="0.7"/>
                     </Grid>
