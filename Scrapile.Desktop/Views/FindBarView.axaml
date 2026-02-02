@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Scrapile.Desktop.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="600"
+             d:DesignHeight="40"
+             x:Class="Scrapile.Desktop.Views.FindBarView"
+             x:DataType="vm:FindViewModel">
+
+    <UserControl.Styles>
+        <!-- Clean search input styling -->
+        <Style Selector="TextBox#FindInput /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox#FindInput:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="TextBox#FindInput:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+
+        <!-- Navigation button styling -->
+        <Style Selector="Button.find-nav-button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="MinWidth" Value="28"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="CornerRadius" Value="4"/>
+        </Style>
+        <Style Selector="Button.find-nav-button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+        </Style>
+        <Style Selector="Button.find-nav-button:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListMediumBrush}"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+            BorderThickness="0,0,0,1"
+            Padding="12,8">
+        <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto">
+            <!-- Search input -->
+            <TextBox x:Name="FindInput"
+                     Grid.Column="0"
+                     Text="{Binding SearchQuery, Mode=TwoWay}"
+                     Watermark="Find in document..."
+                     FontSize="14"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Padding="4,0"
+                     VerticalContentAlignment="Center"/>
+
+            <!-- Match status -->
+            <TextBlock Grid.Column="1"
+                       Text="{Binding MatchStatusText}"
+                       FontSize="12"
+                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                       VerticalAlignment="Center"
+                       Margin="8,0"
+                       MinWidth="60"/>
+
+            <!-- Previous button -->
+            <Button x:Name="PreviousButton"
+                    Grid.Column="2"
+                    Classes="find-nav-button"
+                    ToolTip.Tip="Previous match (Shift+Enter)"
+                    Click="OnPreviousClicked">
+                <TextBlock Text="&lt;" FontSize="14" FontWeight="Bold"/>
+            </Button>
+
+            <!-- Next button -->
+            <Button x:Name="NextButton"
+                    Grid.Column="3"
+                    Classes="find-nav-button"
+                    ToolTip.Tip="Next match (Enter)"
+                    Margin="4,0,0,0"
+                    Click="OnNextClicked">
+                <TextBlock Text="&gt;" FontSize="14" FontWeight="Bold"/>
+            </Button>
+
+            <!-- Close button -->
+            <Button x:Name="CloseButton"
+                    Grid.Column="5"
+                    Classes="find-nav-button"
+                    ToolTip.Tip="Close (Escape)"
+                    Margin="12,0,0,0"
+                    Click="OnCloseClicked">
+                <TextBlock Text="x" FontSize="14"/>
+            </Button>
+        </Grid>
+    </Border>
+
+</UserControl>

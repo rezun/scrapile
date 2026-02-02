@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Scrapile.Desktop.ViewModels;
 
@@ -14,6 +15,7 @@ public partial class EditorView : UserControl
     private IDisposable? _caretSubscription;
     private IDisposable? _selectionStartSubscription;
     private IDisposable? _selectionEndSubscription;
+    private EditorViewModel? _currentViewModel;
 
     public EditorView()
     {
@@ -42,6 +44,62 @@ public partial class EditorView : UserControl
         _selectionEndSubscription = ContentTextBox.GetObservable(TextBox.SelectionEndProperty)
             .Subscribe(new ActionObserver<int>(index => { if (DataContext is EditorViewModel vm) vm.SelectionEnd = index; }));
 
+        // Subscribe to selection and focus events from ViewModel
+        if (DataContext is EditorViewModel viewModel)
+        {
+            SubscribeToViewModel(viewModel);
+        }
+    }
+
+    /// <inheritdoc/>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+
+        // Unsubscribe from old view model
+        if (_currentViewModel != null)
+        {
+            _currentViewModel.SelectionRequested -= OnSelectionRequested;
+            _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
+        }
+
+        // Subscribe to new view model
+        if (DataContext is EditorViewModel viewModel)
+        {
+            SubscribeToViewModel(viewModel);
+        }
+    }
+
+    private void SubscribeToViewModel(EditorViewModel viewModel)
+    {
+        // Avoid double-subscribing
+        if (_currentViewModel == viewModel)
+        {
+            return;
+        }
+
+        _currentViewModel = viewModel;
+        viewModel.SelectionRequested += OnSelectionRequested;
+        viewModel.FocusFindBarRequested += OnFocusFindBarRequested;
+    }
+
+    private void OnSelectionRequested(object? sender, SelectionRequestedEventArgs e)
+    {
+        // Clear selection first by setting both to the same value
+        ContentTextBox.SelectionStart = e.StartPosition;
+        ContentTextBox.SelectionEnd = e.StartPosition;
+
+        // Now set the actual selection end
+        ContentTextBox.SelectionEnd = e.StartPosition + e.Length;
+    }
+
+    private void OnFocusFindBarRequested(object? sender, EventArgs e)
+    {
+        // Use dispatcher to ensure the find bar is rendered before focusing
+        Dispatcher.UIThread.Post(() =>
+        {
+            FindBar?.FocusFindInput();
+        }, DispatcherPriority.Loaded);
     }
 
     private async void OnWordWrapTextPressed(object? sender, PointerPressedEventArgs e)
@@ -193,5 +251,21 @@ public partial class EditorView : UserControl
         _caretSubscription?.Dispose();
         _selectionStartSubscription?.Dispose();
         _selectionEndSubscription?.Dispose();
+
+        // Unsubscribe from view model events
+        if (_currentViewModel != null)
+        {
+            _currentViewModel.SelectionRequested -= OnSelectionRequested;
+            _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
+            _currentViewModel = null;
+        }
+    }
+
+    /// <summary>
+    /// Focuses the find bar input.
+    /// </summary>
+    public void FocusFindBar()
+    {
+        FindBar?.FocusFindInput();
     }
 }

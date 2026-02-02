@@ -460,10 +460,40 @@ public partial class MainWindow : Window
         }
 
         // Handle Escape separately (no modifier needed)
-        if (e.Key == Key.Escape && viewModel.IsSearchVisible)
+        if (e.Key == Key.Escape)
+        {
+            // First check if find bar is visible
+            if (viewModel.EditorViewModel.IsFindBarVisible)
+            {
+                e.Handled = true;
+                viewModel.EditorViewModel.HideFindBar();
+                EditorView?.FocusContent();
+                return;
+            }
+
+            // Then check if search overlay is visible
+            if (viewModel.IsSearchVisible)
+            {
+                e.Handled = true;
+                viewModel.HideSearch();
+                return;
+            }
+
+            return;
+        }
+
+        // Handle F3 for find navigation (no modifier needed)
+        if (e.Key == Key.F3 && viewModel.EditorViewModel.IsFindBarVisible)
         {
             e.Handled = true;
-            viewModel.HideSearch();
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+            {
+                viewModel.EditorViewModel.FindPrevious();
+            }
+            else
+            {
+                viewModel.EditorViewModel.FindNext();
+            }
             return;
         }
 
@@ -592,6 +622,15 @@ public partial class MainWindow : Window
                 {
                     e.Handled = true;
                     viewModel.RequestSaveAs();
+                }
+                break;
+
+            case Key.F:
+                // Ctrl/Cmd+F: Find in document
+                if (!shiftPressed && viewModel.SelectedTab != null)
+                {
+                    e.Handled = true;
+                    viewModel.EditorViewModel.ShowFindBar();
                 }
                 break;
 

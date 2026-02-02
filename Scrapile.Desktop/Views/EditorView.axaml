@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Scrapile.Desktop.ViewModels"
+             xmlns:views="using:Scrapile.Desktop.Views"
              mc:Ignorable="d"
              d:DesignWidth="600"
              d:DesignHeight="500"
@@ -57,6 +58,8 @@
             <!-- Editor content (shown when a tab is selected) -->
             <Grid IsVisible="{Binding HasTab}">
                 <Grid.RowDefinitions>
+                    <!-- Find bar -->
+                    <RowDefinition Height="Auto"/>
                     <!-- Title edit area -->
                     <RowDefinition Height="Auto"/>
                     <!-- Editor area -->
@@ -65,8 +68,14 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
+                <!-- Find bar -->
+                <views:FindBarView x:Name="FindBar"
+                                   Grid.Row="0"
+                                   DataContext="{Binding FindViewModel}"
+                                   IsVisible="{Binding $parent[views:EditorView].((vm:EditorViewModel)DataContext).IsFindBarVisible}"/>
+
                 <!-- Title edit area -->
-                <Border Grid.Row="0"
+                <Border Grid.Row="1"
                         Padding="16,12"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,0,0,1">
@@ -92,7 +101,7 @@
                 <!-- Main text editor area -->
                 <TextBox x:Name="ContentTextBox"
                          Classes="editor-textbox"
-                         Grid.Row="1"
+                         Grid.Row="2"
                          Text="{Binding Content, Mode=TwoWay}"
                          AcceptsReturn="True"
                          AcceptsTab="True"
@@ -104,7 +113,7 @@
                          VerticalContentAlignment="Top"/>
 
                 <!-- Status bar -->
-                <Border Grid.Row="2"
+                <Border Grid.Row="3"
                         Padding="12,6"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,1,0,0">

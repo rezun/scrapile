@@ -76,6 +76,11 @@ public partial class EditorViewModel : ViewModelBase
     [ObservableProperty]
     private string _wordWrapDisplayText = "Wrap: Default";
 
+    [ObservableProperty]
+    private bool _isFindBarVisible;
+
+    private FindViewModel? _findViewModel;
+
     /// <summary>
     /// Event raised when content changes for auto-save purposes.
     /// </summary>
@@ -85,6 +90,16 @@ public partial class EditorViewModel : ViewModelBase
     /// Event raised when the title changes.
     /// </summary>
     public event EventHandler<TitleChangedEventArgs>? TitleChanged;
+
+    /// <summary>
+    /// Event raised when a text selection is requested (e.g., for find highlighting).
+    /// </summary>
+    public event EventHandler<SelectionRequestedEventArgs>? SelectionRequested;
+
+    /// <summary>
+    /// Event raised when the find bar requests focus.
+    /// </summary>
+    public event EventHandler? FocusFindBarRequested;
 
     /// <summary>
     /// Creates a new EditorViewModel.
@@ -131,6 +146,74 @@ public partial class EditorViewModel : ViewModelBase
         {
             ApplyWordWrapSetting();
         }
+    }
+
+    /// <summary>
+    /// Gets the FindViewModel, creating it lazily if needed.
+    /// </summary>
+    public FindViewModel FindViewModel
+    {
+        get
+        {
+            if (_findViewModel == null)
+            {
+                _findViewModel = new FindViewModel();
+                _findViewModel.NavigateToMatch += OnNavigateToMatch;
+                _findViewModel.CloseRequested += OnFindCloseRequested;
+            }
+            return _findViewModel;
+        }
+    }
+
+    /// <summary>
+    /// Shows the find bar.
+    /// </summary>
+    public void ShowFindBar()
+    {
+        IsFindBarVisible = true;
+        // Trigger search with current content
+        FindViewModel.Search(Content);
+        FocusFindBarRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Hides the find bar.
+    /// </summary>
+    public void HideFindBar()
+    {
+        IsFindBarVisible = false;
+    }
+
+    /// <summary>
+    /// Finds the next match.
+    /// </summary>
+    public void FindNext()
+    {
+        if (IsFindBarVisible)
+        {
+            FindViewModel.FindNext();
+        }
+    }
+
+    /// <summary>
+    /// Finds the previous match.
+    /// </summary>
+    public void FindPrevious()
+    {
+        if (IsFindBarVisible)
+        {
+            FindViewModel.FindPrevious();
+        }
+    }
+
+    private void OnNavigateToMatch(object? sender, NavigateToMatchEventArgs e)
+    {
+        SelectionRequested?.Invoke(this, new SelectionRequestedEventArgs(e.StartPosition, e.Length));
+    }
+
+    private void OnFindCloseRequested(object? sender, EventArgs e)
+    {
+        HideFindBar();
     }
 
     /// <summary>
@@ -320,6 +403,12 @@ public partial class EditorViewModel : ViewModelBase
         // Always update status bar when content changes
         UpdateStatusBarProperties();
 
+        // Re-search if find bar is open (update match positions)
+        if (IsFindBarVisible && _findViewModel != null)
+        {
+            _findViewModel.Search(value);
+        }
+
         if (_isUpdatingFromTab || _currentTab == null) return;
 
         // Update the tab's content
@@ -478,5 +567,27 @@ public class TitleChangedEventArgs : EventArgs
     {
         DocumentId = documentId;
         Title = title;
+    }
+}
+
+/// <summary>
+/// Event args for selection requests (e.g., from find).
+/// </summary>
+public class SelectionRequestedEventArgs : EventArgs
+{
+    /// <summary>
+    /// The start position of the selection.
+    /// </summary>
+    public int StartPosition { get; }
+
+    /// <summary>
+    /// The length of the selection.
+    /// </summary>
+    public int Length { get; }
+
+    public SelectionRequestedEventArgs(int startPosition, int length)
+    {
+        StartPosition = startPosition;
+        Length = length;
     }
 }
