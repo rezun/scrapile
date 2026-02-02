@@ -94,23 +94,12 @@
                                     <StackPanel Grid.Column="0"
                                                 Spacing="2"
                                                 VerticalAlignment="Center">
-                                        <!-- Title/Preview with dirty indicator -->
-                                        <Grid ColumnDefinitions="Auto,*">
-                                            <!-- Dirty indicator dot -->
-                                            <Ellipse Grid.Column="0"
-                                                     Width="6" Height="6"
-                                                     Fill="{DynamicResource SystemControlForegroundAccentBrush}"
-                                                     VerticalAlignment="Center"
-                                                     Margin="0,0,4,0"
-                                                     IsVisible="{Binding IsDirty}"
-                                                     ToolTip.Tip="Unsaved changes"/>
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding DisplayName}"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxLines="1"
-                                                       FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
-                                                       ToolTip.Tip="{Binding DisplayName}"/>
-                                        </Grid>
+                                        <!-- Title/Preview -->
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxLines="1"
+                                                   FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                   ToolTip.Tip="{Binding DisplayName}"/>
 
                                         <!-- Stats subtitle -->
                                         <TextBlock Text="{Binding FormattedWordCount}"
