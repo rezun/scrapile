@@ -100,9 +100,17 @@
                               ResizeBehavior="PreviousAndNext"/>
 
                 <!-- Editor Panel (right or left based on setting) -->
+                <!-- Disabled when search overlay is open to prevent AvaloniaEdit from reclaiming focus -->
                 <views:EditorView x:Name="EditorView"
                                   Grid.Column="{Binding $parent[Window].DataContext.IsTabListOnLeft, Converter={x:Static converters:Converters.BoolToEditorColumn}}"
-                                  DataContext="{Binding EditorViewModel}"/>
+                                  DataContext="{Binding EditorViewModel}"
+                                  IsEnabled="{Binding !$parent[Window].DataContext.IsSearchVisible}">
+                    <views:EditorView.Styles>
+                        <Style Selector="views|EditorView:disabled">
+                            <Setter Property="Opacity" Value="1"/>
+                        </Style>
+                    </views:EditorView.Styles>
+                </views:EditorView>
             </Grid>
         </DockPanel>
 

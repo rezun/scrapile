@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -109,12 +110,20 @@ public partial class SearchOverlay : UserControl
     }
 
     /// <summary>
-    /// Focuses the search input field.
-    /// Uses dispatcher to ensure focus happens after layout is complete.
+    /// When the overlay becomes visible, focus the search input.
     /// </summary>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == IsVisibleProperty && change.GetNewValue<bool>())
+        {
+            FocusSearchInput();
+        }
+    }
+
     public void FocusSearchInput()
     {
-        // Use dispatcher to ensure the control is ready and visible before focusing
         Dispatcher.UIThread.Post(() =>
         {
             SearchInput?.Focus();
