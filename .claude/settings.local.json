@@ -12,7 +12,9 @@
       "WebFetch(domain:avaloniaui.net)",
       "Bash(iconutil:*)",
       "Bash(ls:*)",
-      "Bash(/usr/local/share/dotnet/dotnet:*)"
+      "Bash(/usr/local/share/dotnet/dotnet:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:www.theregister.com)"
     ]
   }
 }
