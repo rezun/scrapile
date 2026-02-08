@@ -115,7 +115,8 @@ public partial class SearchViewModel : ViewModelBase
             var results = await _documentService.SearchAsync(query);
             if (token.IsCancellationRequested) return;
 
-            // Update results
+            // Update results (reset index first so re-selecting 0 triggers a change)
+            SelectedIndex = -1;
             Results.Clear();
             var count = 0;
             foreach (var doc in results)

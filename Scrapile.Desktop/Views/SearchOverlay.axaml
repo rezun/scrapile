@@ -59,40 +59,32 @@
                         Padding="16,16,16,12"
                         BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                         BorderThickness="0,0,0,1">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <!-- Search input -->
-                        <TextBox x:Name="SearchInput"
-                                 Grid.Column="0"
-                                 Text="{Binding SearchQuery, Mode=TwoWay}"
-                                 Watermark="Search documents..."
-                                 FontSize="16"
-                                 BorderThickness="0"
-                                 Background="Transparent"
-                                 Padding="0"/>
-
-                        <!-- Loading indicator -->
-                        <ProgressBar Grid.Column="1"
-                                     IsIndeterminate="True"
-                                     IsVisible="{Binding IsSearching}"
-                                     Width="20"
-                                     Height="20"
-                                     Margin="8,0,0,0"/>
-                    </Grid>
+                    <TextBox x:Name="SearchInput"
+                             Text="{Binding SearchQuery, Mode=TwoWay}"
+                             Watermark="Search documents..."
+                             FontSize="16"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Padding="0"/>
                 </Border>
 
                 <!-- Results area -->
                 <Panel>
                     <!-- Results list -->
-                    <ScrollViewer IsVisible="{Binding HasResults}"
+                    <ScrollViewer x:Name="ResultsScrollViewer"
+                                  IsVisible="{Binding HasResults}"
                                   MaxHeight="380">
-                        <ItemsControl ItemsSource="{Binding Results}">
+                        <ItemsControl x:Name="ResultsItemsControl" ItemsSource="{Binding Results}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:SearchResultItemViewModel">
                                     <Border x:Name="ResultItem"
                                             Padding="16,10"
-                                            Cursor="Hand"
-                                            Background="Transparent">
+                                            Cursor="Hand">
                                         <Border.Styles>
+                                            <!-- Default background (must be a style, not a local value, so other styles can override it) -->
+                                            <Style Selector="Border#ResultItem">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                            </Style>
                                             <!-- Hover effect -->
                                             <Style Selector="Border#ResultItem:pointerover">
                                                 <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>

@@ -1,8 +1,10 @@
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Scrapile.Desktop.ViewModels;
 
 namespace Scrapile.Desktop.Views;
@@ -30,24 +32,27 @@ public partial class SearchOverlay : UserControl
 
         // Handle click on result items
         AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
+
+        // Use tunnel routing so arrow keys are captured before the TextBox consumes them
+        AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
     }
 
     /// <summary>
     /// Handles key down events for keyboard navigation.
     /// </summary>
-    protected override void OnKeyDown(KeyEventArgs e)
+    private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        base.OnKeyDown(e);
-
         switch (e.Key)
         {
             case Key.Down:
                 ViewModel?.SelectNext();
+                ScrollToSelectedItem();
                 e.Handled = true;
                 break;
 
             case Key.Up:
                 ViewModel?.SelectPrevious();
+                ScrollToSelectedItem();
                 e.Handled = true;
                 break;
 
@@ -60,6 +65,26 @@ public partial class SearchOverlay : UserControl
                 ViewModel?.RequestClose();
                 e.Handled = true;
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Scrolls the results list to keep the selected item visible.
+    /// </summary>
+    private void ScrollToSelectedItem()
+    {
+        var vm = ViewModel;
+        if (vm == null || vm.SelectedIndex < 0)
+            return;
+
+        var containers = ResultsItemsControl.GetVisualDescendants()
+            .OfType<Border>()
+            .Where(b => b.Name == "ResultItem")
+            .ToList();
+
+        if (vm.SelectedIndex < containers.Count)
+        {
+            containers[vm.SelectedIndex].BringIntoView();
         }
     }
 
