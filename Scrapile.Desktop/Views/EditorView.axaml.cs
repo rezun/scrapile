@@ -64,6 +64,14 @@ public partial class EditorView : UserControl
         var themeName = GetTextMateTheme();
         _registryOptions = new RegistryOptions(themeName);
         _textMateInstallation = ContentEditor.InstallTextMate(_registryOptions);
+
+        // Set link color appropriate for the current theme
+        var linkColor = themeName switch
+        {
+            ThemeName.LightPlus => Avalonia.Media.Color.Parse("#0066CC"),
+            _ => Avalonia.Media.Color.Parse("#4FC1FF")
+        };
+        ContentEditor.TextArea.TextView.LinkTextForegroundBrush = new Avalonia.Media.SolidColorBrush(linkColor);
     }
 
     private void ConfigureLineNumberMargin()
