@@ -42,11 +42,11 @@
         </Panel.Styles>
 
         <!-- Search modal dialog - centered -->
-        <Border HorizontalAlignment="Center"
-                VerticalAlignment="Top"
-                Margin="0,80,0,0"
-                Width="550"
-                MaxHeight="500"
+        <Border HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                Margin="20,80,20,80"
+                MaxWidth="850"
+                MaxHeight="700"
                 Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
                 BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
                 BorderThickness="1"
@@ -68,102 +68,125 @@
                              Padding="0"/>
                 </Border>
 
-                <!-- Results area -->
-                <Panel>
-                    <!-- Results list -->
-                    <ScrollViewer x:Name="ResultsScrollViewer"
-                                  IsVisible="{Binding HasResults}"
-                                  MaxHeight="380">
-                        <ItemsControl x:Name="ResultsItemsControl" ItemsSource="{Binding Results}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:SearchResultItemViewModel">
-                                    <Border x:Name="ResultItem"
-                                            Padding="16,10"
-                                            Cursor="Hand">
-                                        <Border.Styles>
-                                            <!-- Default background (must be a style, not a local value, so other styles can override it) -->
-                                            <Style Selector="Border#ResultItem">
-                                                <Setter Property="Background" Value="Transparent"/>
-                                            </Style>
-                                            <!-- Hover effect -->
-                                            <Style Selector="Border#ResultItem:pointerover">
-                                                <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
-                                            </Style>
-                                            <!-- Selected state -->
-                                            <Style Selector="Border#ResultItem.selected">
-                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
-                                            </Style>
-                                            <Style Selector="Border#ResultItem.selected:pointerover">
-                                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
-                                            </Style>
-                                        </Border.Styles>
-                                        <Classes.selected>
-                                            <Binding Path="IsSelected"/>
-                                        </Classes.selected>
+                <!-- Body: results list + preview pane -->
+                <Grid ColumnDefinitions="300,*">
+                    <!-- Left column: results area -->
+                    <Panel Grid.Column="0">
+                        <!-- Results list -->
+                        <ScrollViewer x:Name="ResultsScrollViewer"
+                                      IsVisible="{Binding HasResults}"
+                                      >
+                            <ItemsControl x:Name="ResultsItemsControl" ItemsSource="{Binding Results}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SearchResultItemViewModel">
+                                        <Border x:Name="ResultItem"
+                                                Padding="16,10"
+                                                Cursor="Hand">
+                                            <Border.Styles>
+                                                <Style Selector="Border#ResultItem">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                </Style>
+                                                <Style Selector="Border#ResultItem:pointerover">
+                                                    <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}"/>
+                                                </Style>
+                                                <Style Selector="Border#ResultItem.selected">
+                                                    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentLowBrush}"/>
+                                                </Style>
+                                                <Style Selector="Border#ResultItem.selected:pointerover">
+                                                    <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListAccentMediumBrush}"/>
+                                                </Style>
+                                            </Border.Styles>
+                                            <Classes.selected>
+                                                <Binding Path="IsSelected"/>
+                                            </Classes.selected>
 
-                                        <Grid RowDefinitions="Auto,Auto,Auto">
-                                            <!-- Title/Preview (primary line) -->
-                                            <TextBlock Grid.Row="0"
-                                                       Text="{Binding DisplayName}"
-                                                       FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
-                                                       FontSize="14"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxLines="1"/>
+                                            <Grid RowDefinitions="Auto,Auto,Auto">
+                                                <TextBlock Grid.Row="0"
+                                                           Text="{Binding DisplayName}"
+                                                           FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                           FontSize="14"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxLines="1"/>
 
-                                            <!-- Content snippet (secondary line) -->
-                                            <TextBlock Grid.Row="1"
-                                                       Text="{Binding ContentSnippet}"
-                                                       FontSize="12"
-                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                                       TextTrimming="CharacterEllipsis"
-                                                       MaxLines="1"
-                                                       Margin="0,2,0,0"
-                                                       IsVisible="{Binding HasTitle}"/>
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{Binding ContentSnippet}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           MaxLines="1"
+                                                           Margin="0,2,0,0"
+                                                           IsVisible="{Binding HasTitle}"/>
 
-                                            <!-- Last modified (tertiary line) -->
-                                            <TextBlock Grid.Row="2"
-                                                       Text="{Binding LastModified}"
-                                                       FontSize="11"
-                                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                                       Margin="0,4,0,0"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                                <TextBlock Grid.Row="2"
+                                                           Text="{Binding LastModified}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                                           Margin="0,4,0,0"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
 
-                    <!-- No results message -->
-                    <StackPanel IsVisible="{Binding ShowNoResults}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Margin="0,40">
-                        <TextBlock Text="No documents found"
-                                   FontSize="14"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                                   HorizontalAlignment="Center"/>
-                        <TextBlock Text="Try a different search term"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,4,0,0"/>
-                    </StackPanel>
+                        <!-- No results message -->
+                        <StackPanel IsVisible="{Binding ShowNoResults}"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Margin="0,40">
+                            <TextBlock Text="No documents found"
+                                       FontSize="14"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                                       HorizontalAlignment="Center"/>
+                            <TextBlock Text="Try a different search term"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,4,0,0"/>
+                        </StackPanel>
 
-                    <!-- Empty state (no query) -->
-                    <StackPanel IsVisible="{Binding !HasResults}"
-                                IsEnabled="{Binding !ShowNoResults}">
-                        <StackPanel.Styles>
-                            <Style Selector="StackPanel:disabled">
-                                <Setter Property="IsVisible" Value="False"/>
-                            </Style>
-                        </StackPanel.Styles>
-                        <TextBlock Text="Type to search all documents"
-                                   FontSize="12"
-                                   Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,20"/>
-                    </StackPanel>
-                </Panel>
+                        <!-- Empty state (no query) -->
+                        <StackPanel IsVisible="{Binding !HasResults}"
+                                    IsEnabled="{Binding !ShowNoResults}">
+                            <StackPanel.Styles>
+                                <Style Selector="StackPanel:disabled">
+                                    <Setter Property="IsVisible" Value="False"/>
+                                </Style>
+                            </StackPanel.Styles>
+                            <TextBlock Text="Type to search all documents"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,20"/>
+                        </StackPanel>
+                    </Panel>
+
+                    <!-- Vertical separator -->
+                    <Border Grid.Column="1"
+                            BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                            BorderThickness="1,0,0,0">
+                        <!-- Right column: preview pane -->
+                        <Panel>
+                            <!-- Content preview -->
+                            <ScrollViewer IsVisible="{Binding HasPreviewContent}"
+                                          Padding="16,12">
+                                <TextBlock Text="{Binding SelectedPreviewContent}"
+                                           FontSize="13"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                           IsHitTestVisible="False"/>
+                            </ScrollViewer>
+
+                            <!-- Placeholder when nothing selected -->
+                            <TextBlock IsVisible="{Binding !HasPreviewContent}"
+                                       Text="Select a document to preview"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Panel>
+                    </Border>
+                </Grid>
             </DockPanel>
         </Border>
     </Panel>

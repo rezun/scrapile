@@ -41,6 +41,12 @@ public partial class SearchViewModel : ViewModelBase
     [ObservableProperty]
     private int _selectedIndex = -1;
 
+    [ObservableProperty]
+    private string _selectedPreviewContent = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasPreviewContent;
+
     /// <summary>
     /// The collection of search results.
     /// </summary>
@@ -81,6 +87,7 @@ public partial class SearchViewModel : ViewModelBase
     partial void OnSelectedIndexChanged(int value)
     {
         UpdateSelectionState();
+        UpdatePreviewContent();
     }
 
     /// <summary>
@@ -100,6 +107,8 @@ public partial class SearchViewModel : ViewModelBase
             HasResults = false;
             ShowNoResults = false;
             SelectedIndex = -1;
+            SelectedPreviewContent = string.Empty;
+            HasPreviewContent = false;
             return;
         }
 
@@ -150,6 +159,27 @@ public partial class SearchViewModel : ViewModelBase
         for (int i = 0; i < Results.Count; i++)
         {
             Results[i].IsSelected = (i == SelectedIndex);
+        }
+    }
+
+    /// <summary>
+    /// Updates the preview content based on the currently selected result.
+    /// </summary>
+    private void UpdatePreviewContent()
+    {
+        if (SelectedIndex >= 0 && SelectedIndex < Results.Count)
+        {
+            var content = Results[SelectedIndex].FullContent;
+            const int maxPreviewLength = 10_000;
+            SelectedPreviewContent = content.Length > maxPreviewLength
+                ? content[..maxPreviewLength] + "\n\n[Content truncated...]"
+                : content;
+            HasPreviewContent = true;
+        }
+        else
+        {
+            SelectedPreviewContent = string.Empty;
+            HasPreviewContent = false;
         }
     }
 
@@ -212,5 +242,7 @@ public partial class SearchViewModel : ViewModelBase
         ShowNoResults = false;
         SelectedIndex = -1;
         IsSearching = false;
+        SelectedPreviewContent = string.Empty;
+        HasPreviewContent = false;
     }
 }

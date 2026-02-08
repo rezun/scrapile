@@ -49,6 +49,11 @@ public partial class SearchResultItemViewModel : ViewModelBase
     public string LastModified => FormatLastModified(_documentWithStats.Document.LastModified);
 
     /// <summary>
+    /// The full document content (for preview pane).
+    /// </summary>
+    public string FullContent => _documentWithStats.Document.Content;
+
+    /// <summary>
     /// The underlying DocumentWithStats.
     /// </summary>
     public DocumentWithStats DocumentWithStats => _documentWithStats;
