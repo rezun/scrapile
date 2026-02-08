@@ -9,6 +9,10 @@ Version is defined in `Scrapile.Desktop/Scrapile.Desktop.csproj`. When updating,
 - `<CFBundleVersion>` - macOS bundle version
 - `<CFBundleShortVersionString>` - macOS display version
 
+Version scheme: **major.minor.patch**
+- **Minor** (second place): new or changed features
+- **Patch** (third place): bug fixes
+
 ## Build Commands
 
 ```bash
