@@ -109,8 +109,6 @@ Infrastructure (File System & JSON Storage)
 
 | File | Purpose |
 |------|---------|
-| `docs/ProjectPlan.md` | Master specification - full requirements and design rationale |
-| `docs/ImplementationPlan.md` | Task-based roadmap with progress tracking |
 | `publish.sh` | Cross-platform publish script (macOS, Windows, Linux) |
 | `Scrapile.Application/Services/TabManager.cs` | Tab lifecycle management |
 | `Scrapile.Application/Services/AutoSaveService.cs` | Debounced save logic |
