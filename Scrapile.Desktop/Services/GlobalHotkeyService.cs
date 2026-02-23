@@ -47,8 +47,19 @@ public class GlobalHotkeyService : IDisposable
 
     /// <summary>
     /// Starts the global hook and registers the shortcut if one is configured.
+    /// Only installs the low-level hook if a shortcut is actually set, to avoid
+    /// interfering with system-wide keyboard input (e.g. Alt key behavior on Windows).
     /// </summary>
     public void Start(string? shortcut)
+    {
+        if (!string.IsNullOrEmpty(shortcut))
+        {
+            StartHook();
+            RegisterHotkey(shortcut);
+        }
+    }
+
+    private void StartHook()
     {
         if (_hook != null)
         {
@@ -60,11 +71,6 @@ public class GlobalHotkeyService : IDisposable
             _hook = new TaskPoolGlobalHook();
             _hook.KeyPressed += OnKeyPressed;
             _ = _hook.RunAsync();
-
-            if (!string.IsNullOrEmpty(shortcut))
-            {
-                RegisterHotkey(shortcut);
-            }
         }
         catch (Exception ex)
         {
@@ -73,8 +79,33 @@ public class GlobalHotkeyService : IDisposable
         }
     }
 
+    private void StopHook()
+    {
+        if (_hook == null)
+        {
+            return;
+        }
+
+        _hook.KeyPressed -= OnKeyPressed;
+
+        var hook = _hook;
+        _hook = null;
+        Task.Run(() =>
+        {
+            try
+            {
+                hook.Dispose();
+            }
+            catch
+            {
+                // Ignore disposal errors
+            }
+        });
+    }
+
     /// <summary>
     /// Registers a hotkey from a shortcut string.
+    /// Starts the low-level hook if not already running, or stops it if the shortcut is cleared.
     /// </summary>
     /// <param name="shortcut">Shortcut string like "Ctrl+Alt+S" or "Cmd+Shift+Space"</param>
     /// <returns>True if registration succeeded, false otherwise.</returns>
@@ -84,13 +115,18 @@ public class GlobalHotkeyService : IDisposable
 
         if (string.IsNullOrWhiteSpace(shortcut))
         {
-            return true; // No shortcut is valid
+            // No shortcut configured - stop the hook to avoid interfering with system input
+            StopHook();
+            return true;
         }
 
         if (!TryParseShortcut(shortcut, out var modifiers, out var key))
         {
             return false;
         }
+
+        // Start the hook if not already running
+        StartHook();
 
         _registeredModifiers = modifiers;
         _registeredKey = key;
@@ -381,27 +417,6 @@ public class GlobalHotkeyService : IDisposable
         }
 
         _isDisposed = true;
-
-        if (_hook != null)
-        {
-            _hook.KeyPressed -= OnKeyPressed;
-
-            // Dispose on a background thread to avoid blocking shutdown.
-            // SharpHook's Dispose() can block waiting for the hook thread,
-            // which causes a deadlock during app shutdown.
-            var hook = _hook;
-            _hook = null;
-            Task.Run(() =>
-            {
-                try
-                {
-                    hook.Dispose();
-                }
-                catch
-                {
-                    // Ignore disposal errors during shutdown
-                }
-            });
-        }
+        StopHook();
     }
 }
