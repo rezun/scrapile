@@ -1,3 +1,4 @@
+using System.Globalization;
 using Scrapile.Application.Helpers;
 
 namespace Scrapile.Application.Tests;
@@ -235,28 +236,32 @@ public class ContentHelperTests
     public void FormatCount_ExactlyThousand_ReturnsOneDecimal()
     {
         var result = ContentHelper.FormatCount(1000);
-        Assert.Equal("1.0k", result);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"1{sep}0k", result);
     }
 
     [Fact]
     public void FormatCount_Thousands_ReturnsOneDecimal()
     {
         var result = ContentHelper.FormatCount(1500);
-        Assert.Equal("1.5k", result);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"1{sep}5k", result);
     }
 
     [Fact]
     public void FormatCount_ThousandsRounding()
     {
         var result = ContentHelper.FormatCount(2345);
-        Assert.Equal("2.3k", result);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"2{sep}3k", result);
     }
 
     [Fact]
     public void FormatCount_JustUnderTenThousand_ReturnsOneDecimal()
     {
         var result = ContentHelper.FormatCount(9999);
-        Assert.Equal("10.0k", result);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"10{sep}0k", result);
     }
 
     [Fact]

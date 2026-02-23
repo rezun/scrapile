@@ -1,3 +1,4 @@
+using System.Globalization;
 using Scrapile.Application.Services;
 using Scrapile.Infrastructure.Repositories;
 using Scrapile.Infrastructure.Storage;
@@ -573,7 +574,8 @@ public class ServicesIntegrationTests : IDisposable
 
         // Assert
         Assert.Equal(1500, doc.WordCount);
-        Assert.Equal("1.5k words", doc.FormattedWordCount);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"1{sep}5k words", doc.FormattedWordCount);
     }
 
     [Fact]

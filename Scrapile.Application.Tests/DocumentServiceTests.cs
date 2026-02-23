@@ -1,3 +1,4 @@
+using System.Globalization;
 using Scrapile.Application.Services;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
@@ -462,7 +463,8 @@ public class DocumentServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(1500, result.WordCount);
-        Assert.Equal("1.5k words", result.FormattedWordCount);
+        var sep = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        Assert.Equal($"1{sep}5k words", result.FormattedWordCount);
     }
 
     #endregion
