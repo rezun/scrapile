@@ -100,6 +100,11 @@ public partial class App : Avalonia.Application
                 settings.StorageDirectory = storageDirectory;
                 settings.AutorunAtStartup = autorunAtStartup;
                 settings.GlobalShortcut = globalShortcut;
+                // If user set a global shortcut, auto-enable background mode (required for shortcuts)
+                if (globalShortcut != null)
+                {
+                    settings.RunInBackground = true;
+                }
                 await settingsStore.SaveAsync(settings);
 
                 // Register autorun if enabled
@@ -145,12 +150,17 @@ public partial class App : Avalonia.Application
             desktop.MainWindow.Show();
             desktop.MainWindow.Activate();
 
-            // Initialize tray icon service
+            // Initialize tray icon service (only show if running in background)
             TrayIconService = new TrayIconService();
-            TrayIconService.Initialize();
             TrayIconService.ShowHideRequested += OnTrayShowHideRequested;
             TrayIconService.SettingsRequested += OnTraySettingsRequested;
             TrayIconService.QuitRequested += OnTrayQuitRequested;
+
+            var settingsForInit = await settingsStore.LoadAsync();
+            if (settingsForInit.RunInBackground)
+            {
+                TrayIconService.Initialize();
+            }
 
             // Initialize global hotkey service
             GlobalHotkeyService = new GlobalHotkeyService();
@@ -262,6 +272,32 @@ public partial class App : Avalonia.Application
                 var settingsService = Services.GetRequiredService<SettingsService>();
                 var shortcut = settingsService.GetGlobalShortcut();
                 GlobalHotkeyService.RegisterHotkey(shortcut);
+            }
+        }
+
+        if (e.SettingName == SettingNames.RunInBackground || e.SettingName == SettingNames.All)
+        {
+            if (Services != null)
+            {
+                var settingsService = Services.GetRequiredService<SettingsService>();
+                var runInBackground = settingsService.GetRunInBackground();
+
+                if (runInBackground)
+                {
+                    // Enable: initialize tray icon
+                    TrayIconService?.Initialize();
+                }
+                else
+                {
+                    // Disable: dispose tray icon, unregister global hotkey
+                    TrayIconService?.Dispose();
+                    TrayIconService = new TrayIconService();
+                    TrayIconService.ShowHideRequested += OnTrayShowHideRequested;
+                    TrayIconService.SettingsRequested += OnTraySettingsRequested;
+                    TrayIconService.QuitRequested += OnTrayQuitRequested;
+
+                    GlobalHotkeyService?.RegisterHotkey(null);
+                }
             }
         }
     }

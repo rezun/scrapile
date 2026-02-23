@@ -156,9 +156,9 @@
                     <TextBlock Text="System Tray"
                                FontWeight="SemiBold"
                                FontSize="16"/>
-                    <CheckBox Content="Minimize to tray when closing window"
-                              IsChecked="{Binding MinimizeToTray}"/>
-                    <TextBlock Text="When enabled, closing the window hides Scrapile to the system tray instead of quitting."
+                    <CheckBox Content="Always running in system tray"
+                              IsChecked="{Binding RunInBackground}"/>
+                    <TextBlock Text="When enabled, Scrapile stays in the system tray when you close the window. Required for global shortcuts."
                                FontSize="11"
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap"/>
@@ -176,7 +176,16 @@
                                Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                                TextWrapping="Wrap"/>
 
-                    <Grid ColumnDefinitions="*,Auto,Auto">
+                    <!-- Disabled note when background mode is off -->
+                    <TextBlock Text="Enable 'Always running in system tray' to use global shortcuts."
+                               IsVisible="{Binding !IsGlobalShortcutEnabled}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                               FontStyle="Italic"
+                               TextWrapping="Wrap"/>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto"
+                          IsEnabled="{Binding IsGlobalShortcutEnabled}">
                         <TextBox x:Name="ShortcutTextBox"
                                  Grid.Column="0"
                                  Text="{Binding GlobalShortcut}"

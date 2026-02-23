@@ -274,25 +274,36 @@ public class SettingsService
     }
 
     /// <summary>
-    /// Gets the minimize to tray setting.
+    /// Gets the run in background setting.
     /// </summary>
-    public bool GetMinimizeToTray()
+    public bool GetRunInBackground()
     {
-        return _currentSettings.MinimizeToTray;
+        return _currentSettings.RunInBackground;
     }
 
     /// <summary>
-    /// Sets whether closing minimizes to tray.
+    /// Sets whether the app stays running in the system tray.
+    /// When disabled, also clears the global shortcut (which requires background mode).
     /// </summary>
-    public async Task SetMinimizeToTrayAsync(bool enabled)
+    public async Task SetRunInBackgroundAsync(bool enabled)
     {
-        if (_currentSettings.MinimizeToTray == enabled)
+        if (_currentSettings.RunInBackground == enabled)
         {
             return;
         }
 
-        _currentSettings.MinimizeToTray = enabled;
-        await SaveAndNotifyAsync(SettingNames.MinimizeToTray);
+        _currentSettings.RunInBackground = enabled;
+
+        if (!enabled && _currentSettings.GlobalShortcut != null)
+        {
+            _currentSettings.GlobalShortcut = null;
+            await _settingsStore.SaveAsync(_currentSettings);
+            SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.RunInBackground));
+            SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.GlobalShortcut));
+            return;
+        }
+
+        await SaveAndNotifyAsync(SettingNames.RunInBackground);
     }
 
     /// <summary>

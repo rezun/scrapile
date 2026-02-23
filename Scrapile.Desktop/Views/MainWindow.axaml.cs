@@ -41,12 +41,12 @@ public partial class MainWindow : Window
             return;
         }
 
-        // Check if minimize to tray is enabled
+        // Check if run in background is enabled
         if (DataContext is MainWindowViewModel viewModel)
         {
-            var minimizeToTray = viewModel.SettingsService.GetMinimizeToTray();
+            var runInBackground = viewModel.SettingsService.GetRunInBackground();
 
-            if (minimizeToTray)
+            if (runInBackground)
             {
                 // Cancel the close and hide to tray instead
                 e.Cancel = true;
@@ -59,7 +59,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                // User disabled minimize to tray, so actually quit
+                // Not running in background, so actually quit
                 if (Avalonia.Application.Current is App app)
                 {
                     app.QuitApplication();
@@ -568,11 +568,14 @@ public partial class MainWindow : Window
             case Key.W:
                 if (shiftPressed)
                 {
-                    // Ctrl/Cmd+Shift+W: Hide window to tray
-                    e.Handled = true;
-                    if (Avalonia.Application.Current is App app)
+                    // Ctrl/Cmd+Shift+W: Hide window to tray (only when running in background)
+                    if (viewModel.SettingsService.GetRunInBackground())
                     {
-                        app.HideWindow();
+                        e.Handled = true;
+                        if (Avalonia.Application.Current is App app)
+                        {
+                            app.HideWindow();
+                        }
                     }
                 }
                 else

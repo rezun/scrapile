@@ -67,9 +67,10 @@ public class AppSettings
     public string? GlobalShortcut { get; set; }
 
     /// <summary>
-    /// Whether closing the window minimizes to system tray instead of quitting.
+    /// Whether the app stays running in the system tray when the window is closed.
+    /// When false, closing the window quits the app. Required for global shortcuts.
     /// </summary>
-    public bool MinimizeToTray { get; set; } = true;
+    public bool RunInBackground { get; set; } = false;
 
     /// <summary>
     /// Whether to always show line numbers in the editor.
@@ -94,7 +95,7 @@ public class AppSettings
             AutoSaveDelayMs = AutoSaveDelayLimits.DefaultMs,
             AutorunAtStartup = false,
             GlobalShortcut = null,
-            MinimizeToTray = true,
+            RunInBackground = false,
             AlwaysShowLineNumbers = false
         };
     }

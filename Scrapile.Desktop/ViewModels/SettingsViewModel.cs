@@ -92,7 +92,13 @@ public partial class SettingsViewModel : ViewModelBase
     private bool _autorunAtStartup;
 
     [ObservableProperty]
-    private bool _minimizeToTray = true;
+    private bool _runInBackground;
+
+    /// <summary>
+    /// Whether the global shortcut controls should be enabled.
+    /// Requires RunInBackground to be true.
+    /// </summary>
+    public bool IsGlobalShortcutEnabled => RunInBackground;
 
     [ObservableProperty]
     private bool _alwaysShowLineNumbers;
@@ -210,7 +216,7 @@ public partial class SettingsViewModel : ViewModelBase
             SelectedTheme = settings.Theme;
             AutoSaveDelayMs = settings.AutoSaveDelayMs;
             AutorunAtStartup = settings.AutorunAtStartup;
-            MinimizeToTray = settings.MinimizeToTray;
+            RunInBackground = settings.RunInBackground;
             AlwaysShowLineNumbers = settings.AlwaysShowLineNumbers;
             GlobalShortcut = settings.GlobalShortcut;
             ShortcutConflictMessage = Services.GlobalHotkeyService.CheckForConflicts(GlobalShortcut);
@@ -273,10 +279,18 @@ public partial class SettingsViewModel : ViewModelBase
         _ = _settingsService.SetAutorunAtStartupAsync(value);
     }
 
-    partial void OnMinimizeToTrayChanged(bool value)
+    partial void OnRunInBackgroundChanged(bool value)
     {
         if (_isInitializing) return;
-        _ = _settingsService.SetMinimizeToTrayAsync(value);
+
+        OnPropertyChanged(nameof(IsGlobalShortcutEnabled));
+
+        if (!value)
+        {
+            GlobalShortcut = null;
+        }
+
+        _ = _settingsService.SetRunInBackgroundAsync(value);
     }
 
     partial void OnAlwaysShowLineNumbersChanged(bool value)
