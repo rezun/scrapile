@@ -284,6 +284,12 @@ public partial class EditorView : UserControl
 
         switch (e.Key)
         {
+            case Key.Tab when !e.KeyModifiers.HasFlag(KeyModifiers.Shift):
+                // Tab: Move focus to content without keyboard traversal focus chrome
+                e.Handled = true;
+                FocusContent();
+                break;
+
             case Key.Enter:
                 // Enter: Save title (already bound) and move focus to content
                 e.Handled = true;
@@ -505,7 +511,7 @@ public partial class EditorView : UserControl
     /// </summary>
     public void FocusContent()
     {
-        ContentEditor.Focus();
+        ContentEditor.TextArea.Focus();
     }
 
     /// <summary>

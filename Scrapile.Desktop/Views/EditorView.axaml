@@ -63,6 +63,17 @@
         <!-- AvaloniaEdit TextEditor styling -->
         <Style Selector="ae|TextEditor">
             <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="FocusAdorner" Value="{x:Null}"/>
+        </Style>
+        <Style Selector="ae|TextEditor:focus">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+        <Style Selector="ae|TextEditor:focus-visible">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
         <!-- Subtle status bar ComboBox styling -->
         <Style Selector="ComboBox.statusbar-combo">
