@@ -223,6 +223,19 @@ public partial class SearchViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Selects a specific result without opening it.
+    /// </summary>
+    /// <param name="result">The result to select.</param>
+    public void SelectResult(SearchResultItemViewModel result)
+    {
+        var index = Results.IndexOf(result);
+        if (index >= 0)
+        {
+            SelectedIndex = index;
+        }
+    }
+
+    /// <summary>
     /// Requests the search overlay to close.
     /// </summary>
     public void RequestClose()

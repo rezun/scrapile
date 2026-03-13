@@ -1,4 +1,5 @@
 using System.Linq;
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -15,6 +16,8 @@ namespace Scrapile.Desktop.Views;
 /// </summary>
 public partial class SearchOverlay : UserControl
 {
+    private SearchViewModel? _subscribedViewModel;
+
     private SearchViewModel? ViewModel => DataContext as SearchViewModel;
 
     public SearchOverlay()
@@ -29,12 +32,19 @@ public partial class SearchOverlay : UserControl
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
+        SubscribeToViewModel();
 
         // Handle click on result items
         AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
 
         // Use tunnel routing so arrow keys are captured before the TextBox consumes them
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+    }
+
+    protected override void OnUnloaded(RoutedEventArgs e)
+    {
+        UnsubscribeFromViewModel();
+        base.OnUnloaded(e);
     }
 
     /// <summary>
@@ -90,7 +100,7 @@ public partial class SearchOverlay : UserControl
 
     /// <summary>
     /// Handles pointer pressed events.
-    /// Opens result on click, closes on backdrop click.
+    /// Selects result on click, opens on double click, closes on backdrop click.
     /// </summary>
     private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -103,7 +113,14 @@ public partial class SearchOverlay : UserControl
             // Get the result item's DataContext
             if (resultBorder.DataContext is SearchResultItemViewModel result)
             {
-                ViewModel?.OpenResult(result);
+                ViewModel?.SelectResult(result);
+                ScrollToSelectedItem();
+
+                if (e.ClickCount >= 2)
+                {
+                    ViewModel?.OpenResult(result);
+                }
+
                 e.Handled = true;
                 return;
             }
@@ -141,6 +158,11 @@ public partial class SearchOverlay : UserControl
     {
         base.OnPropertyChanged(change);
 
+        if (change.Property == DataContextProperty)
+        {
+            SubscribeToViewModel();
+        }
+
         if (change.Property == IsVisibleProperty && change.GetNewValue<bool>())
         {
             FocusSearchInput();
@@ -153,6 +175,61 @@ public partial class SearchOverlay : UserControl
         {
             SearchInput?.Focus();
             SearchInput?.SelectAll();
+        }, DispatcherPriority.Input);
+    }
+
+    private void SubscribeToViewModel()
+    {
+        var vm = ViewModel;
+        if (ReferenceEquals(_subscribedViewModel, vm))
+        {
+            return;
+        }
+
+        UnsubscribeFromViewModel();
+        if (vm == null)
+        {
+            return;
+        }
+
+        vm.PropertyChanged += OnViewModelPropertyChanged;
+        _subscribedViewModel = vm;
+    }
+
+    private void UnsubscribeFromViewModel()
+    {
+        if (_subscribedViewModel == null)
+        {
+            return;
+        }
+
+        _subscribedViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        _subscribedViewModel = null;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(SearchViewModel.SelectedIndex) &&
+            e.PropertyName != nameof(SearchViewModel.SelectedPreviewContent))
+        {
+            return;
+        }
+
+        ClearPreviewSelection();
+    }
+
+    private void ClearPreviewSelection()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (PreviewText == null)
+            {
+                return;
+            }
+
+            PreviewText.SelectionStart = 0;
+            PreviewText.SelectionEnd = 0;
+            PreviewText.CaretIndex = 0;
         }, DispatcherPriority.Input);
     }
 }
