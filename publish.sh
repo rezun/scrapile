@@ -3,7 +3,15 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PUB_DIR="$SCRIPT_DIR/pub"
-PROJECT="$SCRIPT_DIR/Scrapile.Desktop/Scrapile.Desktop.csproj"
+PROJECT_DIR="$SCRIPT_DIR/Scrapile.Desktop"
+PROJECT="$PROJECT_DIR/Scrapile.Desktop.csproj"
+
+# Read target framework from csproj so this script tracks project upgrades
+TFM=$(sed -n 's|.*<TargetFramework>\(.*\)</TargetFramework>.*|\1|p' "$PROJECT")
+if [ -z "$TFM" ]; then
+    echo "Error: could not read <TargetFramework> from $PROJECT" >&2
+    exit 1
+fi
 
 # Clean and create pub directories
 rm -rf "$PUB_DIR"
@@ -28,7 +36,7 @@ dotnet msbuild "$PROJECT" \
     -p:SelfContained=true \
     -verbosity:quiet
 
-cp -R "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/osx-arm64/publish/Scrapile.app" "$PUB_DIR/macos/"
+cp -R "$PROJECT_DIR/bin/Release/$TFM/osx-arm64/publish/Scrapile.app" "$PUB_DIR/macos/"
 
 # macOS - Framework-dependent (slim)
 echo "Building macOS (arm64) - slim..."
@@ -40,7 +48,7 @@ dotnet msbuild "$PROJECT" \
     -p:SelfContained=false \
     -verbosity:quiet
 
-cp -R "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/osx-arm64/publish/Scrapile.app" "$PUB_DIR/macos-slim/"
+cp -R "$PROJECT_DIR/bin/Release/$TFM/osx-arm64/publish/Scrapile.app" "$PUB_DIR/macos-slim/"
 
 # =============================================================================
 # Windows (x64)
@@ -57,9 +65,9 @@ dotnet publish "$PROJECT" \
     -p:IncludeNativeLibrariesForSelfExtract=true \
     --verbosity quiet
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows/"
+cp "$PROJECT_DIR/bin/Release/$TFM/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows/"
 # Native libs that can't be bundled
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB_DIR/windows/" 2>/dev/null || true
+cp "$PROJECT_DIR/bin/Release/$TFM/win-x64/publish/"*.dll "$PUB_DIR/windows/" 2>/dev/null || true
 
 # Windows - Framework-dependent (slim)
 echo "Building Windows (x64) - slim..."
@@ -71,9 +79,9 @@ dotnet publish "$PROJECT" \
     -p:PublishSingleFile=true \
     --verbosity quiet
 
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows-slim/"
+cp "$PROJECT_DIR/bin/Release/$TFM/win-x64/publish/Scrapile.exe" "$PUB_DIR/windows-slim/"
 # Native libs that can't be bundled
-cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB_DIR/windows-slim/" 2>/dev/null || true
+cp "$PROJECT_DIR/bin/Release/$TFM/win-x64/publish/"*.dll "$PUB_DIR/windows-slim/" 2>/dev/null || true
 
 # =============================================================================
 # Linux (x64)
@@ -92,9 +100,9 @@ cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB
 #     -p:IncludeNativeLibrariesForSelfExtract=true \
 #     --verbosity quiet
 
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile" "$PUB_DIR/linux/"
+# cp "$PROJECT_DIR/bin/Release/$TFM/linux-x64/publish/Scrapile" "$PUB_DIR/linux/"
 # # Native libs that can't be bundled
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux/" 2>/dev/null || true
+# cp "$PROJECT_DIR/bin/Release/$TFM/linux-x64/publish/"*.so "$PUB_DIR/linux/" 2>/dev/null || true
 
 # # Linux - Framework-dependent (slim)
 # echo "Building Linux (x64) - slim..."
@@ -106,9 +114,9 @@ cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/win-x64/publish/"*.dll "$PUB
 #     -p:PublishSingleFile=true \
 #     --verbosity quiet
 
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/Scrapile" "$PUB_DIR/linux-slim/"
+# cp "$PROJECT_DIR/bin/Release/$TFM/linux-x64/publish/Scrapile" "$PUB_DIR/linux-slim/"
 # # Native libs that can't be bundled
-# cp "$SCRIPT_DIR/Scrapile.Desktop/bin/Release/net9.0/linux-x64/publish/"*.so "$PUB_DIR/linux-slim/" 2>/dev/null || true
+# cp "$PROJECT_DIR/bin/Release/$TFM/linux-x64/publish/"*.so "$PUB_DIR/linux-slim/" 2>/dev/null || true
 
 # =============================================================================
 # Summary
