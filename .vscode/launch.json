@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Scrapile.Desktop/bin/Debug/net9.0/Scrapile.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Scrapile.Desktop",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Attach to Scrapile",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
