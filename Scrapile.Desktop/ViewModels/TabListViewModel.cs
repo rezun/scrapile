@@ -452,6 +452,16 @@ public partial class TabListViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Persists the current order of tabs in the collection to the TabManager.
+    /// Called after drag-and-drop reordering to save the new order.
+    /// </summary>
+    public async Task PersistCurrentTabOrderAsync()
+    {
+        var orderedIds = Tabs.Select(t => t.TabId).ToList();
+        await _tabManager.ReorderTabsAsync(orderedIds);
+    }
+
+    /// <summary>
     /// Updates the stats for a specific tab in place.
     /// This preserves object identity, keeping context menus and other UI elements attached.
     /// </summary>

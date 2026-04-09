@@ -28,6 +28,7 @@
                           Grid.Row="0"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
+                          DragDrop.AllowDrop="True"
                           ScrollChanged="OnTabScrollChanged"
                           DoubleTapped="OnTabAreaDoubleTapped">
                 <StackPanel>
@@ -41,7 +42,10 @@
                                     Margin="0,0,0,2"
                                     Padding="8,6"
                                     Cursor="Hand"
+                                    DragDrop.AllowDrop="True"
                                     PointerPressed="OnTabPointerPressed"
+                                    PointerMoved="OnTabPointerMoved"
+                                    PointerReleased="OnTabPointerReleased"
                                     Classes.selected="{Binding IsSelected}">
 
                                 <Border.ContextFlyout>

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -9,7 +10,18 @@ namespace Scrapile.Desktop.Views;
 
 public partial class TabListView : UserControl, INotifyPropertyChanged
 {
+    /// <summary>
+    /// Private drag format for tab reordering. The payload is the TabId as a
+    /// string; the view model is responsible for mapping it back to a tab.
+    /// </summary>
+    private static readonly DataFormat<string> TabDragFormat =
+        DataFormat.CreateStringApplicationFormat("scrapile.tabitem");
+
+    private const double DragThreshold = 4.0;
+
     private bool _isScrollable;
+    private TabItemViewModel? _pendingDragTab;
+    private Point? _pointerPressPosition;
 
     public new event PropertyChangedEventHandler? PropertyChanged;
 
@@ -36,6 +48,11 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
             hint.Text = shortcut;
         if (this.FindControl<TextBlock>("FixedShortcutHint") is { } fixedHint)
             fixedHint.Text = shortcut;
+
+        // Subscribe to drag events at the user control level so tab targets
+        // can be resolved from the bubbled event source.
+        AddHandler(DragDrop.DragOverEvent, OnTabDragOver);
+        AddHandler(DragDrop.DropEvent, OnTabDrop);
     }
 
     /// <summary>
@@ -80,17 +97,150 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Handles pointer press on a tab item to select it.
+    /// Handles pointer press on a tab item to select it and prime a potential drag.
     /// </summary>
     private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is Border border && border.DataContext is TabItemViewModel tabViewModel)
+        if (sender is not Border border || border.DataContext is not TabItemViewModel tabViewModel)
+            return;
+
+        if (DataContext is TabListViewModel listViewModel)
         {
-            if (DataContext is TabListViewModel listViewModel)
-            {
-                listViewModel.SelectTab(tabViewModel);
-            }
+            listViewModel.SelectTab(tabViewModel);
         }
+
+        // Only prime a drag for left-button presses; right-click opens the context menu.
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            _pendingDragTab = tabViewModel;
+            _pointerPressPosition = e.GetPosition(this);
+        }
+    }
+
+    /// <summary>
+    /// Handles pointer movement on a tab item. Initiates a drag-and-drop reorder
+    /// once the pointer has moved far enough from the press position.
+    /// </summary>
+    private async void OnTabPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pendingDragTab is null || _pointerPressPosition is null)
+            return;
+
+        var currentPoint = e.GetCurrentPoint(this);
+        if (!currentPoint.Properties.IsLeftButtonPressed)
+        {
+            // Button released without crossing the threshold — reset.
+            _pendingDragTab = null;
+            _pointerPressPosition = null;
+            return;
+        }
+
+        var delta = e.GetPosition(this) - _pointerPressPosition.Value;
+        if (Math.Abs(delta.X) < DragThreshold && Math.Abs(delta.Y) < DragThreshold)
+            return;
+
+        var draggedTab = _pendingDragTab;
+        _pendingDragTab = null;
+        _pointerPressPosition = null;
+
+        var dataTransfer = new DataTransfer();
+        dataTransfer.Add(DataTransferItem.Create(TabDragFormat, draggedTab.TabId.ToString()));
+
+        try
+        {
+            await DragDrop.DoDragDropAsync(e, dataTransfer, DragDropEffects.Move);
+        }
+        catch (Exception)
+        {
+            // Swallow — a failed drag should not crash the UI.
+        }
+
+        // Persist whatever order the live-reorder left us in (drop or cancel).
+        if (DataContext is TabListViewModel vm)
+        {
+            await vm.PersistCurrentTabOrderAsync();
+        }
+    }
+
+    /// <summary>
+    /// Resets the drag-priming state if the pointer is released without a drag starting.
+    /// </summary>
+    private void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _pendingDragTab = null;
+        _pointerPressPosition = null;
+    }
+
+    /// <summary>
+    /// Handles drag-over on the tab list. Performs live reordering so the user sees
+    /// tabs shuffle in place as they drag.
+    /// </summary>
+    private void OnTabDragOver(object? sender, DragEventArgs e)
+    {
+        if (e.DataTransfer is null || !e.DataTransfer.Contains(TabDragFormat))
+        {
+            e.DragEffects = DragDropEffects.None;
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Move;
+
+        var draggedIdString = e.DataTransfer.TryGetValue(TabDragFormat);
+        if (draggedIdString is null || !Guid.TryParse(draggedIdString, out var draggedTabId))
+            return;
+        if (DataContext is not TabListViewModel vm)
+            return;
+
+        var dragged = FindTabById(vm, draggedTabId);
+        if (dragged is null)
+            return;
+
+        var target = FindTabFromVisual(e.Source as Control);
+        if (target is null || ReferenceEquals(target, dragged))
+            return;
+
+        var oldIndex = vm.Tabs.IndexOf(dragged);
+        var newIndex = vm.Tabs.IndexOf(target);
+        if (oldIndex < 0 || newIndex < 0 || oldIndex == newIndex)
+            return;
+
+        vm.Tabs.Move(oldIndex, newIndex);
+    }
+
+    /// <summary>
+    /// Drop handler — persistence is actually done after DoDragDropAsync returns,
+    /// but we still acknowledge the drop so the effect is correct.
+    /// </summary>
+    private void OnTabDrop(object? sender, DragEventArgs e)
+    {
+        e.DragEffects = e.DataTransfer is not null && e.DataTransfer.Contains(TabDragFormat)
+            ? DragDropEffects.Move
+            : DragDropEffects.None;
+    }
+
+    private static TabItemViewModel? FindTabById(TabListViewModel vm, Guid tabId)
+    {
+        foreach (var tab in vm.Tabs)
+        {
+            if (tab.TabId == tabId)
+                return tab;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Walks up the visual tree from the drag event's source to find the
+    /// TabItemViewModel the pointer is currently over.
+    /// </summary>
+    private TabItemViewModel? FindTabFromVisual(Control? source)
+    {
+        while (source is not null && source != this)
+        {
+            if (source.DataContext is TabItemViewModel tab)
+                return tab;
+            source = source.Parent as Control;
+        }
+        return null;
     }
 
     /// <summary>
