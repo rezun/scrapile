@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -19,6 +20,10 @@ public partial class EditorView : UserControl
 {
     private string? _titleBeforeEdit;
     private EditorViewModel? _currentViewModel;
+
+    // Re-entrancy guard for Content <-> TextEditor.Text sync (AvaloniaEdit's
+    // Text property does not support two-way binding directly).
+    private bool _isSyncingContent;
 
     // TextMate for syntax highlighting
     private TextMate.Installation? _textMateInstallation;
@@ -50,6 +55,7 @@ public partial class EditorView : UserControl
         // Subscribe to caret and selection changes from AvaloniaEdit
         ContentEditor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
         ContentEditor.TextArea.SelectionChanged += OnSelectionChanged;
+        ContentEditor.TextChanged += OnContentEditorTextChanged;
 
         // Subscribe to ViewModel events
         if (DataContext is EditorViewModel viewModel)
@@ -205,6 +211,8 @@ public partial class EditorView : UserControl
             _currentViewModel.SelectionRequested -= OnSelectionRequested;
             _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
             _currentViewModel.SyntaxLanguageChanged -= OnSyntaxLanguageChanged;
+            _currentViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _currentViewModel = null;
         }
 
         // Subscribe to new view model
@@ -226,9 +234,70 @@ public partial class EditorView : UserControl
         viewModel.SelectionRequested += OnSelectionRequested;
         viewModel.FocusFindBarRequested += OnFocusFindBarRequested;
         viewModel.SyntaxLanguageChanged += OnSyntaxLanguageChanged;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        // Initial sync: push the view model's Content into the editor.
+        // Guarded so the editor's TextChanged echo doesn't clobber the VM value.
+        _isSyncingContent = true;
+        try
+        {
+            if (ContentEditor.Text != viewModel.Content)
+            {
+                ContentEditor.Text = viewModel.Content ?? string.Empty;
+            }
+        }
+        finally
+        {
+            _isSyncingContent = false;
+        }
 
         // Apply current language setting
         SetTextMateLanguage(viewModel.SelectedSyntaxLanguage);
+    }
+
+    private void OnContentEditorTextChanged(object? sender, EventArgs e)
+    {
+        if (_isSyncingContent || _currentViewModel == null)
+        {
+            return;
+        }
+
+        _isSyncingContent = true;
+        try
+        {
+            _currentViewModel.Content = ContentEditor.Text;
+        }
+        finally
+        {
+            _isSyncingContent = false;
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(EditorViewModel.Content) || _isSyncingContent || _currentViewModel == null)
+        {
+            return;
+        }
+
+        var newText = _currentViewModel.Content ?? string.Empty;
+        if (ContentEditor.Text == newText)
+        {
+            return;
+        }
+
+        _isSyncingContent = true;
+        try
+        {
+            // Preserve caret position where possible
+            var caretOffset = Math.Min(ContentEditor.CaretOffset, newText.Length);
+            ContentEditor.Text = newText;
+            ContentEditor.CaretOffset = caretOffset;
+        }
+        finally
+        {
+            _isSyncingContent = false;
+        }
     }
 
     private void OnSelectionRequested(object? sender, SelectionRequestedEventArgs e)
@@ -266,7 +335,7 @@ public partial class EditorView : UserControl
         }
     }
 
-    private void OnTitleGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnTitleGotFocus(object? sender, FocusChangedEventArgs e)
     {
         _titleBeforeEdit = TitleTextBox.Text;
     }
@@ -530,11 +599,12 @@ public partial class EditorView : UserControl
         // Dispose TextMate installation
         _textMateInstallation?.Dispose();
 
-        // Unsubscribe from caret/selection events
+        // Unsubscribe from caret/selection/text events
         if (ContentEditor != null)
         {
             ContentEditor.TextArea.Caret.PositionChanged -= OnCaretPositionChanged;
             ContentEditor.TextArea.SelectionChanged -= OnSelectionChanged;
+            ContentEditor.TextChanged -= OnContentEditorTextChanged;
         }
 
         // Unsubscribe from view model events
@@ -543,6 +613,7 @@ public partial class EditorView : UserControl
             _currentViewModel.SelectionRequested -= OnSelectionRequested;
             _currentViewModel.FocusFindBarRequested -= OnFocusFindBarRequested;
             _currentViewModel.SyntaxLanguageChanged -= OnSyntaxLanguageChanged;
+            _currentViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _currentViewModel = null;
         }
     }

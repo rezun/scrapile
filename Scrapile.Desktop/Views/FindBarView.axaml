@@ -53,7 +53,7 @@
             <TextBox x:Name="FindInput"
                      Grid.Column="0"
                      Text="{Binding SearchQuery, Mode=TwoWay}"
-                     Watermark="Find in document..."
+                     PlaceholderText="Find in document..."
                      FontSize="14"
                      BorderThickness="0"
                      Background="Transparent"

@@ -79,7 +79,7 @@
                         BorderThickness="0,0,0,1">
                     <TextBox x:Name="SearchInput"
                              Text="{Binding SearchQuery, Mode=TwoWay}"
-                             Watermark="Search documents..."
+                             PlaceholderText="Search documents..."
                              FontSize="16"
                              BorderThickness="0"
                              Background="Transparent"

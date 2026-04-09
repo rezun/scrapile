@@ -189,11 +189,11 @@
                         <TextBox x:Name="ShortcutTextBox"
                                  Grid.Column="0"
                                  Text="{Binding GlobalShortcut}"
-                                 Watermark="No shortcut configured"
+                                 PlaceholderText="No shortcut configured"
                                  IsReadOnly="True"
                                  IsVisible="{Binding !IsRecordingShortcut}"/>
                         <TextBox Grid.Column="0"
-                                 Watermark="Press keys..."
+                                 PlaceholderText="Press keys..."
                                  IsReadOnly="True"
                                  IsVisible="{Binding IsRecordingShortcut}"/>
                         <Button x:Name="RecordShortcutButton"
@@ -264,7 +264,7 @@
                         <Grid ColumnDefinitions="*,Auto,Auto">
                             <TextBox Grid.Column="0"
                                      Text="{Binding StorageDirectory}"
-                                     Watermark="Default: ~/Documents/Scrapile"
+                                     PlaceholderText="Default: ~/Documents/Scrapile"
                                      IsReadOnly="True"/>
                             <Button Grid.Column="1"
                                     Content="Browse..."

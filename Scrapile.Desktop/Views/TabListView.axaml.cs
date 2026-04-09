@@ -22,6 +22,9 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     private bool _isScrollable;
     private TabItemViewModel? _pendingDragTab;
     private Point? _pointerPressPosition;
+    // Captured so DoDragDropAsync (which now requires PointerPressedEventArgs in
+    // Avalonia 12) can be invoked once the pointer has crossed the drag threshold.
+    private PointerPressedEventArgs? _pendingDragPressArgs;
 
     public new event PropertyChangedEventHandler? PropertyChanged;
 
@@ -114,6 +117,7 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
         {
             _pendingDragTab = tabViewModel;
             _pointerPressPosition = e.GetPosition(this);
+            _pendingDragPressArgs = e;
         }
     }
 
@@ -123,7 +127,7 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     /// </summary>
     private async void OnTabPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_pendingDragTab is null || _pointerPressPosition is null)
+        if (_pendingDragTab is null || _pointerPressPosition is null || _pendingDragPressArgs is null)
             return;
 
         var currentPoint = e.GetCurrentPoint(this);
@@ -132,6 +136,7 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
             // Button released without crossing the threshold — reset.
             _pendingDragTab = null;
             _pointerPressPosition = null;
+            _pendingDragPressArgs = null;
             return;
         }
 
@@ -140,15 +145,17 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
             return;
 
         var draggedTab = _pendingDragTab;
+        var pressArgs = _pendingDragPressArgs;
         _pendingDragTab = null;
         _pointerPressPosition = null;
+        _pendingDragPressArgs = null;
 
         var dataTransfer = new DataTransfer();
         dataTransfer.Add(DataTransferItem.Create(TabDragFormat, draggedTab.TabId.ToString()));
 
         try
         {
-            await DragDrop.DoDragDropAsync(e, dataTransfer, DragDropEffects.Move);
+            await DragDrop.DoDragDropAsync(pressArgs, dataTransfer, DragDropEffects.Move);
         }
         catch (Exception)
         {
@@ -169,6 +176,7 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     {
         _pendingDragTab = null;
         _pointerPressPosition = null;
+        _pendingDragPressArgs = null;
     }
 
     /// <summary>

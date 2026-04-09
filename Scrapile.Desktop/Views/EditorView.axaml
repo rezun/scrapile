@@ -6,8 +6,6 @@
              xmlns:views="using:Scrapile.Desktop.Views"
              xmlns:ae="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
              xmlns:aeEditing="clr-namespace:AvaloniaEdit.Editing;assembly=AvaloniaEdit"
-             xmlns:i="using:Avalonia.Xaml.Interactivity"
-             xmlns:behaviors="using:Scrapile.Desktop.Behaviors"
              xmlns:converters="using:Scrapile.Desktop.Converters"
              mc:Ignorable="d"
              d:DesignWidth="600"
@@ -134,7 +132,7 @@
                                  Grid.Column="0"
                                  Classes="editor-textbox"
                                  Text="{Binding Title, Mode=TwoWay}"
-                                 Watermark="Add a title (optional)..."
+                                 PlaceholderText="Add a title (optional)..."
                                  FontSize="16"
                                  FontWeight="SemiBold"
                                  AcceptsReturn="False"/>
@@ -148,7 +146,9 @@
                     </Grid>
                 </Border>
 
-                <!-- Main text editor area (AvaloniaEdit) -->
+                <!-- Main text editor area (AvaloniaEdit).
+                     Text <-> Content binding is handled in code-behind because AvaloniaEdit's
+                     Text property does not support direct two-way binding. -->
                 <ae:TextEditor x:Name="ContentEditor"
                                Grid.Row="2"
                                WordWrap="{Binding TextWrapping, Converter={StaticResource TextWrappingToBoolConverter}}"
@@ -157,11 +157,7 @@
                                Padding="16"
                                ShowLineNumbers="{Binding ShowLineNumbers}"
                                HorizontalScrollBarVisibility="Auto"
-                               VerticalScrollBarVisibility="Auto">
-                    <i:Interaction.Behaviors>
-                        <behaviors:DocumentTextBindingBehavior Text="{Binding Content, Mode=TwoWay}"/>
-                    </i:Interaction.Behaviors>
-                </ae:TextEditor>
+                               VerticalScrollBarVisibility="Auto"/>
 
                 <!-- Status bar -->
                 <Border Grid.Row="3"

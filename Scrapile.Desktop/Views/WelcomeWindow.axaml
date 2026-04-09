@@ -86,11 +86,11 @@
                         <TextBox x:Name="ShortcutTextBox"
                                  Grid.Column="0"
                                  Text="{Binding GlobalShortcut}"
-                                 Watermark="No shortcut"
+                                 PlaceholderText="No shortcut"
                                  IsReadOnly="True"
                                  IsVisible="{Binding !IsRecordingShortcut}"/>
                         <TextBox Grid.Column="0"
-                                 Watermark="Press keys..."
+                                 PlaceholderText="Press keys..."
                                  IsReadOnly="True"
                                  IsVisible="{Binding IsRecordingShortcut}"/>
                         <Button x:Name="RecordShortcutButton"
