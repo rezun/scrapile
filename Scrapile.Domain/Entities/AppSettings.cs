@@ -60,19 +60,6 @@ public class AppSettings
     public bool AutorunAtStartup { get; set; } = false;
 
     /// <summary>
-    /// Global keyboard shortcut to show/hide the window.
-    /// Format: "Ctrl+Alt+S" or "Cmd+Shift+Space" etc.
-    /// Null means no shortcut is configured.
-    /// </summary>
-    public string? GlobalShortcut { get; set; }
-
-    /// <summary>
-    /// Whether the app stays running in the system tray when the window is closed.
-    /// When false, closing the window quits the app. Required for global shortcuts.
-    /// </summary>
-    public bool RunInBackground { get; set; } = false;
-
-    /// <summary>
     /// Whether to always show line numbers in the editor.
     /// When false, line numbers are only shown when syntax highlighting is enabled.
     /// </summary>
@@ -94,8 +81,6 @@ public class AppSettings
             Theme = ThemeValues.System,
             AutoSaveDelayMs = AutoSaveDelayLimits.DefaultMs,
             AutorunAtStartup = false,
-            GlobalShortcut = null,
-            RunInBackground = false,
             AlwaysShowLineNumbers = false
         };
     }

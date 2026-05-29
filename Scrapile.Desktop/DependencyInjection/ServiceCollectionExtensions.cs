@@ -49,8 +49,6 @@ public static class ServiceCollectionExtensions
         // Desktop Services - Singletons for shared state
         services.AddSingleton<ThemeService>();
         services.AddSingleton<AutorunService>();
-        services.AddSingleton<TrayIconService>();
-        services.AddSingleton<GlobalHotkeyService>();
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton(new UpdateSettings());
         services.AddSingleton<IAppUpdateService, VelopackUpdateService>();

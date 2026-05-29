@@ -14,8 +14,6 @@ public static class SettingNames
     public const string WordWrap = "WordWrap";
     public const string AutoSaveDelayMs = "AutoSaveDelayMs";
     public const string AutorunAtStartup = "AutorunAtStartup";
-    public const string GlobalShortcut = "GlobalShortcut";
-    public const string RunInBackground = "RunInBackground";
     public const string AlwaysShowLineNumbers = "AlwaysShowLineNumbers";
 }
 

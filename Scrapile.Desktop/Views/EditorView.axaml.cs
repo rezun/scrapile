@@ -373,7 +373,7 @@ public partial class EditorView : UserControl
                 break;
         }
 
-        // If not Enter or Escape, check for global shortcuts
+        // If not Enter or Escape, check for application shortcuts
         if (!e.Handled)
         {
             OnEditorKeyDown(sender, e);
@@ -382,7 +382,7 @@ public partial class EditorView : UserControl
 
     /// <summary>
     /// Intercepts keyboard shortcuts in the editor.
-    /// Handles Tab/Shift+Tab for indent/unindent and global shortcuts.
+    /// Handles Tab/Shift+Tab for indent/unindent and application shortcuts.
     /// </summary>
     private async void OnEditorKeyDown(object? sender, KeyEventArgs e)
     {

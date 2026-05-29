@@ -29,16 +29,6 @@ public partial class App : Avalonia.Application
     public IServiceProvider? Services { get; private set; }
 
     /// <summary>
-    /// Gets the tray icon service.
-    /// </summary>
-    public TrayIconService? TrayIconService { get; private set; }
-
-    /// <summary>
-    /// Gets the global hotkey service.
-    /// </summary>
-    public GlobalHotkeyService? GlobalHotkeyService { get; private set; }
-
-    /// <summary>
     /// Gets the storage lock service that prevents multiple instances.
     /// </summary>
     private IStorageLockService? _storageLockService;
@@ -92,28 +82,19 @@ public partial class App : Avalonia.Application
             var settingsStore = new JsonSettingsStore();
             string storageDirectory;
 
-            string? globalShortcut = null;
-
             if (!settingsStore.SettingsFileExists())
             {
                 // Prevent app from shutting down when welcome window closes
                 desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
                 // First run - show welcome window to let user choose storage directory
-                var (selectedDirectory, autorunAtStartup, selectedShortcut) = await ShowWelcomeWindowAsync();
+                var (selectedDirectory, autorunAtStartup) = await ShowWelcomeWindowAsync();
                 storageDirectory = selectedDirectory;
-                globalShortcut = selectedShortcut;
 
-                // Save initial settings with selected directory, autorun preference, and global shortcut
+                // Save initial settings with selected directory and autorun preference
                 var settings = AppSettings.CreateDefault();
                 settings.StorageDirectory = storageDirectory;
                 settings.AutorunAtStartup = autorunAtStartup;
-                settings.GlobalShortcut = globalShortcut;
-                // If user set a global shortcut, auto-enable background mode (required for shortcuts)
-                if (globalShortcut != null)
-                {
-                    settings.RunInBackground = true;
-                }
                 await settingsStore.SaveAsync(settings);
 
                 // Register autorun if enabled
@@ -125,10 +106,8 @@ public partial class App : Avalonia.Application
             }
             else
             {
-                // Existing user - load configured directory and shortcut
+                // Existing user - load configured directory
                 storageDirectory = ServiceCollectionExtensions.GetStorageDirectory();
-                var existingSettings = await settingsStore.LoadAsync();
-                globalShortcut = existingSettings.GlobalShortcut;
             }
 
             // Try to acquire exclusive lock on the storage directory
@@ -149,8 +128,7 @@ public partial class App : Avalonia.Application
             var updateService = Services.GetRequiredService<IAppUpdateService>();
             _ = updateService.StartAsync(CancellationToken.None);
 
-            // Set shutdown mode to explicit so tray can keep app running
-            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            desktop.ShutdownMode = ShutdownMode.OnMainWindowClose;
 
             // Create main window with DI-resolved view model
             var viewModel = Services.GetRequiredService<MainWindowViewModel>();
@@ -161,27 +139,6 @@ public partial class App : Avalonia.Application
             desktop.MainWindow = MainWindow;
             desktop.MainWindow.Show();
             desktop.MainWindow.Activate();
-
-            // Initialize tray icon service (only show if running in background)
-            TrayIconService = new TrayIconService();
-            TrayIconService.ShowHideRequested += OnTrayShowHideRequested;
-            TrayIconService.SettingsRequested += OnTraySettingsRequested;
-            TrayIconService.QuitRequested += OnTrayQuitRequested;
-
-            var settingsForInit = await settingsStore.LoadAsync();
-            if (settingsForInit.RunInBackground)
-            {
-                TrayIconService.Initialize();
-            }
-
-            // Initialize global hotkey service
-            GlobalHotkeyService = new GlobalHotkeyService();
-            GlobalHotkeyService.HotkeyTriggered += OnGlobalHotkeyTriggered;
-            GlobalHotkeyService.Start(globalShortcut);
-
-            // Subscribe to settings changes to update hotkey
-            var settingsService = Services.GetRequiredService<SettingsService>();
-            settingsService.SettingsChanged += OnSettingsChanged;
 
             // Handle application shutdown
             desktop.ShutdownRequested += OnShutdownRequested;
@@ -196,7 +153,7 @@ public partial class App : Avalonia.Application
         }
     }
 
-    private async Task<(string storageDirectory, bool autorunAtStartup, string? globalShortcut)> ShowWelcomeWindowAsync()
+    private async Task<(string storageDirectory, bool autorunAtStartup)> ShowWelcomeWindowAsync()
     {
         var viewModel = new WelcomeViewModel();
         var welcomeWindow = new WelcomeWindow { DataContext = viewModel };
@@ -209,7 +166,7 @@ public partial class App : Avalonia.Application
             storageDirectory = ServiceCollectionExtensions.GetDefaultStorageDirectory();
         }
 
-        return (storageDirectory, welcomeWindow.AutorunAtStartup, welcomeWindow.GlobalShortcut);
+        return (storageDirectory, welcomeWindow.AutorunAtStartup);
     }
 
     private async Task ShowStorageLockErrorAsync(string storageDirectory, LockInfo? lockInfo)
@@ -243,97 +200,6 @@ public partial class App : Avalonia.Application
         await tcs.Task;
     }
 
-    private void OnTrayShowHideRequested(object? sender, EventArgs e)
-    {
-        ToggleWindowVisibility();
-    }
-
-    private void OnTraySettingsRequested(object? sender, EventArgs e)
-    {
-        // Ensure window is visible first
-        if (MainWindow != null && !MainWindow.IsVisible)
-        {
-            ShowWindow();
-        }
-
-        // Trigger the settings command
-        if (MainWindow?.DataContext is MainWindowViewModel viewModel)
-        {
-            viewModel.OpenSettingsCommand.Execute(null);
-        }
-    }
-
-    private void OnTrayQuitRequested(object? sender, EventArgs e)
-    {
-        QuitApplication();
-    }
-
-    private void OnGlobalHotkeyTriggered(object? sender, EventArgs e)
-    {
-        // Dispatch to UI thread - always show and bring to front
-        Dispatcher.UIThread.InvokeAsync(ShowWindow);
-    }
-
-    private void OnSettingsChanged(object? sender, SettingsChangedEventArgs e)
-    {
-        if (e.SettingName == SettingNames.GlobalShortcut || e.SettingName == SettingNames.All)
-        {
-            // Re-register hotkey with new setting
-            if (Services != null && GlobalHotkeyService != null)
-            {
-                var settingsService = Services.GetRequiredService<SettingsService>();
-                var shortcut = settingsService.GetGlobalShortcut();
-                GlobalHotkeyService.RegisterHotkey(shortcut);
-            }
-        }
-
-        if (e.SettingName == SettingNames.RunInBackground || e.SettingName == SettingNames.All)
-        {
-            if (Services != null)
-            {
-                var settingsService = Services.GetRequiredService<SettingsService>();
-                var runInBackground = settingsService.GetRunInBackground();
-
-                if (runInBackground)
-                {
-                    // Enable: initialize tray icon
-                    TrayIconService?.Initialize();
-                }
-                else
-                {
-                    // Disable: dispose tray icon, unregister global hotkey
-                    TrayIconService?.Dispose();
-                    TrayIconService = new TrayIconService();
-                    TrayIconService.ShowHideRequested += OnTrayShowHideRequested;
-                    TrayIconService.SettingsRequested += OnTraySettingsRequested;
-                    TrayIconService.QuitRequested += OnTrayQuitRequested;
-
-                    GlobalHotkeyService?.RegisterHotkey(null);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Toggles the main window visibility.
-    /// </summary>
-    public void ToggleWindowVisibility()
-    {
-        if (MainWindow == null)
-        {
-            return;
-        }
-
-        if (MainWindow.IsVisible)
-        {
-            HideWindow();
-        }
-        else
-        {
-            ShowWindow();
-        }
-    }
-
     /// <summary>
     /// Shows the main window and brings it to front.
     /// </summary>
@@ -350,19 +216,6 @@ public partial class App : Avalonia.Application
         MainWindow.Show();
         MainWindow.WindowState = WindowState.Normal;
         MainWindow.Activate();
-        TrayIconService?.UpdateWindowVisibility(true);
-    }
-
-    /// <summary>
-    /// Hides the main window to tray.
-    /// </summary>
-    public void HideWindow()
-    {
-        MainWindow?.Hide();
-        TrayIconService?.UpdateWindowVisibility(false);
-
-        // Hide dock icon on macOS when window is hidden
-        MacOSDockService.HideDockIcon();
     }
 
     /// <summary>
@@ -376,10 +229,6 @@ public partial class App : Avalonia.Application
         }
 
         IsQuitting = true;
-
-        // Dispose global hotkey service first - its hook can interfere with shutdown
-        GlobalHotkeyService?.Dispose();
-        GlobalHotkeyService = null;
 
         // Post shutdown to dispatcher so it happens after the current event is fully processed.
         // This avoids freezing when called from native menu handlers.
@@ -408,12 +257,6 @@ public partial class App : Avalonia.Application
                 // Don't prevent shutdown even if save fails
             }
         }
-
-        // Dispose tray icon
-        TrayIconService?.Dispose();
-
-        // Dispose global hotkey service (may already be disposed by QuitApplication)
-        GlobalHotkeyService?.Dispose();
 
         // Release storage lock
         _storageLockService?.ReleaseLock();

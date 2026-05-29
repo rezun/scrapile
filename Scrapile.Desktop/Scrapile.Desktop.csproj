@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>Scrapile</AssemblyName>
-    <Version>1.11.2</Version>
+    <Version>1.12.0</Version>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -15,8 +15,8 @@
     <CFBundleName>Scrapile</CFBundleName>
     <CFBundleDisplayName>Scrapile</CFBundleDisplayName>
     <CFBundleIdentifier>com.scrapile.app</CFBundleIdentifier>
-    <CFBundleVersion>1.11.2</CFBundleVersion>
-    <CFBundleShortVersionString>1.11.2</CFBundleShortVersionString>
+    <CFBundleVersion>1.12.0</CFBundleVersion>
+    <CFBundleShortVersionString>1.12.0</CFBundleShortVersionString>
     <CFBundleIconFile>Scrapile.icns</CFBundleIconFile>
     <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>
@@ -36,7 +36,6 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
-    <PackageReference Include="SharpHook" Version="7.1.1" />
     <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
     <PackageReference Include="AvaloniaEdit.TextMate" Version="12.0.0" />
     <PackageReference Include="TextMateSharp.Grammars" Version="2.0.3" />

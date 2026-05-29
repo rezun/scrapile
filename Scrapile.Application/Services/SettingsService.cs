@@ -251,62 +251,6 @@ public class SettingsService
     }
 
     /// <summary>
-    /// Gets the global shortcut setting.
-    /// </summary>
-    public string? GetGlobalShortcut()
-    {
-        return _currentSettings.GlobalShortcut;
-    }
-
-    /// <summary>
-    /// Sets the global keyboard shortcut for showing/hiding the window.
-    /// </summary>
-    public async Task SetGlobalShortcutAsync(string? shortcut)
-    {
-        var normalized = string.IsNullOrWhiteSpace(shortcut) ? null : shortcut.Trim();
-        if (_currentSettings.GlobalShortcut == normalized)
-        {
-            return;
-        }
-
-        _currentSettings.GlobalShortcut = normalized;
-        await SaveAndNotifyAsync(SettingNames.GlobalShortcut);
-    }
-
-    /// <summary>
-    /// Gets the run in background setting.
-    /// </summary>
-    public bool GetRunInBackground()
-    {
-        return _currentSettings.RunInBackground;
-    }
-
-    /// <summary>
-    /// Sets whether the app stays running in the system tray.
-    /// When disabled, also clears the global shortcut (which requires background mode).
-    /// </summary>
-    public async Task SetRunInBackgroundAsync(bool enabled)
-    {
-        if (_currentSettings.RunInBackground == enabled)
-        {
-            return;
-        }
-
-        _currentSettings.RunInBackground = enabled;
-
-        if (!enabled && _currentSettings.GlobalShortcut != null)
-        {
-            _currentSettings.GlobalShortcut = null;
-            await _settingsStore.SaveAsync(_currentSettings);
-            SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.RunInBackground));
-            SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(SettingNames.GlobalShortcut));
-            return;
-        }
-
-        await SaveAndNotifyAsync(SettingNames.RunInBackground);
-    }
-
-    /// <summary>
     /// Gets the always show line numbers setting.
     /// </summary>
     public bool GetAlwaysShowLineNumbers()

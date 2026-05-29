@@ -30,43 +30,6 @@ public partial class MainWindow : Window
         // EditorView has its own handlers for when focus is in TextBoxes
         AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
 
-        // Handle window closing for minimize-to-tray
-        Closing += OnWindowClosing;
-    }
-
-    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
-    {
-        // If the app is already quitting, allow the close to proceed
-        if (Avalonia.Application.Current is App { IsQuitting: true })
-        {
-            return;
-        }
-
-        // Check if run in background is enabled
-        if (DataContext is MainWindowViewModel viewModel)
-        {
-            var runInBackground = viewModel.SettingsService.GetRunInBackground();
-
-            if (runInBackground)
-            {
-                // Cancel the close and hide to tray instead
-                e.Cancel = true;
-
-                // Get the App instance and hide the window
-                if (Avalonia.Application.Current is App app)
-                {
-                    app.HideWindow();
-                }
-            }
-            else
-            {
-                // Not running in background, so actually quit
-                if (Avalonia.Application.Current is App app)
-                {
-                    app.QuitApplication();
-                }
-            }
-        }
     }
 
     private async void OnLoaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -569,15 +532,7 @@ public partial class MainWindow : Window
             case Key.W:
                 if (shiftPressed)
                 {
-                    // Ctrl/Cmd+Shift+W: Hide window to tray (only when running in background)
-                    if (viewModel.SettingsService.GetRunInBackground())
-                    {
-                        e.Handled = true;
-                        if (Avalonia.Application.Current is App app)
-                        {
-                            app.HideWindow();
-                        }
-                    }
+                    // Ctrl/Cmd+Shift+W is intentionally unused.
                 }
                 else
                 {
@@ -657,7 +612,7 @@ public partial class MainWindow : Window
                 break;
 
             case Key.Q:
-                // Cmd+Q on macOS: Always quit (bypass minimize-to-tray)
+                // Cmd+Q on macOS: Quit
                 if (OperatingSystem.IsMacOS() && !shiftPressed)
                 {
                     e.Handled = true;
