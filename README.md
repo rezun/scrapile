@@ -39,10 +39,10 @@ Latest release installers:
 
 | Platform | Windows | macOS | Linux |
 | -------- | ------- | ----- | ----- |
-| x64 | [Setup.exe](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-win-x64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-osx-x64-Setup.pkg) | [AppImage](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-linux-x64.AppImage) |
-| ARM64 | [Setup.exe](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-win-arm64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-osx-arm64-Setup.pkg) | [AppImage](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-linux-arm64.AppImage) |
+| x64 | [Setup.exe](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-win-x64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-osx-x64-Setup.pkg) | [AppImage](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-linux-x64.AppImage) |
+| ARM64 | [Setup.exe](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-win-arm64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-osx-arm64-Setup.pkg) | [AppImage](https://github.com/rezun/scrapile/releases/latest/download/Scrapile-linux-arm64.AppImage) |
 
-Portable builds and update packages are available on the [latest release page](https://github.com/rezun/scratpile/releases/latest).
+Portable builds and update packages are available on the [latest release page](https://github.com/rezun/scrapile/releases/latest).
 
 ## Keyboard Shortcuts
 
@@ -67,7 +67,7 @@ Portable builds and update packages are available on the [latest release page](h
 Requires [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```bash
-git clone https://github.com/rezun/scratpile.git
+git clone https://github.com/rezun/scrapile.git
 cd scrapile
 dotnet run --project Scrapile.Desktop/Scrapile.Desktop.csproj
 ```
