@@ -99,11 +99,27 @@
                                                 Spacing="2"
                                                 VerticalAlignment="Center">
                                         <!-- Title/Preview -->
-                                        <TextBlock Text="{Binding DisplayName}"
-                                                   TextTrimming="CharacterEllipsis"
-                                                   MaxLines="1"
-                                                   FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
-                                                   ToolTip.Tip="{Binding DisplayName}"/>
+                                        <Grid ColumnDefinitions="Auto,*">
+                                            <Viewbox Grid.Column="0"
+                                                     Width="13"
+                                                     Height="13"
+                                                     Margin="0,0,6,0"
+                                                     Opacity="0.72"
+                                                     VerticalAlignment="Center"
+                                                     IsVisible="{Binding HasTitle}"
+                                                     ToolTip.Tip="Titled tab">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Fill="{DynamicResource SystemControlForegroundBaseHighBrush}"
+                                                          Data="M6,2H14L20,8V20C20,21.1 19.1,22 18,22H6C4.9,22 4,21.1 4,20V4C4,2.9 4.9,2 6,2M13,3.5V9H18.5L13,3.5M8,13H16V11.5H8V13M8,16H16V14.5H8V16M8,19H13V17.5H8V19Z"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding DisplayName}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxLines="1"
+                                                       FontWeight="{Binding HasTitle, Converter={StaticResource BoolToFontWeightConverter}}"
+                                                       ToolTip.Tip="{Binding DisplayName}"/>
+                                        </Grid>
 
                                         <!-- Stats subtitle -->
                                         <TextBlock Text="{Binding FormattedWordCount}"
