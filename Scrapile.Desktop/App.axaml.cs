@@ -61,6 +61,11 @@ public partial class App : Avalonia.Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
+        {
+            activatable.Activated += OnAppActivated;
+        }
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Schedule async initialization on UI thread after framework is ready
@@ -68,6 +73,16 @@ public partial class App : Avalonia.Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private void OnAppActivated(object? sender, ActivatedEventArgs e)
+    {
+        if (MainWindow is null || IsQuitting)
+        {
+            return;
+        }
+
+        Dispatcher.UIThread.Post(ShowWindow);
     }
 
     private async Task InitializeApplicationAsync(IClassicDesktopStyleApplicationLifetime desktop)
