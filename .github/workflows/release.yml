@@ -1,0 +1,235 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver version to package, without the leading v"
+        required: true
+        type: string
+      publish_release:
+        description: "Publish the GitHub release instead of leaving it as a draft"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+env:
+  APP_PROJECT: Scrapile.Desktop/Scrapile.Desktop.csproj
+  APP_NAME: Scrapile
+  PACK_ID: Scrapile
+  PACK_AUTHORS: rezun
+  DOTNET_VERSION: 10.0.x
+
+jobs:
+  package:
+    name: Package ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            channel: win-x64
+            main_exe: Scrapile.exe
+            icon: Scrapile.Desktop/Assets/Scrapile.ico
+            pack_args: ""
+          - os: windows-latest
+            rid: win-arm64
+            channel: win-arm64
+            main_exe: Scrapile.exe
+            icon: Scrapile.Desktop/Assets/Scrapile.ico
+            pack_args: ""
+          - os: macos-latest
+            rid: osx-arm64
+            channel: osx-arm64
+            main_exe: Scrapile
+            icon: Scrapile.Desktop/Assets/Scrapile.icns
+            pack_args: "--plist packaging/macos/Info.generated.plist"
+          - os: macos-latest
+            rid: osx-x64
+            channel: osx-x64
+            main_exe: Scrapile
+            icon: Scrapile.Desktop/Assets/Scrapile.icns
+            pack_args: "--plist packaging/macos/Info.generated.plist"
+          - os: ubuntu-latest
+            rid: linux-x64
+            channel: linux-x64
+            main_exe: Scrapile
+            icon: Scrapile.Desktop/Assets/app-icon.png
+            pack_args: "--categories Utility"
+          - os: ubuntu-latest
+            rid: linux-arm64
+            channel: linux-arm64
+            main_exe: Scrapile
+            icon: Scrapile.Desktop/Assets/app-icon.png
+            pack_args: "--categories Utility"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Version '$VERSION' is not valid semver." >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Velopack package version
+        id: velopack
+        shell: bash
+        run: |
+          VERSION=$(grep -oE 'PackageReference Include="Velopack" Version="[^"]+' "$APP_PROJECT" | sed 's/.*Version="//')
+          if [[ -z "$VERSION" ]]; then
+            echo "Could not resolve Velopack package version from $APP_PROJECT" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install vpk tool
+        shell: bash
+        run: |
+          dotnet tool install --tool-path ./.tools vpk --version "${{ steps.velopack.outputs.version }}"
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            echo "VPK_BIN=./.tools/vpk.exe" >> "$GITHUB_ENV"
+          else
+            echo "VPK_BIN=./.tools/vpk" >> "$GITHUB_ENV"
+          fi
+
+      - name: Generate macOS Info.plist
+        if: startsWith(matrix.rid, 'osx-')
+        shell: bash
+        run: |
+          sed "s/VERSION_PLACEHOLDER/${{ steps.version.outputs.version }}/g" packaging/macos/Info.plist > packaging/macos/Info.generated.plist
+
+      - name: Publish application
+        run: >
+          dotnet publish ${{ env.APP_PROJECT }}
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:Version=${{ steps.version.outputs.version }}
+          -p:CFBundleVersion=${{ steps.version.outputs.version }}
+          -p:CFBundleShortVersionString=${{ steps.version.outputs.version }}
+          -o publish/${{ matrix.rid }}
+
+      - name: Download previous Velopack assets
+        continue-on-error: true
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >
+          "$VPK_BIN" --yes
+          download github
+          --repoUrl https://github.com/${{ github.repository }}
+          --token "$GITHUB_TOKEN"
+          --channel ${{ matrix.channel }}
+          --outputDir Releases
+
+      - name: Pack Velopack release
+        shell: bash
+        run: >
+          "$VPK_BIN" --yes
+          pack
+          --packId ${{ env.PACK_ID }}
+          --packVersion ${{ steps.version.outputs.version }}
+          --packDir publish/${{ matrix.rid }}
+          --mainExe ${{ matrix.main_exe }}
+          --packTitle "${{ env.APP_NAME }}"
+          --packAuthors "${{ env.PACK_AUTHORS }}"
+          --icon ${{ matrix.icon }}
+          --runtime ${{ matrix.rid }}
+          --channel ${{ matrix.channel }}
+          --outputDir Releases
+          ${{ matrix.pack_args }}
+
+      - name: Prepare GitHub release assets
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_CHANNEL: ${{ matrix.channel }}
+        run: |
+          python3 scripts/sanitize_velopack_release.py
+
+          find Releases -maxdepth 1 -type f \( -name "${{ env.PACK_ID }}-*-full.nupkg" -o -name "${{ env.PACK_ID }}-*-delta.nupkg" \) \
+            ! -name "${{ env.PACK_ID }}-${RELEASE_VERSION}-${RELEASE_CHANNEL}-full.nupkg" \
+            ! -name "${{ env.PACK_ID }}-${RELEASE_VERSION}-${RELEASE_CHANNEL}-delta.nupkg" \
+            -delete
+
+          find Releases -maxdepth 1 -type f \( -name 'assets.*.json' -o -name 'RELEASES*' \) -delete
+
+      - name: Upload packaged artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: velopack-${{ matrix.channel }}
+          path: Releases/*
+
+      - name: Clean generated macOS Info.plist
+        if: startsWith(matrix.rid, 'osx-')
+        shell: bash
+        run: rm -f packaging/macos/Info.generated.plist
+
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    needs: package
+
+    steps:
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: velopack-*
+          merge-multiple: true
+          path: release-assets
+
+      - name: Create or update GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          TAG="v$VERSION"
+
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.publish_release }}" != "true" ]]; then
+              gh release create "$TAG" --title "Scrapile $VERSION" --generate-notes --draft --target "${{ github.sha }}"
+            else
+              gh release create "$TAG" --title "Scrapile $VERSION" --generate-notes --target "${{ github.sha }}"
+            fi
+          fi
+
+          while IFS= read -r asset_name; do
+            if [[ "$asset_name" =~ ^assets\..*\.json$ || "$asset_name" =~ ^RELEASES($|-) ]]; then
+              gh release delete-asset "$TAG" "$asset_name" --yes
+            fi
+          done < <(gh release view "$TAG" --json assets --jq '.assets[].name')
+
+          gh release upload "$TAG" release-assets/* --clobber

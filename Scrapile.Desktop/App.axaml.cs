@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Scrapile.Application.Helpers;
 using Scrapile.Application.Services;
@@ -129,6 +130,9 @@ public partial class App : Avalonia.Application
             var services = new ServiceCollection();
             services.AddScrapileServices(storageDirectory);
             Services = services.BuildServiceProvider();
+
+            var updateService = Services.GetRequiredService<IAppUpdateService>();
+            _ = updateService.StartAsync(CancellationToken.None);
 
             // Set shutdown mode to explicit so tray can keep app running
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;

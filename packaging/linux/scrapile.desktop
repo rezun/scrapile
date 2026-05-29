@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Scrapile
+Comment=Frictionless scratchpad notes
+Icon=scrapile
+Exec=Scrapile
+Terminal=false
+Type=Application
+Categories=Utility;

@@ -33,6 +33,11 @@
             "label": "watch",
             "command": "dotnet",
             "type": "process",
+            "options": {
+                "env": {
+                    "DOTNET_ENVIRONMENT": "Development"
+                }
+            },
             "args": [
                 "watch",
                 "run",

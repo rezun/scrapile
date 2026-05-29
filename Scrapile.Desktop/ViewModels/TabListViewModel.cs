@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Scrapile.Application.DTOs;
 using Scrapile.Application.Services;
+using Scrapile.Desktop.Services;
 
 /// <summary>
 /// ViewModel for the vertical tab list component.
@@ -16,6 +17,7 @@ public partial class TabListViewModel : ViewModelBase
 {
     private readonly TabManager _tabManager;
     private readonly AutoSaveService? _autoSaveService;
+    private readonly IAppUpdateService? _updateService;
 
     [ObservableProperty]
     private ObservableCollection<TabItemViewModel> _tabs = new();
@@ -68,16 +70,54 @@ public partial class TabListViewModel : ViewModelBase
     /// </summary>
     /// <param name="tabManager">The tab manager service.</param>
     /// <param name="autoSaveService">The auto-save service (optional, for saving before close).</param>
-    public TabListViewModel(TabManager tabManager, AutoSaveService? autoSaveService = null)
+    public TabListViewModel(TabManager tabManager, AutoSaveService? autoSaveService = null, IAppUpdateService? updateService = null)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _autoSaveService = autoSaveService;
+        _updateService = updateService;
+
+        if (_updateService is not null)
+            _updateService.StateChanged += OnUpdateStateChanged;
     }
 
     /// <summary>
     /// Whether there are any tabs open.
     /// </summary>
     public bool HasTabs => Tabs.Count > 0;
+
+    public bool IsUpdateReadyToInstall => _updateService?.IsUpdateReadyToInstall == true;
+
+    public string UpdateButtonText => _updateService?.UpdateButtonText ?? string.Empty;
+
+    [RelayCommand]
+    private async Task ApplyPendingUpdateAsync()
+    {
+        if (_autoSaveService is not null)
+        {
+            try
+            {
+                foreach (var tabWithStats in _tabManager.GetDirtyTabs())
+                {
+                    await _autoSaveService.SaveImmediatelyAsync(
+                        tabWithStats.Tab.Document.Id,
+                        tabWithStats.Tab.Content);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Could not save pending changes before applying update: {ex}");
+                return;
+            }
+        }
+
+        _updateService?.ApplyPendingUpdateAndRestart();
+    }
+
+    private void OnUpdateStateChanged(object? sender, EventArgs e)
+    {
+        OnPropertyChanged(nameof(IsUpdateReadyToInstall));
+        OnPropertyChanged(nameof(UpdateButtonText));
+    }
 
     /// <summary>
     /// Loads tabs from the TabManager and restores the last active tab selection.

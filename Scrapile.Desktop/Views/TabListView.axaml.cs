@@ -100,6 +100,17 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     }
 
     /// <summary>
+    /// Handles click on the update card.
+    /// </summary>
+    private void OnUpdateCardPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is TabListViewModel vm && vm.ApplyPendingUpdateCommand.CanExecute(null))
+        {
+            vm.ApplyPendingUpdateCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
     /// Handles pointer press on a tab item to select it and prime a potential drag.
     /// </summary>
     private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -1,5 +1,6 @@
 using Scrapile.Application.DTOs;
 using Scrapile.Application.Services;
+using Scrapile.Desktop.Services;
 using Scrapile.Desktop.ViewModels;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
@@ -26,6 +27,38 @@ public class TabListViewModelTests
         Assert.Empty(viewModel.Tabs);
         Assert.Null(viewModel.SelectedTab);
         Assert.False(viewModel.HasTabs);
+    }
+
+    #endregion
+
+    #region Update Card Tests
+
+    [Fact]
+    public void IsUpdateReadyToInstall_ReflectsUpdateServiceState()
+    {
+        var tabManager = CreateInitializedTabManager();
+        var updateService = new FakeUpdateService();
+        var viewModel = new TabListViewModel(tabManager, updateService: updateService);
+
+        Assert.False(viewModel.IsUpdateReadyToInstall);
+        Assert.Equal(string.Empty, viewModel.UpdateButtonText);
+
+        updateService.SetReady("Restart to install 1.10.2");
+
+        Assert.True(viewModel.IsUpdateReadyToInstall);
+        Assert.Equal("Restart to install 1.10.2", viewModel.UpdateButtonText);
+    }
+
+    [Fact]
+    public void ApplyPendingUpdateCommand_DelegatesToUpdateService()
+    {
+        var tabManager = CreateInitializedTabManager();
+        var updateService = new FakeUpdateService();
+        var viewModel = new TabListViewModel(tabManager, updateService: updateService);
+
+        viewModel.ApplyPendingUpdateCommand.Execute(null);
+
+        Assert.True(updateService.ApplyCalled);
     }
 
     #endregion
@@ -1030,6 +1063,34 @@ public class TabListViewModelTests
         {
             _documentSyntaxLanguage[documentId] = syntaxLanguage;
             return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FakeUpdateService : IAppUpdateService
+    {
+        public event EventHandler? StateChanged;
+
+        public bool IsUpdateReadyToInstall { get; private set; }
+        public string UpdateButtonText { get; private set; } = string.Empty;
+        public bool ApplyCalled { get; private set; }
+
+        public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public void ApplyPendingUpdateAndRestart()
+        {
+            ApplyCalled = true;
+        }
+
+        public void ShowTestUpdateNotification()
+        {
+            SetReady("Restart to install 9.9.9-debug");
+        }
+
+        public void SetReady(string buttonText)
+        {
+            IsUpdateReadyToInstall = true;
+            UpdateButtonText = buttonText;
+            StateChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 

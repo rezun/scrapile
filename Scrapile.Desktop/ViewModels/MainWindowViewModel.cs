@@ -23,6 +23,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly SettingsService _settingsService;
     private readonly AutorunService _autorunService;
     private readonly IMetadataStore _metadataStore;
+    private readonly IAppUpdateService? _updateService;
 
     [ObservableProperty]
     private string _title = "Scrapile";
@@ -106,7 +107,8 @@ public partial class MainWindowViewModel : ViewModelBase
         ThemeService themeService,
         SettingsService settingsService,
         AutorunService autorunService,
-        IMetadataStore metadataStore)
+        IMetadataStore metadataStore,
+        IAppUpdateService? updateService = null)
     {
         _tabManager = tabManager ?? throw new ArgumentNullException(nameof(tabManager));
         _documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
@@ -115,9 +117,10 @@ public partial class MainWindowViewModel : ViewModelBase
         _settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
         _autorunService = autorunService ?? throw new ArgumentNullException(nameof(autorunService));
         _metadataStore = metadataStore ?? throw new ArgumentNullException(nameof(metadataStore));
+        _updateService = updateService;
 
         // Create the tab list view model
-        _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService);
+        _tabListViewModel = new TabListViewModel(_tabManager, _autoSaveService, _updateService);
         _tabListViewModel.TabSelected += OnTabSelected;
         _tabListViewModel.TabsChanged += OnTabsChanged;
         _tabListViewModel.DuplicateTabRequested += OnDuplicateTabRequested;

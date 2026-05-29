@@ -191,32 +191,67 @@
                        VerticalAlignment="Center"
                        Margin="0,20"/>
 
-            <!-- FIXED New Tab button - only visible when scrollable -->
-            <Border Grid.Row="1"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                    BorderThickness="0,1,0,0"
-                    Padding="4"
-                    IsVisible="{Binding IsScrollable, ElementName=TabListRoot}">
-                <Border x:Name="FixedNewTabButton"
-                        Padding="8,6"
+            <StackPanel Grid.Row="1">
+                <Border Margin="4,4,4,0"
+                        Padding="8,7"
                         CornerRadius="4"
                         Cursor="Hand"
-                        PointerPressed="OnNewTabButtonPressed">
+                        IsVisible="{Binding IsUpdateReadyToInstall}"
+                        PointerPressed="OnUpdateCardPressed"
+                        ToolTip.Tip="{Binding UpdateButtonText}">
                     <Border.Styles>
-                        <Style Selector="Border#FixedNewTabButton">
-                            <Setter Property="Background" Value="Transparent"/>
+                        <Style Selector="Border">
+                            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"/>
                         </Style>
-                        <Style Selector="Border#FixedNewTabButton:pointerover">
+                        <Style Selector="Border:pointerover">
                             <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
                         </Style>
                     </Border.Styles>
-                    <Grid ColumnDefinitions="Auto,*,Auto">
-                        <TextBlock Text="+" FontSize="16" VerticalAlignment="Center" Margin="0,-2,0,0"/>
-                        <TextBlock Grid.Column="1" Text="New Tab" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="2" x:Name="FixedShortcutHint" Opacity="0.5" VerticalAlignment="Center"/>
+                    <Grid ColumnDefinitions="Auto,*">
+                        <Border Width="3"
+                                CornerRadius="2"
+                                Background="{DynamicResource SystemControlHighlightAccentBrush}"
+                                Margin="0,1,8,1"/>
+                        <StackPanel Grid.Column="1"
+                                    Spacing="1"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="Update ready"
+                                       FontWeight="SemiBold"
+                                       FontSize="12"/>
+                            <TextBlock Text="{Binding UpdateButtonText}"
+                                       FontSize="11"
+                                       Opacity="0.65"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
-            </Border>
+
+                <!-- FIXED New Tab button - only visible when scrollable -->
+                <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="4"
+                        IsVisible="{Binding IsScrollable, ElementName=TabListRoot}">
+                    <Border x:Name="FixedNewTabButton"
+                            Padding="8,6"
+                            CornerRadius="4"
+                            Cursor="Hand"
+                            PointerPressed="OnNewTabButtonPressed">
+                        <Border.Styles>
+                            <Style Selector="Border#FixedNewTabButton">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Style>
+                            <Style Selector="Border#FixedNewTabButton:pointerover">
+                                <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+                            </Style>
+                        </Border.Styles>
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Text="+" FontSize="16" VerticalAlignment="Center" Margin="0,-2,0,0"/>
+                            <TextBlock Grid.Column="1" Text="New Tab" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" x:Name="FixedShortcutHint" Opacity="0.5" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Border>
+            </StackPanel>
         </Grid>
     </Border>
 

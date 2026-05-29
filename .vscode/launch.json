@@ -9,6 +9,9 @@
             "program": "${workspaceFolder}/Scrapile.Desktop/bin/Debug/net10.0/Scrapile.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Scrapile.Desktop",
+            "env": {
+                "DOTNET_ENVIRONMENT": "Development"
+            },
             "stopAtEntry": false,
             "console": "internalConsole"
         },

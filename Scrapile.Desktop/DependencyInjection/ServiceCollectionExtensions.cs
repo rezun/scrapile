@@ -51,6 +51,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<AutorunService>();
         services.AddSingleton<TrayIconService>();
         services.AddSingleton<GlobalHotkeyService>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton(new UpdateSettings());
+        services.AddSingleton<IAppUpdateService, VelopackUpdateService>();
 
         // ViewModels - Transient for fresh instances
         services.AddTransient<MainWindowViewModel>();
