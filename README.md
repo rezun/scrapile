@@ -33,6 +33,17 @@ Think of it like Gmail: most emails get archived without labels, but adding cont
 - **Word wrap** - Global default with per-document override
 - **First-run setup** - Welcome window for choosing storage location
 
+## Download
+
+Latest release installers:
+
+| Platform | Windows | macOS | Linux |
+| -------- | ------- | ----- | ----- |
+| x64 | [Setup.exe](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-win-x64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-osx-x64-Setup.pkg) | [AppImage](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-linux-x64.AppImage) |
+| ARM64 | [Setup.exe](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-win-arm64-Setup.exe) | [Setup.pkg](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-osx-arm64-Setup.pkg) | [AppImage](https://github.com/rezun/scratpile/releases/latest/download/Scrapile-linux-arm64.AppImage) |
+
+Portable builds and update packages are available on the [latest release page](https://github.com/rezun/scratpile/releases/latest).
+
 ## Keyboard Shortcuts
 
 | Action | Windows/Linux | macOS |
@@ -53,10 +64,10 @@ Think of it like Gmail: most emails get archived without labels, but adding cont
 
 ### Run from Source
 
-Requires [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
+Requires [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 
 ```bash
-git clone https://github.com/yourusername/scrapile.git
+git clone https://github.com/rezun/scratpile.git
 cd scrapile
 dotnet run --project Scrapile.Desktop/Scrapile.Desktop.csproj
 ```
@@ -77,11 +88,11 @@ Build executables for macOS and Windows:
 
 Output in `pub/`:
 - `pub/macos/Scrapile.app` - macOS application bundle (Apple Silicon, self-contained)
-- `pub/macos-slim/Scrapile.app` - macOS bundle (requires .NET 9.0 runtime)
+- `pub/macos-slim/Scrapile.app` - macOS bundle (requires .NET 10.0 runtime)
 - `pub/windows/Scrapile.exe` - Windows executable (self-contained)
-- `pub/windows-slim/Scrapile.exe` - Windows executable (requires .NET 9.0 runtime)
+- `pub/windows-slim/Scrapile.exe` - Windows executable (requires .NET 10.0 runtime)
 
-Self-contained builds include the .NET runtime (~90-110MB). Slim builds require .NET 9.0 installed on the target machine but are much smaller (~30MB).
+Self-contained builds include the .NET runtime (~90-110MB). Slim builds require .NET 10.0 installed on the target machine but are much smaller (~30MB).
 
 Linux builds are supported but currently disabled in the publish script. Uncomment the Linux section in `publish.sh` to enable them.
 
@@ -100,7 +111,7 @@ You own your data. It's just text files.
 Built with:
 - [Avalonia UI](https://avaloniaui.net/) - Cross-platform .NET UI framework
 - [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) - MVVM utilities
-- .NET 9.0
+- .NET 10.0
 
 ## License
 
