@@ -2,6 +2,7 @@ using Scrapile.Application.DTOs;
 using Scrapile.Application.Services;
 using Scrapile.Desktop.Services;
 using Scrapile.Desktop.ViewModels;
+using Scrapile.Domain.Constants;
 using Scrapile.Domain.Entities;
 using Scrapile.Domain.Interfaces;
 
@@ -824,7 +825,7 @@ public class MainWindowViewModelTests
         private Guid? _activeTabDocumentId;
         private string? _theme;
 
-        public Task<Metadata> LoadAsync() => Task.FromResult(new Metadata { Theme = _theme });
+        public Task<Metadata> LoadAsync() => Task.FromResult(new Metadata { Theme = _theme ?? ThemeValues.System });
 
         public Task SaveAsync(Metadata metadata)
         {

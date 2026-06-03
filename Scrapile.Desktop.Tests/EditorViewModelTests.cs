@@ -184,11 +184,11 @@ public class EditorViewModelTests
     #region Content Change Tests
 
     [Fact]
-    public void Content_Changed_UpdatesTabManager()
+    public async Task Content_Changed_UpdatesTabManager()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
 
@@ -199,11 +199,11 @@ public class EditorViewModelTests
     }
 
     [Fact]
-    public void Content_Changed_SetsIsDirtyTrue()
+    public async Task Content_Changed_SetsIsDirtyTrue()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
 
@@ -213,11 +213,11 @@ public class EditorViewModelTests
     }
 
     [Fact]
-    public void Content_Changed_RaisesContentChangedEvent()
+    public async Task Content_Changed_RaisesContentChangedEvent()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
         ContentChangedEventArgs? eventArgs = null;
@@ -243,11 +243,11 @@ public class EditorViewModelTests
     }
 
     [Fact]
-    public void Content_Changed_UpdatesStatusBar()
+    public async Task Content_Changed_UpdatesStatusBar()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
 
@@ -262,11 +262,11 @@ public class EditorViewModelTests
     #region Title Change Tests
 
     [Fact]
-    public void Title_Changed_RaisesTitleChangedEvent()
+    public async Task Title_Changed_RaisesTitleChangedEvent()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
         TitleChangedEventArgs? eventArgs = null;
@@ -280,11 +280,11 @@ public class EditorViewModelTests
     }
 
     [Fact]
-    public void Title_Changed_ToEmpty_NormalizesToNull()
+    public async Task Title_Changed_ToEmpty_NormalizesToNull()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
 
@@ -301,11 +301,11 @@ public class EditorViewModelTests
     }
 
     [Fact]
-    public void Title_Changed_ToWhitespace_NormalizesToNull()
+    public async Task Title_Changed_ToWhitespace_NormalizesToNull()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
         TitleChangedEventArgs? eventArgs = null;
@@ -434,8 +434,8 @@ public class EditorViewModelTests
     public async Task SetDocumentWordWrapAsync_UpdatesSelectedWordWrap()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         viewModel.CurrentTab = new TabItemViewModel(tab, _ => { });
 
         await viewModel.SetDocumentWordWrapAsync("No Wrap");
@@ -448,8 +448,8 @@ public class EditorViewModelTests
     public async Task SetDocumentWordWrapAsync_UpdatesDisplayText()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         viewModel.CurrentTab = new TabItemViewModel(tab, _ => { });
 
         await viewModel.SetDocumentWordWrapAsync("No Wrap");
@@ -461,8 +461,8 @@ public class EditorViewModelTests
     public async Task CycleWordWrapAsync_CyclesThroughOptions()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         viewModel.CurrentTab = new TabItemViewModel(tab, _ => { });
 
         Assert.Equal("Default", viewModel.SelectedWordWrap);
@@ -509,11 +509,11 @@ public class EditorViewModelTests
     #region RefreshFromTab Tests
 
     [Fact]
-    public void RefreshFromTab_ReloadsContent()
+    public async Task RefreshFromTab_ReloadsContent()
     {
         var (viewModel, tabManager, _, _) = CreateEditorViewModelWithServices();
-        tabManager.InitializeAsync().GetAwaiter().GetResult();
-        var tab = tabManager.CreateTabAsync().GetAwaiter().GetResult();
+        await tabManager.InitializeAsync();
+        var tab = await tabManager.CreateTabAsync();
         var tabViewModel = new TabItemViewModel(tab, _ => { });
         viewModel.CurrentTab = tabViewModel;
         viewModel.Content = "modified";
