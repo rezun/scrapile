@@ -11,6 +11,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Scrapile.Desktop.ViewModels;
+using Scrapile.Domain.Constants;
 
 namespace Scrapile.Desktop.Views;
 
@@ -41,6 +42,7 @@ public partial class MainWindow : Window
 
             // Subscribe to clipboard and save as events
             viewModel.ClipboardCopyRequested += OnClipboardCopyRequested;
+            viewModel.StatusMessageRequested += OnStatusMessageRequested;
             viewModel.SaveAsRequested += OnSaveAsRequested;
 
             // Subscribe to settings window request
@@ -371,6 +373,25 @@ public partial class MainWindow : Window
         if (clipboard != null)
         {
             await clipboard.SetTextAsync(content);
+        }
+    }
+
+    /// <summary>
+    /// Shows short status feedback in the editor header.
+    /// </summary>
+    private async void OnStatusMessageRequested(object? sender, string message)
+    {
+        if (DataContext is not MainWindowViewModel viewModel)
+        {
+            return;
+        }
+
+        viewModel.EditorViewModel.SaveStatus = message;
+
+        await Task.Delay(UiTimingConstants.SaveStatusDisplayDurationMs);
+        if (viewModel.EditorViewModel.SaveStatus == message)
+        {
+            viewModel.EditorViewModel.SaveStatus = string.Empty;
         }
     }
 

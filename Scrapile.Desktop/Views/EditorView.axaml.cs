@@ -335,6 +335,19 @@ public partial class EditorView : UserControl
         }
     }
 
+    /// <summary>
+    /// Copies the full active document without changing the editor selection.
+    /// </summary>
+    private void OnCopyDocumentClicked(object? sender, RoutedEventArgs e)
+    {
+        var mainWindow = this.FindAncestorOfType<MainWindow>();
+        if (mainWindow?.DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.CopyCurrentTabToClipboard();
+            FocusContent();
+        }
+    }
+
     private void OnTitleGotFocus(object? sender, FocusChangedEventArgs e)
     {
         _titleBeforeEdit = TitleTextBox.Text;
@@ -443,6 +456,11 @@ public partial class EditorView : UserControl
         // Handle shortcuts
         switch (e.Key)
         {
+            case Key.C when !shiftPressed && ShouldCopyFullDocumentOnCopyShortcut(sender):
+                e.Handled = true;
+                viewModel.CopyCurrentTabToClipboard();
+                break;
+
             case Key.W when !shiftPressed:
                 e.Handled = true;
                 await viewModel.CloseCurrentTabAsync();
@@ -466,6 +484,16 @@ public partial class EditorView : UserControl
                 }
                 break;
         }
+    }
+
+    private bool ShouldCopyFullDocumentOnCopyShortcut(object? sender)
+    {
+        if (sender != ContentEditor)
+        {
+            return false;
+        }
+
+        return ContentEditor.TextArea.Selection.IsEmpty;
     }
 
     private bool HasMultiLineSelection()
