@@ -113,10 +113,22 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
     /// <summary>
     /// Handles pointer press on a tab item to select it and prime a potential drag.
     /// </summary>
-    private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    private async void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Border border || border.DataContext is not TabItemViewModel tabViewModel)
             return;
+
+        var pointProperties = e.GetCurrentPoint(this).Properties;
+
+        if (pointProperties.IsMiddleButtonPressed)
+        {
+            if (DataContext is TabListViewModel tabListViewModel)
+            {
+                e.Handled = true;
+                await tabListViewModel.CloseTabAsync(tabViewModel);
+            }
+            return;
+        }
 
         if (DataContext is TabListViewModel listViewModel)
         {
@@ -124,7 +136,7 @@ public partial class TabListView : UserControl, INotifyPropertyChanged
         }
 
         // Only prime a drag for left-button presses; right-click opens the context menu.
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (pointProperties.IsLeftButtonPressed)
         {
             _pendingDragTab = tabViewModel;
             _pointerPressPosition = e.GetPosition(this);
